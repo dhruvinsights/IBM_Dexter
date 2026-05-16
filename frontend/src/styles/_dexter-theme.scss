@@ -1,0 +1,200 @@
+// =============================================================================
+// IBM Dexter colorful palette overlay.
+// Defines theme-aware accent tokens (--dexter-*) layered on top of the standard
+// Carbon design tokens so cards, badges and headers can look vibrant without
+// breaking light/dark contrast. All colors come from the official IBM Carbon
+// color palette so they remain on-brand.
+// =============================================================================
+
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/motion' as motion;
+
+// --------------------------------------------------------------------------
+// LIGHT theme accents (white, g10)
+// --------------------------------------------------------------------------
+[data-carbon-theme='white'],
+[data-carbon-theme='g10'] {
+  // Category accents (text + low-opacity background)
+  --dexter-security:        #{#da1e28};   // red-60
+  --dexter-security-bg:     #{#fff1f1};   // red-10
+  --dexter-architecture:    #{#0f62fe};   // blue-60
+  --dexter-architecture-bg: #{#edf5ff};   // blue-10
+  --dexter-compliance:      #{#007d79};   // teal-60
+  --dexter-compliance-bg:   #{#d9fbfb};   // teal-10
+  --dexter-knowledge:       #{#8a3ffc};   // purple-60
+  --dexter-knowledge-bg:    #{#f6f2ff};   // purple-10
+  --dexter-agents:          #{#ee5396};   // magenta-50
+  --dexter-agents-bg:       #{#fff0f7};   // magenta-10
+  --dexter-modernization:   #{#1192e8};   // cyan-50
+  --dexter-modernization-bg:#{#e5f6ff};   // cyan-10
+  --dexter-success:         #{#198038};   // green-60
+  --dexter-success-bg:      #{#defbe6};   // green-10
+  --dexter-warning:         #{#b28600};   // yellow-50 darker
+  --dexter-warning-bg:      #{#fcf4d6};   // yellow-10
+
+  // Stat tile bands
+  --dexter-tile-shadow: 0 1px 2px rgba(15, 22, 33, 0.06), 0 2px 6px rgba(15, 22, 33, 0.04);
+  --dexter-tile-shadow-hover: 0 4px 12px rgba(15, 22, 33, 0.10);
+
+  // Header gradient
+  --dexter-header-gradient: linear-gradient(135deg, #f6f2ff 0%, #edf5ff 50%, #d9fbfb 100%);
+  --dexter-header-rule: linear-gradient(90deg, #8a3ffc 0%, #0f62fe 50%, #007d79 100%);
+}
+
+// --------------------------------------------------------------------------
+// DARK theme accents (g90, g100)
+// --------------------------------------------------------------------------
+[data-carbon-theme='g100'],
+[data-carbon-theme='g90'] {
+  --dexter-security:        #{#ff8389};   // red-30
+  --dexter-security-bg:     #{#520408};   // red-90
+  --dexter-architecture:    #{#78a9ff};   // blue-40
+  --dexter-architecture-bg: #{#001d6c};   // blue-90
+  --dexter-compliance:      #{#3ddbd9};   // teal-30
+  --dexter-compliance-bg:   #{#022b30};   // teal-90
+  --dexter-knowledge:       #{#be95ff};   // purple-40
+  --dexter-knowledge-bg:    #{#31135e};   // purple-90
+  --dexter-agents:          #{#ff7eb6};   // magenta-40
+  --dexter-agents-bg:       #{#510224};   // magenta-90
+  --dexter-modernization:   #{#33b1ff};   // cyan-40
+  --dexter-modernization-bg:#{#012749};   // cyan-90
+  --dexter-success:         #{#42be65};   // green-40
+  --dexter-success-bg:      #{#022d0d};   // green-90
+  --dexter-warning:         #{#f1c21b};   // yellow-30
+  --dexter-warning-bg:      #{#3e2c00};   // yellow-90
+
+  --dexter-tile-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --dexter-tile-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  --dexter-header-gradient: linear-gradient(135deg, #31135e 0%, #001d6c 50%, #022b30 100%);
+  --dexter-header-rule: linear-gradient(90deg, #be95ff 0%, #78a9ff 50%, #3ddbd9 100%);
+}
+
+// --------------------------------------------------------------------------
+// Shared utility classes
+// --------------------------------------------------------------------------
+.dexter-page-header {
+  position: relative;
+  margin-bottom: $spacing-07;
+  padding: $spacing-06 $spacing-06 $spacing-06 $spacing-06;
+  border-radius: 8px;
+  background: var(--dexter-header-gradient);
+  overflow: hidden;
+  border: 1px solid var(--cds-border-subtle-01);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--dexter-header-rule);
+  }
+
+  h1 {
+    margin: 0 0 $spacing-03 0;
+    color: var(--cds-text-primary);
+  }
+
+  p {
+    color: var(--cds-text-secondary);
+    margin: 0;
+  }
+}
+
+// Colored stat tile: vivid icon chip + adaptive background
+.dexter-stat-tile {
+  display: flex;
+  align-items: center;
+  gap: $spacing-05;
+  padding: $spacing-05;
+  min-height: 120px;
+  background-color: var(--cds-layer-01);
+  border: 1px solid var(--cds-border-subtle-01);
+  border-radius: 8px;
+  box-shadow: var(--dexter-tile-shadow);
+  transition: transform motion.$duration-fast-02 motion.motion(standard, productive),
+              box-shadow motion.$duration-fast-02 motion.motion(standard, productive);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dexter-tile-shadow-hover);
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--dexter-architecture-bg);
+    color: var(--dexter-architecture);
+    flex-shrink: 0;
+
+    svg { fill: currentColor; }
+  }
+
+  &__value {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--cds-text-primary);
+    line-height: 1.2;
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.32px;
+    color: var(--cds-text-secondary);
+  }
+
+  // Variants
+  &--security    .dexter-stat-tile__icon { background: var(--dexter-security-bg);     color: var(--dexter-security); }
+  &--architecture .dexter-stat-tile__icon { background: var(--dexter-architecture-bg); color: var(--dexter-architecture); }
+  &--compliance  .dexter-stat-tile__icon { background: var(--dexter-compliance-bg);   color: var(--dexter-compliance); }
+  &--knowledge   .dexter-stat-tile__icon { background: var(--dexter-knowledge-bg);    color: var(--dexter-knowledge); }
+  &--agents      .dexter-stat-tile__icon { background: var(--dexter-agents-bg);       color: var(--dexter-agents); }
+  &--modernization .dexter-stat-tile__icon { background: var(--dexter-modernization-bg); color: var(--dexter-modernization); }
+  &--success     .dexter-stat-tile__icon { background: var(--dexter-success-bg);      color: var(--dexter-success); }
+  &--warning     .dexter-stat-tile__icon { background: var(--dexter-warning-bg);      color: var(--dexter-warning); }
+}
+
+// Severity-colored left border for findings
+.dexter-severity-border {
+  border-left-width: 4px;
+  border-left-style: solid;
+  &--critical { border-left-color: var(--dexter-security); }
+  &--high     { border-left-color: var(--dexter-warning); }
+  &--medium   { border-left-color: var(--dexter-modernization); }
+  &--low      { border-left-color: var(--dexter-success); }
+  &--info     { border-left-color: var(--cds-border-strong-01); }
+}
+
+// Card with subtle left-side accent stripe
+.dexter-accent-card {
+  background-color: var(--cds-layer-01);
+  border: 1px solid var(--cds-border-subtle-01);
+  border-left: 4px solid var(--cds-border-strong-01);
+  border-radius: 4px;
+  padding: $spacing-05;
+  transition: box-shadow motion.$duration-fast-02 motion.motion(standard, productive),
+              transform motion.$duration-fast-02 motion.motion(standard, productive);
+
+  &:hover {
+    box-shadow: var(--dexter-tile-shadow-hover);
+    transform: translateY(-1px);
+  }
+
+  &--security      { border-left-color: var(--dexter-security); }
+  &--architecture  { border-left-color: var(--dexter-architecture); }
+  &--compliance    { border-left-color: var(--dexter-compliance); }
+  &--knowledge     { border-left-color: var(--dexter-knowledge); }
+  &--agents        { border-left-color: var(--dexter-agents); }
+  &--modernization { border-left-color: var(--dexter-modernization); }
+  &--success       { border-left-color: var(--dexter-success); }
+  &--warning       { border-left-color: var(--dexter-warning); }
+}
+
+// Made with Bob

@@ -1,0 +1,186 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/motion' as *;
+
+.loading-state {
+  width: 100%;
+  
+  // Card variant
+  &--card {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: $spacing-05;
+  }
+
+  &__card {
+    padding: $spacing-05;
+    background: var(--cds-layer-01);
+    border: 1px solid var(--cds-border-subtle-01);
+    border-radius: 4px;
+    
+    &-header {
+      height: 120px;
+      margin-bottom: $spacing-05;
+      border-radius: 4px;
+    }
+  }
+
+  // Table variant
+  &--table {
+    width: 100%;
+  }
+
+  &__table {
+    width: 100%;
+    
+    &-header {
+      display: grid;
+      grid-template-columns: 30% 20% 25% 15%;
+      gap: $spacing-05;
+      padding: $spacing-05;
+      background: var(--cds-layer-01);
+      border-bottom: 1px solid var(--cds-border-subtle-01);
+    }
+    
+    &-row {
+      display: grid;
+      grid-template-columns: 30% 20% 25% 15%;
+      gap: $spacing-05;
+      padding: $spacing-05;
+      border-bottom: 1px solid var(--cds-border-subtle-01);
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+
+  // Page variant
+  &--page {
+    width: 100%;
+  }
+
+  &__page {
+    &-header {
+      margin-bottom: $spacing-07;
+      padding-bottom: $spacing-05;
+      border-bottom: 1px solid var(--cds-border-subtle-01);
+    }
+    
+    &-content {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-07;
+    }
+    
+    &-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: $spacing-05;
+    }
+    
+    &-charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: $spacing-05;
+    }
+  }
+
+  &__metric {
+    padding: $spacing-05;
+    background: var(--cds-layer-01);
+    border: 1px solid var(--cds-border-subtle-01);
+    border-radius: 4px;
+    
+    &-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: $spacing-04;
+      border-radius: 50%;
+    }
+  }
+
+  &__chart {
+    height: 300px;
+    background: var(--cds-layer-01);
+    border: 1px solid var(--cds-border-subtle-01);
+    border-radius: 4px;
+  }
+
+  // List variant
+  &--list {
+    width: 100%;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-03;
+    
+    &-item {
+      display: flex;
+      align-items: flex-start;
+      gap: $spacing-04;
+      padding: $spacing-04;
+      background: var(--cds-layer-01);
+      border: 1px solid var(--cds-border-subtle-01);
+      border-radius: 4px;
+    }
+    
+    &-icon {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: 4px;
+    }
+    
+    &-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-02;
+    }
+  }
+
+  // Pulse animation for all skeleton elements
+  .cds--skeleton {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .loading-state {
+    &--card {
+      grid-template-columns: 1fr;
+    }
+    
+    &__table {
+      &-header,
+      &-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    &__page {
+      &-metrics {
+        grid-template-columns: 1fr;
+      }
+      
+      &-charts {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}
+
+// Made with Bob

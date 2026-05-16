@@ -1,0 +1,89 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.chart-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $spacing-05;
+    margin-bottom: $spacing-05;
+    padding-bottom: $spacing-04;
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    
+    &-content {
+      flex: 1;
+    }
+  }
+  
+  &__title {
+    @include type-style('heading-03');
+    color: var(--cds-text-primary);
+    margin: 0 0 $spacing-02 0;
+  }
+  
+  &__description {
+    @include type-style('body-compact-01');
+    color: var(--cds-text-secondary);
+    margin: 0;
+  }
+  
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-02;
+    flex-shrink: 0;
+  }
+  
+  &__content {
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  &__loading {
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .chart-container {
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    &__title {
+      @include type-style('heading-compact-02');
+    }
+    
+    &__description {
+      @include type-style('body-compact-01');
+      font-size: 12px;
+    }
+    
+    &__actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    
+    &__content,
+    &__loading {
+      min-height: 250px;
+    }
+  }
+}
+
+// Made with Bob

@@ -40,7 +40,7 @@ This project includes **6 comprehensive skill files** that provide complete impl
 **Key Components**:
 - Document ingestion pipeline (PDF, Markdown, DOCX, Confluence)
 - Embedding generation with OpenAI Ada-002 or Sentence-BERT
-- Vector database integration (Qdrant, Weaviate, ChromaDB)
+- Vector database integration (IBM Db2 via `langchain-db2`)
 - Hybrid search (semantic + keyword with BM25)
 - Multi-level caching strategy (Redis)
 - Incremental update pipeline

@@ -64,7 +64,7 @@ Transform code review from a manual bottleneck into an automated, intelligent pr
 
 #### 📋 Ready to Implement
 - LLM integration (Watsonx, Ollama)
-- Vector database setup (Qdrant/ChromaDB)
+- Vector database setup (IBM Db2 via `langchain-db2`)
 - Complete test suite
 - CI/CD pipeline
 - Deployment configuration
@@ -105,7 +105,7 @@ Transform code review from a manual bottleneck into an automated, intelligent pr
 **Key Components**:
 - Document ingestion (PDF, Markdown, DOCX, Confluence)
 - Embedding generation (OpenAI Ada-002, Sentence-BERT)
-- Vector storage (Qdrant, Weaviate, ChromaDB)
+- Vector storage (IBM Db2 via `langchain-db2`)
 - Hybrid search (semantic + keyword)
 - Multi-level caching
 
@@ -252,7 +252,7 @@ Transform code review from a manual bottleneck into an automated, intelligent pr
 **Backend**:
 - **Framework**: FastAPI 0.104.1
 - **Database**: PostgreSQL with SQLAlchemy
-- **Vector DB**: Qdrant (primary), ChromaDB (fallback)
+- **Vector DB**: IBM Db2 (via `langchain-db2`)
 - **Cache**: Redis
 - **LLM**: IBM Watsonx (primary), Ollama (local)
 - **Testing**: pytest, pytest-asyncio, pytest-cov

@@ -27,7 +27,7 @@ pip install -r requirements.txt
 - ✅ LangChain core
 - ✅ Ollama integration (lightweight)
 - ✅ GitHub/GitLab integration
-- ✅ ChromaDB vector store
+- ✅ IBM Db2 vector store (via `langchain-db2`)
 - ✅ Authentication & security
 - ✅ ~50 packages, ~2-3 minutes install time
 
@@ -126,7 +126,7 @@ IBM Dexter uses specialized AI agents for different aspects of code review:
 ### RAG Pipeline
 
 Retrieval-Augmented Generation for context-aware reviews:
-- Vector store for code embeddings (ChromaDB or IBM Db2)
+- Vector store for code embeddings (IBM Db2 via `langchain-db2`)
 - Semantic search for relevant code patterns
 - Historical review context
 

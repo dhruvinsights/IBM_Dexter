@@ -4,9 +4,13 @@ import logging
 from typing import Any, Dict, Optional, List
 from abc import ABC, abstractmethod
 
-from langchain.llms.base import LLM
-from langchain_community.llms import Ollama
-from langchain.callbacks.manager import CallbackManagerForLLMRun
+from langchain_core.language_models.llms import LLM
+from langchain_core.callbacks.manager import CallbackManagerForLLMRun
+
+try:
+    from langchain_ollama import OllamaLLM as Ollama
+except ImportError:  # pragma: no cover - legacy fallback
+    from langchain_community.llms import Ollama  # type: ignore
 
 from app.core.config import get_settings
 
@@ -50,7 +54,6 @@ class OllamaProvider(BaseLLMProvider):
                 model=settings.ollama_model,
                 temperature=settings.llm_temperature,
                 num_predict=settings.llm_max_tokens,
-                timeout=settings.llm_timeout,
             )
         except Exception as e:
             logger.error(f"Failed to initialize Ollama: {e}")
@@ -285,30 +288,27 @@ class LLMService:
             raise RuntimeError("No LLM provider initialized")
         
         try:
-            # Override settings if provided
-            if temperature is not None:
-                kwargs['temperature'] = temperature
-            if max_tokens is not None:
-                kwargs['max_tokens'] = max_tokens
-            
             logger.debug(f"Generating with provider: {self.provider_name}")
-            response = await self.llm.agenerate([prompt], **kwargs)
-            return response.generations[0][0].text
+            response = await self.llm.ainvoke(prompt)
+            if isinstance(response, str):
+                return response
+            return getattr(response, "content", str(response))
         except Exception as e:
             logger.error(f"Generation failed with {self.provider_name}: {e}")
-            
-            # Try fallback on error
+
             original_provider = self.provider_name
             try:
                 self._try_fallback()
                 if self.provider_name != original_provider:
                     logger.info(f"Retrying with fallback provider: {self.provider_name}")
-                    response = await self.llm.agenerate([prompt], **kwargs)
-                    return response.generations[0][0].text
+                    response = await self.llm.ainvoke(prompt)
+                    if isinstance(response, str):
+                        return response
+                    return getattr(response, "content", str(response))
             except Exception as fallback_error:
                 logger.error(f"Fallback generation also failed: {fallback_error}")
                 raise
-            
+
             raise
     
     def get_provider_info(self) -> Dict[str, Any]:

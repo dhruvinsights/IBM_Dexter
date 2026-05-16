@@ -102,7 +102,7 @@ Dashboard + Analytics UI
 - PostgreSQL
 - Redis
 - Celery / Background Workers
-- Qdrant / Weaviate / ChromaDB
+- IBM Db2 (via `langchain-db2`)
 
 ## AI & LLM Stack
 

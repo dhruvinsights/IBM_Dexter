@@ -1,0 +1,43 @@
+.dexter-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.dexter-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  margin-top: 3rem; // Account for fixed header
+}
+
+.dexter-content-inner {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background-color: var(--cds-background);
+  
+  @media (max-width: 672px) {
+    padding: 1rem;
+  }
+}
+
+// Ensure proper spacing with side nav
+.cds--side-nav {
+  position: fixed;
+  top: 3rem;
+  bottom: 0;
+  z-index: 8000;
+}
+
+.cds--side-nav--expanded ~ .dexter-content {
+  margin-left: 16rem;
+  
+  @media (max-width: 1056px) {
+    margin-left: 0;
+  }
+}
+
+// Made with Bob

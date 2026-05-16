@@ -37,7 +37,7 @@ cd backend
 pip install -r requirements-mvp.txt
 
 # Verify installation
-python -c "import fastapi, ollama, chromadb; print('✅ All dependencies installed!')"
+python -c "import fastapi, ollama, langchain_db2; print('✅ All dependencies installed!')"
 ```
 
 ---
@@ -67,9 +67,14 @@ DEXTER_GITHUB_WEBHOOK_SECRET=your_webhook_secret_here
 DEXTER_OLLAMA_MODEL=llama3
 DEXTER_OLLAMA_BASE_URL=http://localhost:11434
 
-# Vector Database
-DEXTER_VECTOR_DB_TYPE=chromadb
-DEXTER_CHROMADB_PATH=./data/chromadb
+# Vector Database (IBM Db2 via langchain-db2)
+DEXTER_VECTOR_DB_TYPE=db2
+DEXTER_DB2_DATABASE=TESTDB
+DEXTER_DB2_HOSTNAME=your-db2-host
+DEXTER_DB2_PORT=50000
+DEXTER_DB2_UID=your_user
+DEXTER_DB2_PWD=your_password
+DEXTER_DB2_SCHEMA=DEXTER
 
 # Database
 DEXTER_DATABASE_URL=sqlite:///./dexter.db
@@ -283,8 +288,8 @@ ngrok http 8000
 
 ### Issue: "Vector store not found"
 ```bash
-# Reinitialize ChromaDB
-rm -rf data/chromadb
+# Verify Db2 connectivity and re-initialize the vector store. db2vs will
+# auto-create the required tables on first use.
 python -c "from app.rag.vector_store_factory import VectorStoreFactory; VectorStoreFactory.create_vector_store()"
 ```
 
@@ -334,12 +339,17 @@ python --version  # Should be 3.9+
 # Required
 DEXTER_GITHUB_TOKEN=ghp_xxx
 DEXTER_OLLAMA_MODEL=llama3
-DEXTER_VECTOR_DB_TYPE=chromadb
+DEXTER_VECTOR_DB_TYPE=db2
+DEXTER_DB2_DATABASE=TESTDB
+DEXTER_DB2_HOSTNAME=your-db2-host
+DEXTER_DB2_UID=your_user
+DEXTER_DB2_PWD=your_password
 
 # Optional (has defaults)
 DEXTER_API_PORT=8000
 DEXTER_DATABASE_URL=sqlite:///./dexter.db
-DEXTER_CHROMADB_PATH=./data/chromadb
+DEXTER_DB2_SCHEMA=DEXTER
+DEXTER_DB2_TABLE_PREFIX=DEXTER
 ```
 
 ### Advanced Configuration

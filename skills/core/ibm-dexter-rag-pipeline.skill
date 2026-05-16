@@ -13,7 +13,7 @@ Document Sources → Ingestion → Preprocessing → Embedding → Vector DB →
 ### Core Components
 1. **Document Ingestion Service**: Extract content from PDFs, Markdown, DOCX, Confluence
 2. **Embedding Service**: Convert text to vectors using OpenAI Ada-002, Sentence-BERT, or Cohere
-3. **Vector Store**: Store embeddings in Qdrant, Weaviate, or ChromaDB
+3. **Vector Store**: Store embeddings in IBM Db2 via the official `langchain-db2` integration
 4. **Retrieval Service**: Semantic search, keyword search, hybrid search
 5. **Context Provider**: Deliver relevant context to multi-agent system
 
@@ -117,14 +117,12 @@ class EmbeddingService:
 
 ## Vector Database Integration
 
-### Database Comparison
+### Vector Store
 
-| Feature | Qdrant | Weaviate | ChromaDB |
-|---------|--------|----------|----------|
-| Open Source | ✅ | ✅ | ✅ |
-| Filtering | ✅✅✅ | ✅✅ | ✅ |
-| Hybrid Search | ✅ | ✅ | ❌ |
-| Ease of Use | ✅✅ | ✅✅ | ✅✅✅ |
+IBM Dexter uses **IBM Db2** as the sole vector store via the official
+`langchain-db2` package (with the `db2vs` component for automatic table
+creation and management). All references to alternative vector databases
+have been removed from this project — use Db2 only.
 
 ### Qdrant Integration
 ```python
@@ -528,7 +526,7 @@ class HistoricalContextProvider:
 
 - [ ] Set up document ingestion pipeline
 - [ ] Configure embedding service (OpenAI/Sentence-BERT)
-- [ ] Deploy vector database (Qdrant/Weaviate/ChromaDB)
+- [ ] Configure IBM Db2 vector database (via `langchain-db2`)
 - [ ] Implement semantic search
 - [ ] Add keyword search (BM25)
 - [ ] Implement hybrid search with RRF

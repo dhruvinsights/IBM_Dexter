@@ -1,0 +1,114 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: $spacing-07;
+  
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 500px;
+  }
+  
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 96px;
+    height: 96px;
+    margin-bottom: $spacing-06;
+    border-radius: 50%;
+    background: var(--cds-layer-01);
+    
+    svg {
+      color: var(--cds-icon-secondary);
+    }
+  }
+  
+  &__title {
+    @include type-style('heading-04');
+    margin-bottom: $spacing-04;
+    color: var(--cds-text-primary);
+  }
+  
+  &__message {
+    @include type-style('body-01');
+    margin-bottom: $spacing-06;
+    color: var(--cds-text-secondary);
+    line-height: 1.5;
+  }
+  
+  &__action {
+    margin-top: $spacing-02;
+  }
+  
+  // Variant-specific styling
+  &--no-data {
+    .empty-state__icon {
+      background: rgba(var(--cds-support-info), 0.1);
+      
+      svg {
+        color: var(--cds-support-info);
+      }
+    }
+  }
+  
+  &--no-results {
+    .empty-state__icon {
+      background: rgba(var(--cds-support-warning), 0.1);
+      
+      svg {
+        color: var(--cds-support-warning);
+      }
+    }
+  }
+  
+  &--no-access {
+    .empty-state__icon {
+      background: rgba(var(--cds-support-error), 0.1);
+      
+      svg {
+        color: var(--cds-support-error);
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .empty-state {
+    min-height: 300px;
+    padding: $spacing-05;
+    
+    &__content {
+      max-width: 100%;
+    }
+    
+    &__icon {
+      width: 80px;
+      height: 80px;
+      
+      svg {
+        width: 48px;
+        height: 48px;
+      }
+    }
+    
+    &__title {
+      @include type-style('heading-03');
+    }
+    
+    &__message {
+      @include type-style('body-compact-01');
+    }
+  }
+}
+
+// Made with Bob

@@ -29,7 +29,7 @@ IBM Dexter is an advanced AI code reviewer that leverages multiple specialized A
 - Node.js 18+ and npm/yarn
 - Python 3.9+ (for skill auto-loader)
 - API keys for LLM providers (OpenAI, Anthropic, etc.)
-- Vector database (Pinecone, Chroma, or similar)
+- IBM Db2 vector database (via `langchain-db2`)
 
 ### Installation
 
@@ -309,7 +309,7 @@ For detailed architecture, see [IBM_DEXTER_ARCHITECTURE_PLAN.md](docs/architectu
 - **Runtime**: Node.js
 - **API**: Next.js API Routes
 - **AI Framework**: LangChain / LangGraph
-- **Vector DB**: Pinecone / Chroma
+- **Vector DB**: IBM Db2 (via `langchain-db2`)
 
 ### AI/ML
 - **LLMs**: Ollama (Llama 3), IBM Watsonx, OpenAI, Anthropic, Cohere

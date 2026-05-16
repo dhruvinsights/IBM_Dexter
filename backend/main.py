@@ -7,7 +7,16 @@ from typing import AsyncIterator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.endpoints import auth, pull_requests, repositories, reviews, webhooks
+from app.api.v1.endpoints import (
+    agents,
+    auth,
+    knowledge_base,
+    pull_requests,
+    repositories,
+    reviews,
+    settings as settings_endpoints,
+    webhooks,
+)
 from app.core.config import get_settings
 
 logging.basicConfig(level=logging.INFO)
@@ -54,5 +63,8 @@ app.include_router(repositories.router, prefix="/api/v1", tags=["Repositories"])
 app.include_router(pull_requests.router, prefix="/api/v1", tags=["Pull Requests"])
 app.include_router(reviews.router, prefix="/api/v1", tags=["Reviews"])
 app.include_router(webhooks.router, prefix="/api/v1", tags=["Webhooks"])
+app.include_router(knowledge_base.router, prefix="/api/v1", tags=["Knowledge Base"])
+app.include_router(agents.router, prefix="/api/v1", tags=["AI Agents"])
+app.include_router(settings_endpoints.router, prefix="/api/v1", tags=["Settings"])
 
 # Made with Bob

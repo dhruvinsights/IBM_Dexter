@@ -1,0 +1,158 @@
+.dexter-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 8001;
+  background-color: var(--cds-layer-01);
+  border-bottom: 1px solid var(--cds-border-subtle-01);
+  
+  .dexter-header__context {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem;
+    
+    @media (max-width: 672px) {
+      display: none;
+    }
+  }
+  
+  .dexter-header__search {
+    flex: 1;
+    max-width: 400px;
+    margin: 0 1rem;
+    
+    @media (max-width: 1056px) {
+      display: none;
+    }
+    
+    .cds--search {
+      background-color: var(--cds-field-01);
+    }
+  }
+  
+  .dexter-header__ai-status {
+    position: relative;
+    
+    .status-indicator {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      border-radius: 50%;
+      background-color: var(--cds-layer-01);
+      
+      &.status-active {
+        color: var(--cds-support-success);
+      }
+      
+      &.status-warning {
+        color: var(--cds-support-warning);
+      }
+      
+      &.status-error {
+        color: var(--cds-support-error);
+      }
+    }
+  }
+  
+  .notification-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--cds-text-on-color);
+    background-color: var(--cds-support-error);
+    border-radius: 8px;
+  }
+}
+
+.notification-panel,
+.user-panel {
+  padding: 1rem;
+  min-width: 320px;
+  
+  .notification-panel__title,
+  h4, h5 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cds-text-primary);
+  }
+  
+  .notification-item {
+    padding: 0.5rem 0;
+    
+    strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+      color: var(--cds-text-primary);
+    }
+    
+    p {
+      margin-bottom: 0.25rem;
+      font-size: 0.75rem;
+      color: var(--cds-text-secondary);
+    }
+    
+    .notification-time {
+      font-size: 0.75rem;
+      color: var(--cds-text-placeholder);
+    }
+  }
+}
+
+.user-panel {
+  .user-panel__info {
+    padding-bottom: 1rem;
+    
+    strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 1rem;
+      color: var(--cds-text-primary);
+    }
+    
+    p {
+      font-size: 0.875rem;
+      color: var(--cds-text-secondary);
+      margin-bottom: 0.125rem;
+    }
+    
+    .user-role {
+      font-size: 0.75rem;
+      color: var(--cds-text-placeholder);
+    }
+  }
+  
+  .integration-status {
+    padding: 1rem 0;
+    
+    h5 {
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .integration-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      font-size: 0.875rem;
+      
+      span:first-child {
+        color: var(--cds-text-secondary);
+      }
+    }
+  }
+}
+
+// Made with Bob

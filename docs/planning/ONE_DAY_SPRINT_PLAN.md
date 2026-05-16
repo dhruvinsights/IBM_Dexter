@@ -91,7 +91,7 @@ Build a functional MVP of IBM Dexter AI Code Reviewer with multi-agent AI capabi
 **Focus**: Build retrieval-augmented generation system
 
 **Tasks**:
-- [ ] Set up vector database (Pinecone/Chroma)
+- [ ] Set up vector database (IBM Db2 via `langchain-db2`)
 - [ ] Implement document embedding pipeline
 - [ ] Create semantic search functionality
 - [ ] Build context retrieval system

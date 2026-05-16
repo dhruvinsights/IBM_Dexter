@@ -52,20 +52,6 @@ try:
 except ImportError:
     DB2_AVAILABLE = False
 
-# Check for Qdrant availability
-try:
-    import qdrant_client
-    QDRANT_AVAILABLE = True
-except ImportError:
-    QDRANT_AVAILABLE = False
-
-# Check for Weaviate availability
-try:
-    import weaviate
-    WEAVIATE_AVAILABLE = True
-except ImportError:
-    WEAVIATE_AVAILABLE = False
-
 # Check for Celery availability
 try:
     import celery
@@ -142,7 +128,7 @@ class Settings(BaseSettings):
     llm_timeout: int = 60
 
     # Vector Database Configuration
-    vector_db_type: str = "inmemory"  # Options: inmemory, db2, qdrant, weaviate, chromadb
+    vector_db_type: str = "db2"  # Options: inmemory, db2 (IBM Db2 via langchain-db2)
     use_langchain_db2: bool = True  # Use LangChain's official Db2 integration (db2vs component)
     
     # IBM Db2 Vector Database Configuration
@@ -188,9 +174,6 @@ class Settings(BaseSettings):
         """Check if a specific vector database is available."""
         availability_map = {
             "db2": DB2_AVAILABLE,
-            "qdrant": QDRANT_AVAILABLE,
-            "weaviate": WEAVIATE_AVAILABLE,
-            "chromadb": True,  # ChromaDB is in minimal requirements
             "inmemory": True,  # In-memory is always available
         }
         return availability_map.get(db_type.lower(), False)
@@ -212,13 +195,9 @@ class Settings(BaseSettings):
 
     def get_available_vector_dbs(self) -> list[str]:
         """Get list of available vector databases."""
-        dbs = ["inmemory", "chromadb"]  # Always available
+        dbs = ["inmemory"]  # In-memory is always available
         if DB2_AVAILABLE:
             dbs.append("db2")
-        if QDRANT_AVAILABLE:
-            dbs.append("qdrant")
-        if WEAVIATE_AVAILABLE:
-            dbs.append("weaviate")
         return dbs
 
 

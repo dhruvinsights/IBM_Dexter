@@ -1,0 +1,192 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.security-page {
+  padding: $spacing-06;
+  min-height: 100vh;
+
+  .page-header {
+    margin-bottom: $spacing-07;
+
+    &__title {
+      display: flex;
+      align-items: center;
+      gap: $spacing-04;
+      margin-bottom: $spacing-03;
+
+      h1 {
+        @include type-style('heading-05');
+        margin: 0;
+      }
+
+      svg {
+        fill: var(--cds-icon-primary);
+      }
+    }
+
+    &__description {
+      @include type-style('body-01');
+      color: var(--cds-text-secondary);
+      margin: 0;
+    }
+  }
+
+  .security-grid {
+    .cds--tile {
+      height: 100%;
+    }
+  }
+
+  .metric-tile {
+    display: flex;
+    align-items: center;
+    gap: $spacing-05;
+    padding: $spacing-05;
+    min-height: 120px;
+
+    &__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+
+      svg {
+        flex-shrink: 0;
+      }
+    }
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-02;
+    }
+
+    &__value {
+      @include type-style('heading-05');
+      color: var(--cds-text-primary);
+    }
+
+    &__label {
+      @include type-style('label-01');
+      color: var(--cds-text-secondary);
+    }
+
+    &--critical {
+      .metric-tile__icon {
+        background: rgba(218, 30, 40, 0.1);
+
+        svg {
+          fill: var(--cds-support-error);
+        }
+      }
+    }
+
+    &--high {
+      .metric-tile__icon {
+        background: rgba(238, 54, 143, 0.1);
+
+        svg {
+          fill: #ee368f;
+        }
+      }
+    }
+
+    &--medium {
+      .metric-tile__icon {
+        background: rgba(136, 71, 255, 0.1);
+
+        svg {
+          fill: #8847ff;
+        }
+      }
+    }
+
+    &--low {
+      .metric-tile__icon {
+        background: rgba(36, 161, 72, 0.1);
+
+        svg {
+          fill: var(--cds-support-success);
+        }
+      }
+    }
+  }
+
+  .chart-tile {
+    padding: $spacing-06;
+    min-height: 350px;
+  }
+
+  .section-tile {
+    padding: $spacing-06;
+
+    .cds--tabs {
+      .cds--tab-content {
+        padding: $spacing-05 0;
+      }
+    }
+  }
+
+  .expanded-row-content {
+    padding: $spacing-05;
+    background: var(--cds-layer-01);
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-05;
+
+    .expanded-row-section {
+      h4 {
+        @include type-style('heading-compact-01');
+        margin-bottom: $spacing-03;
+        color: var(--cds-text-primary);
+      }
+
+      p {
+        @include type-style('body-01');
+        color: var(--cds-text-secondary);
+        margin: 0;
+      }
+    }
+  }
+
+  .cds--data-table-container {
+    .cds--data-table {
+      td {
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Dark theme adjustments
+[data-carbon-theme='g100'],
+[data-carbon-theme='g90'] {
+  .security-page {
+    .expanded-row-content {
+      background: var(--cds-layer-02);
+    }
+
+    .metric-tile {
+      &--critical .metric-tile__icon {
+        background: rgba(255, 131, 131, 0.15);
+      }
+
+      &--high .metric-tile__icon {
+        background: rgba(255, 131, 180, 0.15);
+      }
+
+      &--medium .metric-tile__icon {
+        background: rgba(168, 131, 255, 0.15);
+      }
+
+      &--low .metric-tile__icon {
+        background: rgba(66, 190, 101, 0.15);
+      }
+    }
+  }
+}
+
+// Made with Bob

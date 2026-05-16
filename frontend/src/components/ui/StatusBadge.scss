@@ -1,0 +1,84 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-02;
+  
+  // Pulse animation for in-progress status
+  &--pulse {
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      animation: status-pulse 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+  }
+  
+  // Status-specific styling
+  &--success {
+    &.status-badge--pulse::before {
+      background: rgba(var(--cds-support-success), 0.3);
+    }
+  }
+  
+  &--warning {
+    &.status-badge--pulse::before {
+      background: rgba(var(--cds-support-warning), 0.3);
+    }
+  }
+  
+  &--error {
+    &.status-badge--pulse::before {
+      background: rgba(var(--cds-support-error), 0.3);
+    }
+  }
+  
+  &--info {
+    &.status-badge--pulse::before {
+      background: rgba(var(--cds-support-info), 0.3);
+    }
+  }
+  
+  &--in-progress {
+    &.status-badge--pulse::before {
+      background: rgba(var(--cds-support-info), 0.3);
+    }
+    
+    // Rotate icon for in-progress
+    svg {
+      animation: status-rotate 2s linear infinite;
+    }
+  }
+}
+
+@keyframes status-pulse {
+  0%, 100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@keyframes status-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Made with Bob

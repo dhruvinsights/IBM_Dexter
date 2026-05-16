@@ -4,18 +4,28 @@ import { Content, Theme } from '@carbon/react';
 import AppHeader from './AppHeader';
 import SideNav from './SideNav';
 import useThemeStore from '../../store/useThemeStore';
+import './MainLayout.scss';
 
 const MainLayout = () => {
-  const [isSideNavExpanded] = useState(false);
+  const [isSideNavExpanded, setIsSideNavExpanded] = useState(true);
   const { theme } = useThemeStore();
+
+  const toggleSideNav = () => {
+    setIsSideNavExpanded(!isSideNavExpanded);
+  };
 
   return (
     <Theme theme={theme}>
-      <div className="app-container" data-carbon-theme={theme}>
-        <AppHeader />
-        <SideNav isOpen={isSideNavExpanded} />
-        <Content className="main-content">
-          <Outlet />
+      <div className="dexter-shell" data-carbon-theme={theme}>
+        <AppHeader onToggleSideNav={toggleSideNav} />
+        <SideNav
+          isOpen={isSideNavExpanded}
+          onToggle={toggleSideNav}
+        />
+        <Content className="dexter-content">
+          <div className="dexter-content-inner">
+            <Outlet />
+          </div>
         </Content>
       </div>
     </Theme>

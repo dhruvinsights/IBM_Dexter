@@ -1,0 +1,112 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.reviews-page {
+  padding: $spacing-06;
+
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $spacing-05;
+    flex-wrap: wrap;
+    margin-bottom: $spacing-07;
+
+    h1 {
+      @include type-style('heading-05');
+      margin: 0 0 $spacing-03 0;
+      color: var(--cds-text-primary);
+    }
+
+    .page-subtitle {
+      @include type-style('body-01');
+      color: var(--cds-text-secondary);
+      margin: 0;
+      max-width: 720px;
+    }
+  }
+
+  .reviews-empty {
+    padding: $spacing-09 $spacing-06;
+    text-align: center;
+
+    svg { fill: var(--cds-icon-secondary); margin-bottom: $spacing-04; }
+    h3 { @include type-style('heading-03'); margin: 0 0 $spacing-03 0; }
+    p { @include type-style('body-01'); color: var(--cds-text-secondary); margin: 0; }
+  }
+
+  .review-card {
+    padding: $spacing-06;
+    margin-bottom: $spacing-05;
+    border-left: 4px solid var(--dexter-architecture);
+    box-shadow: var(--dexter-tile-shadow);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: var(--dexter-tile-shadow-hover);
+      transform: translateY(-1px);
+    }
+
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: $spacing-05;
+      flex-wrap: wrap;
+      margin-bottom: $spacing-05;
+
+      h3 {
+        @include type-style('heading-03');
+        margin: 0 0 $spacing-03 0;
+        a { color: inherit; }
+      }
+    }
+
+    &__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-03;
+    }
+
+    &__time {
+      display: flex;
+      align-items: center;
+      gap: $spacing-02;
+      color: var(--cds-text-secondary);
+      @include type-style('label-01');
+
+      svg { fill: var(--cds-icon-secondary); }
+    }
+  }
+
+  .review-finding {
+    padding: $spacing-04;
+    background: var(--cds-layer-01);
+    border-radius: 4px;
+    margin-bottom: $spacing-03;
+    border-left: 4px solid var(--cds-border-strong-01);
+
+    &--critical { border-left-color: var(--dexter-security); }
+    &--high     { border-left-color: var(--dexter-warning); }
+    &--medium   { border-left-color: var(--dexter-modernization); }
+    &--low      { border-left-color: var(--dexter-success); }
+
+    &__header {
+      display: flex;
+      gap: $spacing-03;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: $spacing-03;
+    }
+
+    &__rec {
+      color: var(--cds-text-secondary);
+      margin: $spacing-02 0 0 0;
+    }
+
+    p { margin: 0; @include type-style('body-01'); }
+  }
+}
+
+// Made with Bob

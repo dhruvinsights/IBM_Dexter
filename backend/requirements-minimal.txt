@@ -42,16 +42,14 @@ python-dateutil==2.8.2
 PyGithub==2.1.1
 python-gitlab==4.2.0
 
-# Vector Store (lightweight alternative to Db2)
-chromadb==0.4.18
+# Vector Store - IBM Db2 via official LangChain integration
+langchain-db2
+ibm-db>=3.2.0
+ibm-db-sa>=0.4.0
 
 # ============================================================================
 # Optional: Uncomment if needed
 # ============================================================================
-
-# IBM Db2 Integration (uncomment if using Db2 instead of ChromaDB)
-# ibm-db==3.2.0
-# ibm-db-sa==0.4.0
 
 # Background Tasks (uncomment if using Celery)
 # celery==5.3.4

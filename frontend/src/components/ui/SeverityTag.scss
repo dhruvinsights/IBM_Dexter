@@ -1,0 +1,31 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.severity-tag {
+  @include type-style('label-01');
+  font-weight: 600;
+  
+  // Severity-specific styling with IBM color palette
+  &--critical {
+    // Critical uses red tag from Carbon
+    border-left: 3px solid #da1e28;
+  }
+  
+  &--high {
+    // High uses magenta tag from Carbon
+    border-left: 3px solid #ee5396;
+  }
+  
+  &--medium {
+    // Medium uses yellow tag from Carbon
+    border-left: 3px solid #f1c21b;
+  }
+  
+  &--low {
+    // Low uses gray tag from Carbon
+    border-left: 3px solid #8d8d8d;
+  }
+}
+
+// Made with Bob

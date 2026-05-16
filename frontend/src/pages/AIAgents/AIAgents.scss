@@ -1,0 +1,398 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.ai-agents-page {
+  padding: $spacing-06;
+  min-height: 100vh;
+
+  .page-header {
+    margin-bottom: $spacing-07;
+
+    &__title {
+      display: flex;
+      align-items: center;
+      gap: $spacing-04;
+      margin-bottom: $spacing-03;
+
+      h1 {
+        @include type-style('heading-05');
+        margin: 0;
+      }
+
+      svg {
+        fill: var(--cds-icon-primary);
+      }
+    }
+
+    &__description {
+      @include type-style('body-01');
+      color: var(--cds-text-secondary);
+      margin: 0;
+    }
+  }
+
+  .ai-agents-grid {
+    .cds--tile {
+      height: 100%;
+    }
+  }
+
+  .section-tile {
+    padding: $spacing-06;
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: $spacing-05;
+
+      &__title {
+        display: flex;
+        align-items: center;
+        gap: $spacing-03;
+
+        h2 {
+          @include type-style('heading-03');
+          margin: 0;
+        }
+
+        svg {
+          fill: var(--cds-icon-primary);
+        }
+      }
+    }
+  }
+
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: $spacing-05;
+    margin-top: $spacing-05;
+  }
+
+  .agent-card {
+    background: var(--cds-layer-01);
+    border: 1px solid var(--cds-border-subtle-01);
+    border-left: 4px solid var(--dexter-architecture);
+    border-radius: 8px;
+    padding: $spacing-05;
+    box-shadow: var(--dexter-tile-shadow);
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: var(--dexter-tile-shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: $spacing-04;
+
+      .agent-card__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--cds-layer-02);
+
+        svg {
+          fill: var(--cds-icon-primary);
+        }
+      }
+
+      .agent-card__status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    &__body {
+      margin-bottom: $spacing-04;
+    }
+
+    &__name {
+      @include type-style('heading-compact-01');
+      margin: 0 0 $spacing-03 0;
+      color: var(--cds-text-primary);
+    }
+
+    &__description {
+      @include type-style('body-compact-01');
+      color: var(--cds-text-secondary);
+      margin: 0 0 $spacing-04 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    &__metrics {
+      display: flex;
+      justify-content: space-around;
+      padding: $spacing-04;
+      background: var(--cds-layer-02);
+      border-radius: 4px;
+
+      .metric {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: $spacing-02;
+
+        &__label {
+          @include type-style('label-01');
+          color: var(--cds-text-secondary);
+        }
+
+        &__value {
+          @include type-style('heading-compact-01');
+          color: var(--cds-text-primary);
+        }
+      }
+    }
+
+    &__footer {
+      padding-top: $spacing-04;
+      border-top: 1px solid var(--cds-border-subtle-01);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .confidence-score {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-02;
+
+        &__label {
+          @include type-style('label-01');
+          color: var(--cds-text-secondary);
+        }
+
+        &__value {
+          @include type-style('heading-compact-01');
+          color: var(--cds-text-primary);
+        }
+      }
+
+      .last-activity {
+        display: flex;
+        align-items: center;
+        gap: $spacing-02;
+        @include type-style('label-01');
+        color: var(--cds-text-secondary);
+
+        svg {
+          fill: var(--cds-icon-secondary);
+        }
+      }
+    }
+
+    &--active {
+      border-color: var(--dexter-success);
+
+      .agent-card__icon {
+        background: var(--dexter-success-bg);
+
+        svg {
+          fill: var(--dexter-success);
+        }
+      }
+    }
+
+    &--idle {
+      border-color: var(--dexter-knowledge);
+
+      .agent-card__icon {
+        background: var(--dexter-knowledge-bg);
+
+        svg {
+          fill: var(--dexter-knowledge);
+        }
+      }
+    }
+
+    &--processing {
+      border-color: var(--dexter-warning);
+
+      .agent-card__icon {
+        background: var(--dexter-warning-bg);
+
+        svg {
+          fill: var(--dexter-warning);
+        }
+      }
+    }
+
+    // Category accent for the left border stripe + icon color
+    &--cat-security {
+      border-left-color: var(--dexter-security);
+      .agent-card__icon { background: var(--dexter-security-bg); svg { fill: var(--dexter-security); } }
+    }
+    &--cat-architecture {
+      border-left-color: var(--dexter-architecture);
+      .agent-card__icon { background: var(--dexter-architecture-bg); svg { fill: var(--dexter-architecture); } }
+    }
+    &--cat-compliance {
+      border-left-color: var(--dexter-compliance);
+      .agent-card__icon { background: var(--dexter-compliance-bg); svg { fill: var(--dexter-compliance); } }
+    }
+    &--cat-ibm-modernization,
+    &--cat-modernization {
+      border-left-color: var(--dexter-modernization);
+      .agent-card__icon { background: var(--dexter-modernization-bg); svg { fill: var(--dexter-modernization); } }
+    }
+    &--cat-enterprise-governance,
+    &--cat-governance {
+      border-left-color: var(--dexter-knowledge);
+      .agent-card__icon { background: var(--dexter-knowledge-bg); svg { fill: var(--dexter-knowledge); } }
+    }
+  }
+
+  .status-icon {
+    &--active     { fill: var(--dexter-success); }
+    &--idle       { fill: var(--dexter-knowledge); }
+    &--processing { fill: var(--dexter-warning); }
+  }
+
+  .activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-05;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: $spacing-03;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--cds-layer-01);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--cds-border-subtle-01);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--cds-border-subtle-02);
+      }
+    }
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: $spacing-04;
+    padding: $spacing-04;
+    background: var(--cds-layer-01);
+    border-left: 3px solid var(--cds-border-interactive);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--cds-layer-02);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &__time {
+      @include type-style('label-01');
+      color: var(--cds-text-secondary);
+      min-width: 80px;
+      flex-shrink: 0;
+    }
+
+    &__content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-03;
+    }
+
+    &__header {
+      display: flex;
+      gap: $spacing-02;
+      flex-wrap: wrap;
+    }
+
+    &__action {
+      @include type-style('body-compact-01');
+      color: var(--cds-text-primary);
+      margin: 0;
+      font-weight: 600;
+    }
+
+    &__result {
+      @include type-style('body-compact-01');
+      color: var(--cds-text-secondary);
+      margin: 0;
+    }
+  }
+
+  .config-section {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-04;
+    padding: $spacing-04 0;
+
+    .config-item {
+      display: flex;
+      align-items: center;
+    }
+
+    .config-help {
+      @include type-style('helper-text-01');
+      color: var(--cds-text-secondary);
+      margin: $spacing-03 0 0 0;
+    }
+
+    .frequency-options {
+      display: flex;
+      gap: $spacing-03;
+      flex-wrap: wrap;
+
+      .cds--tag {
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+}
+
+// Dark-theme polish: deeper layer for cards/timeline so the colored borders
+// pop against the background. All accent colors come from --dexter-* which
+// already adapt per theme.
+[data-carbon-theme='g100'],
+[data-carbon-theme='g90'] {
+  .ai-agents-page {
+    .agent-card {
+      background: var(--cds-layer-02);
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      }
+
+      &__icon { background: var(--cds-layer-03); }
+      &__metrics { background: var(--cds-layer-03); }
+    }
+
+    .timeline-item {
+      background: var(--cds-layer-02);
+
+      &:hover {
+        background: var(--cds-layer-03);
+      }
+    }
+  }
+}
+
+// Made with Bob

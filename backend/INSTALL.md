@@ -107,7 +107,7 @@ The minimal installation (`requirements.txt`) includes:
 ### AI & LLM (~15 packages)
 - LangChain core (no heavy providers)
 - Ollama client (lightweight)
-- ChromaDB (vector store)
+- IBM Db2 vector store (via `langchain-db2`)
 
 ### Integrations (~10 packages)
 - PyGithub (GitHub API)
@@ -148,19 +148,22 @@ LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### Add IBM Db2 Vector Store
+### Configure IBM Db2 Vector Store
+
+`langchain-db2`, `ibm-db`, and `ibm-db-sa` are installed by default in
+`requirements.txt`. Just point Dexter at your Db2 instance via `.env`:
+
 ```bash
-pip install langchain-db2 ibm-db ibm-db-sa
+DEXTER_VECTOR_DB_TYPE=db2
+DEXTER_DB2_DATABASE=TESTDB
+DEXTER_DB2_HOSTNAME=your-db2-host
+DEXTER_DB2_PORT=50000
+DEXTER_DB2_UID=your-username
+DEXTER_DB2_PWD=your-password
+DEXTER_DB2_SCHEMA=DEXTER
 ```
 
-Then update `.env`:
-```bash
-VECTOR_DB_TYPE=db2
-DB2_DATABASE=TESTDB
-DB2_HOSTNAME=your-db2-host
-DB2_UID=your-username
-DB2_PWD=your-password
-```
+The `db2vs` component will auto-create the required vector tables on first use.
 
 ### Add Background Tasks
 ```bash
@@ -253,7 +256,7 @@ The application gracefully handles missing optional packages.
 | **Packages** | ~50 | ~200+ |
 | **Size** | ~200 MB | ~2+ GB |
 | **LLM Support** | Ollama only | All providers |
-| **Vector DB** | ChromaDB | All databases |
+| **Vector DB** | IBM Db2 (`langchain-db2`) | IBM Db2 (`langchain-db2`) |
 | **Use Case** | Development, Testing | Production, All features |
 
 ---
@@ -266,7 +269,7 @@ pip install -r requirements.txt
 ```
 - Fast installation
 - Ollama for local LLM
-- ChromaDB for vectors
+- IBM Db2 for vectors (via `langchain-db2`)
 - SQLite for database
 - Perfect for learning and testing
 

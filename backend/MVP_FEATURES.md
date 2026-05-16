@@ -22,7 +22,7 @@ A GitHub bot that automatically reviews pull requests using AI, providing:
 - ✅ Inline code comments
 
 ### 3. Company Knowledge (RAG)
-- ✅ Vector database (ChromaDB for MVP)
+- ✅ Vector database (IBM Db2 via `langchain-db2`)
 - ✅ Company docs ingestion
 - ✅ Architecture patterns retrieval
 - ✅ Context-aware suggestions
@@ -61,9 +61,9 @@ A GitHub bot that automatically reviews pull requests using AI, providing:
 ### Backend (Minimal)
 - FastAPI (API server)
 - Ollama + Llama 3 (AI)
-- ChromaDB (vector store - simpler than Db2 for MVP)
+- IBM Db2 vector store (via `langchain-db2`)
 - PyGithub (GitHub API)
-- SQLite (database)
+- SQLite (application database)
 
 ### No Frontend Needed for MVP
 - Use GitHub UI for viewing reviews
@@ -85,7 +85,8 @@ Create `backend/requirements-mvp.txt` with only essentials:
 - fastapi
 - uvicorn
 - ollama
-- chromadb (simpler than Db2)
+- langchain-db2 (IBM Db2 vector store)
+- ibm-db / ibm-db-sa (Db2 drivers)
 - PyGithub
 - langchain-core
 - python-dotenv
@@ -164,7 +165,7 @@ Based on our architecture docs, this change aligns with our microservices patter
 - Formats review output
 
 #### 4. RAG Pipeline (`app/rag/`)
-- ChromaDB vector store
+- IBM Db2 vector store (via `langchain-db2`)
 - Document ingestion
 - Context retrieval for reviews
 

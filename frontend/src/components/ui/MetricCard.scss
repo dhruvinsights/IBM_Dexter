@@ -1,0 +1,152 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+@use '@carbon/react/scss/motion' as *;
+
+.metric-card {
+  height: 100%;
+  transition: transform $duration-fast-02 motion(standard, productive),
+              box-shadow $duration-fast-02 motion(standard, productive);
+  
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-03;
+    margin-bottom: $spacing-05;
+  }
+  
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--cds-layer-accent-01);
+    
+    svg {
+      color: var(--cds-icon-primary);
+    }
+  }
+  
+  &__title {
+    @include type-style('label-01');
+    color: var(--cds-text-secondary);
+    margin: 0;
+    flex: 1;
+  }
+  
+  &__body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $spacing-04;
+  }
+  
+  &__value {
+    @include type-style('heading-05');
+    color: var(--cds-text-primary);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  &__skeleton {
+    width: 120px;
+    height: 36px;
+    background: $skeleton-background;
+    border-radius: 4px;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+  
+  &__trend {
+    display: flex;
+    align-items: center;
+    gap: $spacing-02;
+    @include type-style('label-01');
+    font-weight: 600;
+    padding: $spacing-02 $spacing-03;
+    border-radius: 4px;
+    
+    &--up {
+      color: var(--cds-support-success);
+      background: rgba(var(--cds-support-success), 0.1);
+      
+      svg {
+        color: var(--cds-support-success);
+      }
+    }
+    
+    &--down {
+      color: var(--cds-support-error);
+      background: rgba(var(--cds-support-error), 0.1);
+      
+      svg {
+        color: var(--cds-support-error);
+      }
+    }
+  }
+  
+  // Clickable variant
+  &--clickable {
+    cursor: pointer;
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    &:active {
+      transform: translateY(-2px);
+    }
+    
+    &:focus {
+      outline: 2px solid var(--cds-focus);
+      outline-offset: 2px;
+    }
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .metric-card {
+    &__header {
+      margin-bottom: $spacing-04;
+    }
+    
+    &__icon {
+      width: 32px;
+      height: 32px;
+      
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    
+    &__title {
+      @include type-style('label-01');
+      font-size: 12px;
+    }
+    
+    &__value {
+      @include type-style('heading-04');
+    }
+    
+    &__body {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $spacing-03;
+    }
+  }
+}
+
+// Made with Bob

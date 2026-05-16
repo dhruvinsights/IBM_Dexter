@@ -38,10 +38,7 @@ ibm-db-sa>=0.4.0  # SQLAlchemy adapter for Db2
 # Use latest version (1.0.0+) when ready for production
 # ibm-watsonx-ai>=1.0.0
 
-# Optional Vector Databases (comment out if using Db2)
-# qdrant-client>=1.7.0
-# weaviate-client>=3.26.0
-# chromadb>=0.4.18
+# IBM Db2 is the ONLY supported vector store (see "IBM Db2 Integration" above).
 
 # Testing and Development
 pytest==7.4.3

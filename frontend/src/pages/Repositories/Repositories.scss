@@ -1,0 +1,84 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.repositories-page {
+  padding: $spacing-06;
+
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $spacing-05;
+    flex-wrap: wrap;
+    margin-bottom: $spacing-07;
+
+    h1 { @include type-style('heading-05'); margin: 0 0 $spacing-03 0; }
+    .page-subtitle {
+      @include type-style('body-01');
+      color: var(--cds-text-secondary);
+      margin: 0;
+      max-width: 720px;
+    }
+  }
+
+  .repos-empty {
+    text-align: center;
+    padding: $spacing-09 $spacing-06;
+    svg { fill: var(--cds-icon-secondary); margin-bottom: $spacing-04; }
+    h3 { @include type-style('heading-03'); margin: 0 0 $spacing-03 0; }
+    p { color: var(--cds-text-secondary); margin: 0; }
+  }
+
+  .repo-card {
+    padding: $spacing-05;
+    height: 100%;
+    border-left: 4px solid var(--dexter-modernization);
+    box-shadow: var(--dexter-tile-shadow);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: var(--dexter-tile-shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    &__header {
+      display: flex;
+      gap: $spacing-04;
+      align-items: flex-start;
+      margin-bottom: $spacing-04;
+
+      h3 {
+        @include type-style('heading-compact-02');
+        margin: 0 0 $spacing-02 0;
+      }
+
+      a {
+        @include type-style('label-01');
+        color: var(--cds-text-secondary);
+        word-break: break-all;
+      }
+    }
+
+    &__icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: var(--dexter-modernization-bg);
+      color: var(--dexter-modernization);
+      flex-shrink: 0;
+      svg { fill: currentColor; }
+    }
+
+    &__tags {
+      display: flex;
+      gap: $spacing-02;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+// Made with Bob

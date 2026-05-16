@@ -18,8 +18,10 @@ langchain==0.1.0
 langchain-core==0.1.10
 langchain-community==0.0.13
 
-# Vector Store (ChromaDB - simpler than Db2 for MVP)
-chromadb==0.4.18
+# Vector Store - IBM Db2 via official LangChain integration
+langchain-db2
+ibm-db>=3.2.0
+ibm-db-sa>=0.4.0
 
 # GitHub Integration
 PyGithub==2.1.1
@@ -47,7 +49,6 @@ typing-extensions>=4.0.0
 # ============================================================================
 # NOT INCLUDED IN MVP (Add later if needed)
 # ============================================================================
-# - IBM Db2 (using ChromaDB instead)
 # - GitLab support (GitHub only for MVP)
 # - Celery/Redis (no background tasks yet)
 # - Multiple LLM providers (Ollama only)
