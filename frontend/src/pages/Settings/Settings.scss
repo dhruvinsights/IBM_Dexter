@@ -1,0 +1,26 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.settings {
+  .settings-tile {
+    margin-bottom: $spacing-06;
+
+    h3 {
+      @include type-style('heading-03');
+      margin-bottom: $spacing-05;
+    }
+
+    .cds--form-item {
+      margin-bottom: $spacing-05;
+    }
+  }
+
+  .settings-actions {
+    display: flex;
+    gap: $spacing-04;
+    margin-top: $spacing-06;
+  }
+}
+
+// Made with Bob

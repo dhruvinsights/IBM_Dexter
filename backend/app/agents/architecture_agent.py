@@ -1,0 +1,43 @@
+"""Architecture-focused review agent."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from app.agents.base_agent import BaseAgent
+
+
+class ArchitectureAgent(BaseAgent):
+    """Analyze pull request diffs for architectural quality signals."""
+
+    agent_name = "architecture-agent"
+    category = "architecture"
+
+    async def analyze(
+        self,
+        pull_request: dict[str, Any],
+        diffs: list[dict[str, Any]],
+        context: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Inspect diffs for design smells and maintainability issues."""
+        findings: list[dict[str, Any]] = []
+
+        for diff in diffs:
+            patch = str(diff.get("patch", ""))
+            filename = str(diff.get("filename", "unknown"))
+            if len(patch.splitlines()) > 300:
+                findings.append(
+                    {
+                        "severity": "medium",
+                        "file": filename,
+                        "message": "Large patch detected; consider smaller, more focused changes.",
+                    }
+                )
+
+        summary = (
+            f"Architecture review completed for PR {pull_request.get('number', 'unknown')} "
+            f"with {len(findings)} finding(s)."
+        )
+        return self.format_result(summary=summary, findings=findings, metadata={"context_used": bool(context)})
+
+# Made with Bob

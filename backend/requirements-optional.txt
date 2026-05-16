@@ -1,0 +1,106 @@
+# ============================================================================
+# OPTIONAL REQUIREMENTS - Install only if needed
+# ============================================================================
+# These are optional dependencies that add specific features to IBM Dexter.
+# Only install what you need to keep installation fast and lightweight.
+#
+# Install specific features:
+#   pip install openai              # Add OpenAI support
+#   pip install anthropic           # Add Claude support
+#   pip install langchain-db2       # Add Db2 vector store
+# ============================================================================
+
+# ============================================================================
+# Additional LLM Providers (install individually as needed)
+# ============================================================================
+
+# OpenAI GPT Models
+# openai==1.6.1
+
+# Anthropic Claude Models
+# anthropic==0.8.1
+
+# Cohere Models
+# cohere==4.37
+
+# IBM Watsonx AI
+# ibm-watsonx-ai==1.0.0
+
+# Google AI (Gemini, PaLM)
+# google-generativeai==0.3.1
+
+# ============================================================================
+# Local LLM Support (HEAVY - 68MB, compiles from source)
+# ============================================================================
+
+# llama-cpp-python==0.2.27  # Only if running local models with llama.cpp
+
+# ============================================================================
+# Vector Databases (choose one based on your needs)
+# ============================================================================
+
+# IBM Db2 Vector Store (enterprise-grade)
+# langchain-db2==0.1.0
+# ibm-db==3.2.0
+# ibm-db-sa==0.4.0
+
+# Qdrant (high-performance vector search)
+# qdrant-client==1.7.0
+
+# Weaviate (GraphQL-based vector database)
+# weaviate-client==3.26.0
+
+# Pinecone (managed vector database)
+# pinecone-client==2.2.4
+
+# ============================================================================
+# Background Tasks & Caching
+# ============================================================================
+
+# Celery (distributed task queue)
+# celery==5.3.4
+
+# Redis (caching and message broker)
+# redis==5.0.1
+
+# ============================================================================
+# Monitoring & Observability
+# ============================================================================
+
+# Prometheus metrics
+# prometheus-client==0.19.0
+
+# OpenTelemetry tracing
+# opentelemetry-api==1.21.0
+# opentelemetry-sdk==1.21.0
+
+# Sentry error tracking
+# sentry-sdk==1.39.1
+
+# ============================================================================
+# Advanced LangChain Features
+# ============================================================================
+
+# LangGraph (advanced agent workflows)
+# langgraph==0.0.20
+
+# LangSmith (LLM observability)
+# langsmith==0.0.69
+
+# ============================================================================
+# Testing & Development Tools
+# ============================================================================
+
+# Testing framework
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+# pytest-cov==4.1.0
+
+# Code quality
+# black==23.11.0
+# ruff==0.1.6
+# mypy==1.7.1
+
+# Documentation
+# mkdocs==1.5.3
+# mkdocs-material==9.5.2

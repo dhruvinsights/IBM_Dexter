@@ -1,0 +1,143 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.dashboard {
+  .dashboard-section {
+    margin-top: $spacing-07;
+  }
+
+  .metrics-card {
+    color: white;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .metric-value {
+      font-size: 48px;
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.9;
+    }
+
+    .metric-change {
+      display: flex;
+      align-items: center;
+      gap: $spacing-02;
+      font-size: 14px;
+      opacity: 0.9;
+
+      &.positive {
+        color: #d0e2ff;
+      }
+
+      &.negative {
+        color: #ffd7d9;
+      }
+    }
+  }
+
+  .review-summary-tile,
+  .security-tile,
+  .architecture-tile {
+    min-height: 300px;
+
+    h3 {
+      @include type-style('heading-03');
+      margin-bottom: $spacing-05;
+    }
+  }
+
+  .review-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-04;
+  }
+
+  .review-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-04;
+    background-color: $layer-01;
+    border-radius: 4px;
+
+    .review-info {
+      h4 {
+        @include type-style('heading-02');
+        margin-bottom: $spacing-02;
+      }
+
+      .review-status {
+        margin: 0;
+      }
+    }
+
+    .review-findings {
+      @include type-style('label-01');
+      color: $text-secondary;
+    }
+  }
+
+  .security-stats {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-05;
+  }
+
+  .security-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-04;
+    background-color: $layer-01;
+    border-radius: 4px;
+
+    .stat-value {
+      @include type-style('heading-03');
+      font-weight: 600;
+    }
+  }
+
+  .architecture-stats {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-06;
+  }
+
+  .arch-stat {
+    .arch-label {
+      @include type-style('label-01');
+      color: $text-secondary;
+      margin-bottom: $spacing-02;
+    }
+
+    .arch-value {
+      @include type-style('heading-03');
+      margin-bottom: $spacing-03;
+    }
+
+    .arch-bar {
+      height: 8px;
+      background-color: $layer-02;
+      border-radius: 4px;
+      overflow: hidden;
+
+      .arch-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0f62fe 0%, #4589ff 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+    }
+  }
+}
+
+// Made with Bob

@@ -1,0 +1,1459 @@
+# IBM Carbon Design System Integration Skill
+
+## Description
+This skill provides comprehensive guidance for implementing IBM Carbon Design System components and patterns in the IBM Dexter AI Code Reviewer project. It covers Carbon React components, theming, accessibility, and enterprise-grade UI patterns specific to code review and analytics interfaces.
+
+## Carbon Design System Overview
+IBM Carbon Design System is IBM's open-source design system for digital products and experiences. It provides a comprehensive set of guidelines, components, and tools for building consistent, accessible, and enterprise-grade user interfaces.
+
+**Official Resources:**
+- Carbon Design System: https://carbondesignsystem.com/
+- Carbon React: https://react.carbondesignsystem.com/
+- GitHub: https://github.com/carbon-design-system/carbon
+
+## Required Dependencies
+
+### Core Carbon Packages
+```json
+{
+  "@carbon/react": "^1.40.0",
+  "@carbon/icons-react": "^11.30.0",
+  "@carbon/charts": "^1.15.0",
+  "@carbon/charts-react": "^1.15.0",
+  "@carbon/colors": "^11.20.0",
+  "@carbon/layout": "^11.20.0",
+  "@carbon/motion": "^11.17.0",
+  "@carbon/themes": "^11.30.0",
+  "@carbon/type": "^11.26.0",
+  "@carbon/grid": "^11.20.0"
+}
+```
+
+### Typography
+```json
+{
+  "@ibm/plex": "^6.3.0"
+}
+```
+
+### Peer Dependencies
+```json
+{
+  "react": "^18.2.0",
+  "react-dom": "^18.2.0",
+  "sass": "^1.69.0"
+}
+```
+
+## Setup and Configuration
+
+### 1. Global Styles Setup
+Create a global SCSS file to import Carbon styles:
+
+```scss
+// styles/globals.scss
+@use '@carbon/react';
+@use '@carbon/react/scss/themes';
+@use '@carbon/react/scss/theme' with (
+  $theme: themes.$g100
+);
+
+// Include Carbon styles
+@include react.theme();
+@include react.reset();
+
+// IBM Plex Sans font
+@import '@ibm/plex/css/ibm-plex.css';
+```
+
+### 2. Theme Configuration
+```typescript
+// lib/carbon-theme.ts
+import { Theme } from '@carbon/react';
+
+export const lightTheme = {
+  theme: 'white',
+  tokens: {
+    // Custom token overrides
+  }
+};
+
+export const darkTheme = {
+  theme: 'g100',
+  tokens: {
+    // Custom token overrides
+  }
+};
+
+export const getTheme = (isDark: boolean): Theme => {
+  return isDark ? darkTheme : lightTheme;
+};
+```
+
+### 3. Next.js Integration
+```typescript
+// app/layout.tsx
+import '@/styles/globals.scss';
+import { Theme } from '@carbon/react';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <Theme theme="g100">
+          {children}
+        </Theme>
+      </body>
+    </html>
+  );
+}
+```
+
+## Core Carbon Components for IBM Dexter
+
+### 1. Layout Components
+
+#### Header Navigation
+```typescript
+import {
+  Header,
+  HeaderName,
+  HeaderNavigation,
+  HeaderMenuItem,
+  HeaderGlobalBar,
+  HeaderGlobalAction,
+  SkipToContent
+} from '@carbon/react';
+import { Notification, UserAvatar, Search } from '@carbon/icons-react';
+
+export function DexterHeader() {
+  return (
+    <Header aria-label="IBM Dexter">
+      <SkipToContent />
+      <HeaderName href="/" prefix="IBM">
+        Dexter AI Code Reviewer
+      </HeaderName>
+      <HeaderNavigation aria-label="Main navigation">
+        <HeaderMenuItem href="/dashboard">Dashboard</HeaderMenuItem>
+        <HeaderMenuItem href="/repositories">Repositories</HeaderMenuItem>
+        <HeaderMenuItem href="/pull-requests">Pull Requests</HeaderMenuItem>
+        <HeaderMenuItem href="/analytics">Analytics</HeaderMenuItem>
+        <HeaderMenuItem href="/agents">AI Agents</HeaderMenuItem>
+      </HeaderNavigation>
+      <HeaderGlobalBar>
+        <HeaderGlobalAction aria-label="Search" tooltipAlignment="end">
+          <Search size={20} />
+        </HeaderGlobalAction>
+        <HeaderGlobalAction aria-label="Notifications" tooltipAlignment="end">
+          <Notification size={20} />
+        </HeaderGlobalAction>
+        <HeaderGlobalAction aria-label="User Profile" tooltipAlignment="end">
+          <UserAvatar size={20} />
+        </HeaderGlobalAction>
+      </HeaderGlobalBar>
+    </Header>
+  );
+}
+```
+
+#### Side Navigation
+```typescript
+import {
+  SideNav,
+  SideNavItems,
+  SideNavLink,
+  SideNavMenu,
+  SideNavMenuItem
+} from '@carbon/react';
+import {
+  Dashboard,
+  Code,
+  Analytics,
+  Security,
+  Settings
+} from '@carbon/icons-react';
+
+export function DexterSideNav() {
+  return (
+    <SideNav aria-label="Side navigation" isFixedNav expanded>
+      <SideNavItems>
+        <SideNavLink renderIcon={Dashboard} href="/dashboard">
+          Dashboard
+        </SideNavLink>
+        <SideNavMenu renderIcon={Code} title="Code Review">
+          <SideNavMenuItem href="/pull-requests">Pull Requests</SideNavMenuItem>
+          <SideNavMenuItem href="/code-quality">Code Quality</SideNavMenuItem>
+          <SideNavMenuItem href="/diff-viewer">Diff Viewer</SideNavMenuItem>
+        </SideNavMenu>
+        <SideNavMenu renderIcon={Analytics} title="Analytics">
+          <SideNavMenuItem href="/metrics">Metrics</SideNavMenuItem>
+          <SideNavMenuItem href="/trends">Trends</SideNavMenuItem>
+          <SideNavMenuItem href="/reports">Reports</SideNavMenuItem>
+        </SideNavMenu>
+        <SideNavLink renderIcon={Security} href="/security">
+          Security Findings
+        </SideNavLink>
+        <SideNavLink renderIcon={Settings} href="/settings">
+          Settings
+        </SideNavLink>
+      </SideNavItems>
+    </SideNav>
+  );
+}
+```
+
+#### Grid Layout
+```typescript
+import { Grid, Column } from '@carbon/react';
+
+export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Grid fullWidth>
+      <Column lg={16} md={8} sm={4}>
+        {children}
+      </Column>
+    </Grid>
+  );
+}
+
+// Responsive columns for cards
+export function MetricsGrid({ children }: { children: React.ReactNode }) {
+  return (
+    <Grid>
+      <Column lg={4} md={4} sm={4}>
+        {/* Card 1 */}
+      </Column>
+      <Column lg={4} md={4} sm={4}>
+        {/* Card 2 */}
+      </Column>
+      <Column lg={4} md={4} sm={4}>
+        {/* Card 3 */}
+      </Column>
+      <Column lg={4} md={4} sm={4}>
+        {/* Card 4 */}
+      </Column>
+    </Grid>
+  );
+}
+```
+
+### 2. Data Display Components
+
+#### Data Table for Pull Requests
+```typescript
+import {
+  DataTable,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
+  TableBatchActions,
+  TableBatchAction,
+  TableSelectAll,
+  TableSelectRow,
+  Pagination,
+  Tag
+} from '@carbon/react';
+import { TrashCan, Download } from '@carbon/icons-react';
+
+interface PullRequest {
+  id: string;
+  title: string;
+  author: string;
+  status: 'open' | 'merged' | 'closed';
+  reviewScore: number;
+  createdAt: string;
+}
+
+const headers = [
+  { key: 'title', header: 'Pull Request' },
+  { key: 'author', header: 'Author' },
+  { key: 'status', header: 'Status' },
+  { key: 'reviewScore', header: 'AI Review Score' },
+  { key: 'createdAt', header: 'Created' }
+];
+
+export function PullRequestTable({ rows }: { rows: PullRequest[] }) {
+  return (
+    <DataTable rows={rows} headers={headers}>
+      {({
+        rows,
+        headers,
+        getHeaderProps,
+        getRowProps,
+        getTableProps,
+        getTableContainerProps,
+        getToolbarProps,
+        getBatchActionProps,
+        getSelectionProps,
+        selectedRows
+      }) => (
+        <TableContainer {...getTableContainerProps()}>
+          <TableToolbar {...getToolbarProps()}>
+            <TableBatchActions {...getBatchActionProps()}>
+              <TableBatchAction
+                renderIcon={TrashCan}
+                onClick={() => console.log('Delete selected')}
+              >
+                Delete
+              </TableBatchAction>
+              <TableBatchAction
+                renderIcon={Download}
+                onClick={() => console.log('Export selected')}
+              >
+                Export
+              </TableBatchAction>
+            </TableBatchActions>
+            <TableToolbarContent>
+              <TableToolbarSearch
+                placeholder="Search pull requests"
+                onChange={(e) => console.log(e.target.value)}
+              />
+            </TableToolbarContent>
+          </TableToolbar>
+          <Table {...getTableProps()}>
+            <TableHead>
+              <TableRow>
+                <TableSelectAll {...getSelectionProps()} />
+                {headers.map((header) => (
+                  <TableHeader {...getHeaderProps({ header })}>
+                    {header.header}
+                  </TableHeader>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow {...getRowProps({ row })}>
+                  <TableSelectRow {...getSelectionProps({ row })} />
+                  {row.cells.map((cell) => (
+                    <TableCell key={cell.id}>
+                      {cell.info.header === 'status' ? (
+                        <Tag type={getStatusType(cell.value)}>
+                          {cell.value}
+                        </Tag>
+                      ) : (
+                        cell.value
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Pagination
+            backwardText="Previous page"
+            forwardText="Next page"
+            itemsPerPageText="Items per page:"
+            page={1}
+            pageSize={10}
+            pageSizes={[10, 20, 30, 40, 50]}
+            totalItems={rows.length}
+          />
+        </TableContainer>
+      )}
+    </DataTable>
+  );
+}
+```
+
+#### Tile Components for Metrics
+```typescript
+import { Tile, ClickableTile } from '@carbon/react';
+import { ArrowUp, ArrowDown } from '@carbon/icons-react';
+
+interface MetricTileProps {
+  title: string;
+  value: string | number;
+  change?: number;
+  description?: string;
+  onClick?: () => void;
+}
+
+export function MetricTile({
+  title,
+  value,
+  change,
+  description,
+  onClick
+}: MetricTileProps) {
+  const TileComponent = onClick ? ClickableTile : Tile;
+  
+  return (
+    <TileComponent onClick={onClick}>
+      <div className="metric-tile">
+        <h4 className="metric-title">{title}</h4>
+        <div className="metric-value">{value}</div>
+        {change !== undefined && (
+          <div className={`metric-change ${change >= 0 ? 'positive' : 'negative'}`}>
+            {change >= 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+            <span>{Math.abs(change)}%</span>
+          </div>
+        )}
+        {description && <p className="metric-description">{description}</p>}
+      </div>
+    </TileComponent>
+  );
+}
+```
+
+### 3. Form Components
+
+#### Repository Configuration Form
+```typescript
+import {
+  Form,
+  FormGroup,
+  TextInput,
+  Select,
+  SelectItem,
+  Checkbox,
+  Button,
+  Stack
+} from '@carbon/react';
+
+export function RepositoryConfigForm() {
+  return (
+    <Form>
+      <Stack gap={6}>
+        <FormGroup legendText="Repository Details">
+          <TextInput
+            id="repo-name"
+            labelText="Repository Name"
+            placeholder="Enter repository name"
+            required
+          />
+          <TextInput
+            id="repo-url"
+            labelText="Repository URL"
+            placeholder="https://github.com/org/repo"
+            required
+          />
+        </FormGroup>
+
+        <FormGroup legendText="Review Settings">
+          <Select
+            id="review-level"
+            labelText="Review Level"
+            defaultValue="standard"
+          >
+            <SelectItem value="basic" text="Basic" />
+            <SelectItem value="standard" text="Standard" />
+            <SelectItem value="comprehensive" text="Comprehensive" />
+          </Select>
+
+          <Checkbox
+            id="auto-review"
+            labelText="Enable automatic PR review"
+            defaultChecked
+          />
+          <Checkbox
+            id="security-scan"
+            labelText="Enable security scanning"
+            defaultChecked
+          />
+          <Checkbox
+            id="code-quality"
+            labelText="Enable code quality checks"
+            defaultChecked
+          />
+        </FormGroup>
+
+        <FormGroup legendText="AI Agent Configuration">
+          <Select
+            id="ai-model"
+            labelText="AI Model"
+            defaultValue="gpt-4"
+          >
+            <SelectItem value="gpt-4" text="GPT-4" />
+            <SelectItem value="gpt-3.5" text="GPT-3.5 Turbo" />
+            <SelectItem value="claude" text="Claude" />
+          </Select>
+        </FormGroup>
+
+        <div className="form-actions">
+          <Button kind="secondary">Cancel</Button>
+          <Button kind="primary" type="submit">
+            Save Configuration
+          </Button>
+        </div>
+      </Stack>
+    </Form>
+  );
+}
+```
+
+### 4. Notification Components
+
+#### Toast Notifications
+```typescript
+import { ToastNotification, InlineNotification } from '@carbon/react';
+
+export function ReviewCompleteNotification() {
+  return (
+    <ToastNotification
+      kind="success"
+      title="Review Complete"
+      subtitle="AI review completed successfully for PR #123"
+      timeout={5000}
+      onClose={() => console.log('Notification closed')}
+    />
+  );
+}
+
+export function SecurityWarning() {
+  return (
+    <InlineNotification
+      kind="warning"
+      title="Security Issues Found"
+      subtitle="3 potential security vulnerabilities detected in this PR"
+      lowContrast
+    />
+  );
+}
+
+export function ErrorNotification({ message }: { message: string }) {
+  return (
+    <InlineNotification
+      kind="error"
+      title="Error"
+      subtitle={message}
+      lowContrast
+    />
+  );
+}
+```
+
+### 5. Modal Components
+
+#### Code Review Details Modal
+```typescript
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel
+} from '@carbon/react';
+
+interface ReviewModalProps {
+  open: boolean;
+  onClose: () => void;
+  reviewData: any;
+}
+
+export function CodeReviewModal({ open, onClose, reviewData }: ReviewModalProps) {
+  return (
+    <Modal
+      open={open}
+      onRequestClose={onClose}
+      modalHeading="AI Code Review Details"
+      modalLabel="Pull Request #123"
+      size="lg"
+      primaryButtonText="Approve"
+      secondaryButtonText="Request Changes"
+    >
+      <ModalBody>
+        <Tabs>
+          <TabList aria-label="Review tabs">
+            <Tab>Overview</Tab>
+            <Tab>Code Quality</Tab>
+            <Tab>Security</Tab>
+            <Tab>Performance</Tab>
+          </TabList>
+          <TabPanels>
+            <TabPanel>
+              {/* Overview content */}
+            </TabPanel>
+            <TabPanel>
+              {/* Code quality content */}
+            </TabPanel>
+            <TabPanel>
+              {/* Security content */}
+            </TabPanel>
+            <TabPanel>
+              {/* Performance content */}
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </ModalBody>
+    </Modal>
+  );
+}
+```
+
+### 6. Loading States
+
+#### Loading Components
+```typescript
+import {
+  Loading,
+  InlineLoading,
+  SkeletonText,
+  SkeletonPlaceholder,
+  DataTableSkeleton
+} from '@carbon/react';
+
+export function PageLoading() {
+  return (
+    <Loading
+      description="Loading dashboard..."
+      withOverlay
+    />
+  );
+}
+
+export function InlineLoadingState() {
+  return (
+    <InlineLoading
+      status="active"
+      description="Analyzing code..."
+    />
+  );
+}
+
+export function TableSkeleton() {
+  return (
+    <DataTableSkeleton
+      headers={['Title', 'Author', 'Status', 'Score', 'Date']}
+      rowCount={5}
+    />
+  );
+}
+
+export function CardSkeleton() {
+  return (
+    <div className="card-skeleton">
+      <SkeletonText heading />
+      <SkeletonPlaceholder style={{ height: '200px', marginTop: '1rem' }} />
+      <SkeletonText paragraph lineCount={3} />
+    </div>
+  );
+}
+```
+
+## Carbon Charts Integration
+
+### 1. Line Chart for Trends
+```typescript
+import { LineChart } from '@carbon/charts-react';
+import '@carbon/charts-react/styles.css';
+
+export function CodeQualityTrendChart({ data }: { data: any[] }) {
+  const options = {
+    title: 'Code Quality Trend',
+    axes: {
+      bottom: {
+        title: 'Date',
+        mapsTo: 'date',
+        scaleType: 'time'
+      },
+      left: {
+        title: 'Quality Score',
+        mapsTo: 'value',
+        scaleType: 'linear'
+      }
+    },
+    curve: 'curveMonotoneX',
+    height: '400px',
+    theme: 'g100'
+  };
+
+  return <LineChart data={data} options={options} />;
+}
+```
+
+### 2. Donut Chart for Distribution
+```typescript
+import { DonutChart } from '@carbon/charts-react';
+
+export function IssueDistributionChart({ data }: { data: any[] }) {
+  const options = {
+    title: 'Issue Distribution',
+    resizable: true,
+    donut: {
+      center: {
+        label: 'Total Issues'
+      }
+    },
+    height: '400px',
+    theme: 'g100'
+  };
+
+  return <DonutChart data={data} options={options} />;
+}
+```
+
+### 3. Bar Chart for Comparisons
+```typescript
+import { BarChart } from '@carbon/charts-react';
+
+export function RepositoryComparisonChart({ data }: { data: any[] }) {
+  const options = {
+    title: 'Repository Comparison',
+    axes: {
+      left: {
+        mapsTo: 'repository',
+        scaleType: 'labels'
+      },
+      bottom: {
+        mapsTo: 'value',
+        scaleType: 'linear'
+      }
+    },
+    height: '400px',
+    theme: 'g100'
+  };
+
+  return <BarChart data={data} options={options} />;
+}
+```
+
+## IBM Dexter Specific Patterns
+
+### 1. Dashboard Layout
+```typescript
+import { Grid, Column, Tile } from '@carbon/react';
+import { MetricTile } from './MetricTile';
+import { CodeQualityTrendChart } from './Charts';
+
+export function DexterDashboard() {
+  return (
+    <Grid fullWidth>
+      {/* Metrics Row */}
+      <Column lg={16} md={8} sm={4}>
+        <Grid>
+          <Column lg={4} md={4} sm={4}>
+            <MetricTile
+              title="Active PRs"
+              value={24}
+              change={12}
+              description="Pull requests under review"
+            />
+          </Column>
+          <Column lg={4} md={4} sm={4}>
+            <MetricTile
+              title="Avg Review Time"
+              value="2.5h"
+              change={-15}
+              description="Average time to complete review"
+            />
+          </Column>
+          <Column lg={4} md={4} sm={4}>
+            <MetricTile
+              title="Code Quality"
+              value="8.7/10"
+              change={5}
+              description="Average quality score"
+            />
+          </Column>
+          <Column lg={4} md={4} sm={4}>
+            <MetricTile
+              title="Security Issues"
+              value={3}
+              change={-50}
+              description="Critical vulnerabilities found"
+            />
+          </Column>
+        </Grid>
+      </Column>
+
+      {/* Charts Row */}
+      <Column lg={8} md={8} sm={4}>
+        <Tile>
+          <CodeQualityTrendChart data={[]} />
+        </Tile>
+      </Column>
+      <Column lg={8} md={8} sm={4}>
+        <Tile>
+          <IssueDistributionChart data={[]} />
+        </Tile>
+      </Column>
+    </Grid>
+  );
+}
+```
+
+### 2. Code Diff Viewer
+```typescript
+import { CodeSnippet, Tabs, TabList, Tab, TabPanels, TabPanel } from '@carbon/react';
+import { Checkmark, Warning, Error } from '@carbon/icons-react';
+
+interface DiffViewerProps {
+  before: string;
+  after: string;
+  issues: Array<{
+    line: number;
+    severity: 'error' | 'warning' | 'info';
+    message: string;
+  }>;
+}
+
+export function CodeDiffViewer({ before, after, issues }: DiffViewerProps) {
+  return (
+    <div className="diff-viewer">
+      <Tabs>
+        <TabList aria-label="Code diff tabs">
+          <Tab>Side by Side</Tab>
+          <Tab>Unified</Tab>
+          <Tab>Issues ({issues.length})</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <Grid>
+              <Column lg={8}>
+                <h4>Before</h4>
+                <CodeSnippet type="multi" feedback="Copied">
+                  {before}
+                </CodeSnippet>
+              </Column>
+              <Column lg={8}>
+                <h4>After</h4>
+                <CodeSnippet type="multi" feedback="Copied">
+                  {after}
+                </CodeSnippet>
+              </Column>
+            </Grid>
+          </TabPanel>
+          <TabPanel>
+            <CodeSnippet type="multi" feedback="Copied">
+              {/* Unified diff */}
+            </CodeSnippet>
+          </TabPanel>
+          <TabPanel>
+            <div className="issues-list">
+              {issues.map((issue, index) => (
+                <InlineNotification
+                  key={index}
+                  kind={issue.severity}
+                  title={`Line ${issue.line}`}
+                  subtitle={issue.message}
+                  lowContrast
+                />
+              ))}
+            </div>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </div>
+  );
+}
+```
+
+### 3. AI Agent Status Indicator
+```typescript
+import { Tag, ProgressIndicator, ProgressStep } from '@carbon/react';
+
+interface AgentStatusProps {
+  status: 'idle' | 'analyzing' | 'reviewing' | 'complete' | 'error';
+  currentStep?: number;
+}
+
+export function AIAgentStatus({ status, currentStep = 0 }: AgentStatusProps) {
+  const getStatusTag = () => {
+    switch (status) {
+      case 'idle':
+        return <Tag type="gray">Idle</Tag>;
+      case 'analyzing':
+        return <Tag type="blue">Analyzing</Tag>;
+      case 'reviewing':
+        return <Tag type="purple">Reviewing</Tag>;
+      case 'complete':
+        return <Tag type="green">Complete</Tag>;
+      case 'error':
+        return <Tag type="red">Error</Tag>;
+    }
+  };
+
+  return (
+    <div className="agent-status">
+      {getStatusTag()}
+      {status === 'analyzing' || status === 'reviewing' ? (
+        <ProgressIndicator currentIndex={currentStep} spaceEqually>
+          <ProgressStep label="Code Analysis" />
+          <ProgressStep label="Security Scan" />
+          <ProgressStep label="Quality Check" />
+          <ProgressStep label="Generate Report" />
+        </ProgressIndicator>
+      ) : null}
+    </div>
+  );
+}
+```
+
+### 4. Security Findings Display
+```typescript
+import {
+  Accordion,
+  AccordionItem,
+  Tag,
+  CodeSnippet
+} from '@carbon/react';
+import { Warning, Error, Information } from '@carbon/icons-react';
+
+interface SecurityFinding {
+  id: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  file: string;
+  line: number;
+  code: string;
+  recommendation: string;
+}
+
+export function SecurityFindingsPanel({ findings }: { findings: SecurityFinding[] }) {
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+      case 'high':
+        return <Error size={20} />;
+      case 'medium':
+        return <Warning size={20} />;
+      default:
+        return <Information size={20} />;
+    }
+  };
+
+  const getSeverityType = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return 'red';
+      case 'high':
+        return 'magenta';
+      case 'medium':
+        return 'yellow';
+      default:
+        return 'blue';
+    }
+  };
+
+  return (
+    <Accordion>
+      {findings.map((finding) => (
+        <AccordionItem
+          key={finding.id}
+          title={
+            <div className="finding-title">
+              {getSeverityIcon(finding.severity)}
+              <span>{finding.title}</span>
+              <Tag type={getSeverityType(finding.severity)}>
+                {finding.severity.toUpperCase()}
+              </Tag>
+            </div>
+          }
+        >
+          <div className="finding-details">
+            <p>{finding.description}</p>
+            <div className="finding-location">
+              <strong>Location:</strong> {finding.file}:{finding.line}
+            </div>
+            <CodeSnippet type="multi" feedback="Copied">
+              {finding.code}
+            </CodeSnippet>
+            <div className="finding-recommendation">
+              <strong>Recommendation:</strong>
+              <p>{finding.recommendation}</p>
+            </div>
+          </div>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+```
+
+## Theming and Customization
+
+### 1. Theme Toggle
+```typescript
+import { useState } from 'react';
+import { Theme } from '@carbon/react';
+import { Asleep, Light } from '@carbon/icons-react';
+import { Button } from '@carbon/react';
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<'white' | 'g100'>('g100');
+
+  const toggleTheme = () => {
+    setTheme(theme === 'white' ? 'g100' : 'white');
+  };
+
+  return (
+    <Theme theme={theme}>
+      <div className="theme-toggle">
+        <Button
+          kind="ghost"
+          size="sm"
+          renderIcon={theme === 'white' ? Asleep : Light}
+          iconDescription="Toggle theme"
+          onClick={toggleTheme}
+          hasIconOnly
+        />
+      </div>
+      {children}
+    </Theme>
+  );
+}
+```
+
+### 2. Custom SCSS with Carbon Tokens
+```scss
+// styles/components/custom-card.module.scss
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.custom-card {
+  background-color: $layer-01;
+  padding: $spacing-05;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  .card-header {
+    @include type-style('heading-03');
+    color: $text-primary;
+    margin-bottom: $spacing-03;
+  }
+
+  .card-content {
+    @include type-style('body-01');
+    color: $text-secondary;
+  }
+
+  &:hover {
+    background-color: $layer-hover-01;
+  }
+}
+```
+
+### 3. Responsive Design with Carbon Breakpoints
+```scss
+@use '@carbon/react/scss/breakpoint' as *;
+
+.dashboard-grid {
+  display: grid;
+  gap: 1rem;
+
+  @include breakpoint(sm) {
+    grid-template-columns: 1fr;
+  }
+
+  @include breakpoint(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include breakpoint(lg) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+```
+
+## Accessibility Best Practices
+
+### 1. Keyboard Navigation
+- Ensure all interactive elements are keyboard accessible
+- Use proper focus management with Carbon components
+- Implement skip links for main content areas
+- Use `aria-label` and `aria-describedby` appropriately
+
+### 2. Screen Reader Support
+```typescript
+import { ScreenReaderOnly } from '@carbon/react';
+
+export function AccessibleMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <ScreenReaderOnly>{label}</ScreenReaderOnly>
+      <div aria-label={`${label}: ${value}`}>
+        <span className="metric-value">{value}</span>
+      </div>
+    </div>
+  );
+}
+```
+
+### 3. Color Contrast
+- Use Carbon's built-in color tokens for WCAG AA compliance
+- Test with Carbon's contrast checker
+- Avoid relying solely on color to convey information
+
+### 4. Form Accessibility
+```typescript
+import { TextInput, FormLabel } from '@carbon/react';
+
+export function AccessibleForm() {
+  return (
+    <div>
+      <FormLabel htmlFor="repo-name">
+        Repository Name
+        <span aria-label="required">*</span>
+      </FormLabel>
+      <TextInput
+        id="repo-name"
+        labelText=""
+        placeholder="Enter repository name"
+        required
+        invalid={false}
+        invalidText="Repository name is required"
+        aria-required="true"
+      />
+    </div>
+  );
+}
+```
+
+## Performance Optimization
+
+### 1. Code Splitting
+```typescript
+import dynamic from 'next/dynamic';
+
+// Lazy load heavy components
+const CodeDiffViewer = dynamic(() => import('./CodeDiffViewer'), {
+  loading: () => <Loading />,
+  ssr: false
+});
+
+const ChartsPanel = dynamic(() => import('./ChartsPanel'), {
+  loading: () => <CardSkeleton />
+});
+```
+
+### 2. Memoization
+```typescript
+import { memo, useMemo } from 'react';
+
+export const MetricTile = memo(({ title, value, change }: MetricTileProps) => {
+  const changeColor = useMemo(() => {
+    return change >= 0 ? 'positive' : 'negative';
+  }, [change]);
+
+  return (
+    <Tile>
+      {/* Component content */}
+    </Tile>
+  );
+});
+```
+
+### 3. Virtual Scrolling for Large Lists
+```typescript
+import { DataTable } from '@carbon/react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+export function VirtualizedTable({ rows }: { rows: any[] }) {
+  // Implement virtual scrolling for large datasets
+  // Use with Carbon DataTable for optimal performance
+}
+```
+
+## Icon Usage Guidelines
+
+### 1. Common Icons for IBM Dexter
+```typescript
+import {
+  // Navigation
+  Dashboard,
+  Code,
+  Analytics,
+  Security,
+  Settings,
+  
+  // Actions
+  Add,
+  Edit,
+  TrashCan,
+  Download,
+  Upload,
+  Refresh,
+  
+  // Status
+  Checkmark,
+  Warning,
+  Error,
+  Information,
+  InProgress,
+  
+  // Code Review
+  View,
+  ViewOff,
+  Compare,
+  Branch,
+  Commit,
+  
+  // AI/Automation
+  Watson,
+  Bot,
+  Magic,
+  
+  // Data
+  ChartLine,
+  ChartBar,
+  ChartPie,
+  Table,
+  
+  // User
+  User,
+  UserAvatar,
+  UserMultiple,
+  
+  // Communication
+  Notification,
+  Email,
+  Chat
+} from '@carbon/icons-react';
+```
+
+### 2. Icon Sizing
+```typescript
+// Use consistent sizes
+<Dashboard size={16} /> // Small
+<Dashboard size={20} /> // Medium (default)
+<Dashboard size={24} /> // Large
+<Dashboard size={32} /> // Extra large
+```
+
+## Common Patterns and Best Practices
+
+### 1. When to Use Which Component
+
+**Tiles vs Cards:**
+- Use `Tile` for simple content containers
+- Use `ClickableTile` for interactive cards
+- Use `ExpandableTile` for collapsible content
+
+**Tables vs Lists:**
+- Use `DataTable` for complex, sortable, filterable data
+- Use `StructuredList` for simple key-value pairs
+- Use `OrderedList` or `UnorderedList` for basic lists
+
+**Modals vs Side Panels:**
+- Use `Modal` for critical actions requiring user attention
+- Use side panels (custom) for contextual information
+
+### 2. Form Validation Patterns
+```typescript
+import { TextInput, Form } from '@carbon/react';
+import { useState } from 'react';
+
+export function ValidatedForm() {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = (name: string, value: string) => {
+    // Validation logic
+    if (!value) {
+      setErrors(prev => ({ ...prev, [name]: 'This field is required' }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  return (
+    <Form>
+      <TextInput
+        id="repo-name"
+        labelText="Repository Name"
+        invalid={!!errors.repoName}
+        invalidText={errors.repoName}
+        onChange={(e) => validate('repoName', e.target.value)}
+      />
+    </Form>
+  );
+}
+```
+
+### 3. Loading State Management
+```typescript
+import { useState, useEffect } from 'react';
+import { Loading, InlineLoading } from '@carbon/react';
+
+export function DataFetchingComponent() {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetchData().then(result => {
+      setData(result);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return <Loading description="Loading data..." withOverlay />;
+  }
+
+  return <div>{/* Render data */}</div>;
+}
+```
+
+### 4. Error Handling
+```typescript
+import { InlineNotification } from '@carbon/react';
+import { useState } from 'react';
+
+export function ErrorBoundaryComponent() {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleError = (err: Error) => {
+    setError(err.message);
+    // Log to error tracking service
+  };
+
+  if (error) {
+    return (
+      <InlineNotification
+        kind="error"
+        title="Error"
+        subtitle={error}
+        onClose={() => setError(null)}
+      />
+    );
+  }
+
+  return <div>{/* Component content */}</div>;
+}
+```
+
+## Testing Carbon Components
+
+### 1. Unit Testing
+```typescript
+import { render, screen } from '@testing-library/react';
+import { MetricTile } from './MetricTile';
+
+describe('MetricTile', () => {
+  it('renders metric value correctly', () => {
+    render(<MetricTile title="Active PRs" value={24} />);
+    expect(screen.getByText('24')).toBeInTheDocument();
+  });
+
+  it('shows positive change indicator', () => {
+    render(<MetricTile title="Active PRs" value={24} change={12} />);
+    expect(screen.getByText('12%')).toBeInTheDocument();
+  });
+});
+```
+
+### 2. Accessibility Testing
+```typescript
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
+
+describe('Accessibility', () => {
+  it('should not have accessibility violations', async () => {
+    const { container } = render(<DexterDashboard />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+```
+
+## Migration Guide
+
+### From Custom Components to Carbon
+
+1. **Replace custom buttons:**
+```typescript
+// Before
+<button className="primary-btn">Submit</button>
+
+// After
+<Button kind="primary">Submit</Button>
+```
+
+2. **Replace custom inputs:**
+```typescript
+// Before
+<input type="text" placeholder="Enter name" />
+
+// After
+<TextInput id="name" labelText="Name" placeholder="Enter name" />
+```
+
+3. **Replace custom modals:**
+```typescript
+// Before
+<CustomModal isOpen={open} onClose={handleClose}>
+  {content}
+</CustomModal>
+
+// After
+<Modal open={open} onRequestClose={handleClose}>
+  <ModalBody>{content}</ModalBody>
+</Modal>
+```
+
+## Resources and Documentation
+
+### Official Documentation
+- Carbon Design System: https://carbondesignsystem.com/
+- Carbon React Components: https://react.carbondesignsystem.com/
+- Carbon Icons: https://carbondesignsystem.com/guidelines/icons/library/
+- Carbon Charts: https://charts.carbondesignsystem.com/
+
+### Design Resources
+- Figma Kit: https://www.figma.com/community/file/1157761560874207208
+- Sketch Kit: Available on Carbon website
+- Adobe XD Kit: Available on Carbon website
+
+### Community
+- GitHub: https://github.com/carbon-design-system/carbon
+- Slack: Carbon Design System community
+- Stack Overflow: Tag `carbon-design-system`
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Styles not loading:**
+   - Ensure SCSS is properly configured
+   - Import Carbon styles in correct order
+   - Check for conflicting CSS
+
+2. **Theme not applying:**
+   - Verify Theme component wraps application
+   - Check theme prop value
+   - Ensure tokens are imported correctly
+
+3. **Icons not rendering:**
+   - Verify @carbon/icons-react is installed
+   - Check import statements
+   - Ensure icon names are correct
+
+4. **TypeScript errors:**
+   - Install @types/carbon__react if needed
+   - Check Carbon version compatibility
+   - Verify prop types match documentation
+
+## Conclusion
+
+This skill provides comprehensive guidance for implementing IBM Carbon Design System in the IBM Dexter AI Code Reviewer project. Follow these patterns and best practices to create consistent, accessible, and enterprise-grade user interfaces that align with IBM's design standards.
+
+Key Takeaways:
+- Use Carbon components for consistency
+- Follow accessibility guidelines
+- Implement proper theming
+- Optimize for performance
+- Test thoroughly
+- Maintain IBM branding standards

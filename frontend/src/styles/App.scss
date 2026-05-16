@@ -1,0 +1,269 @@
+@use '@carbon/react';
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+@use '@carbon/motion' as *;
+
+// IBM Gradient Definitions
+.gradient-blue {
+  background: linear-gradient(135deg, #0f62fe 0%, #4589ff 100%);
+}
+
+.gradient-purple {
+  background: linear-gradient(135deg, #8a3ffc 0%, #a56eff 100%);
+}
+
+.gradient-teal {
+  background: linear-gradient(135deg, #007d79 0%, #009d9a 100%);
+}
+
+.gradient-magenta {
+  background: linear-gradient(135deg, #ee5396 0%, #ff7eb6 100%);
+}
+
+.gradient-cyan {
+  background: linear-gradient(135deg, #1192e8 0%, #33b1ff 100%);
+}
+
+// Animated Button
+.animated-button {
+  transition: all $duration-fast-02 motion(standard, productive);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Gradient Card
+.gradient-card {
+  position: relative;
+  overflow: hidden;
+  transition: all $duration-moderate-01 motion(standard, productive);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity $duration-moderate-01 motion(standard, productive);
+  }
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    
+    &::before {
+      opacity: 0.05;
+    }
+  }
+}
+
+// App Layout
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: $background;
+  color: $text-primary;
+  transition: background-color $duration-moderate-01 motion(standard, productive),
+              color $duration-moderate-01 motion(standard, productive);
+}
+
+.main-content {
+  flex: 1;
+  padding: $spacing-06;
+  
+  @media (min-width: 672px) {
+    padding: $spacing-07;
+  }
+  
+  @media (min-width: 1056px) {
+    padding: $spacing-09;
+  }
+}
+
+// Page Header
+.page-header {
+  margin-bottom: $spacing-07;
+  
+  h1 {
+    @include type-style('heading-05');
+    margin-bottom: $spacing-03;
+  }
+  
+  p {
+    @include type-style('body-long-01');
+    color: $text-secondary;
+  }
+}
+
+// Metrics Card
+.metrics-card {
+  padding: $spacing-05;
+  border-radius: 4px;
+  background-color: $layer-01;
+  transition: all $duration-moderate-01 motion(standard, productive);
+  
+  &:hover {
+    background-color: $layer-02;
+  }
+  
+  .metric-value {
+    @include type-style('heading-04');
+    margin-bottom: $spacing-02;
+  }
+  
+  .metric-label {
+    @include type-style('label-01');
+    color: $text-secondary;
+    text-transform: uppercase;
+  }
+  
+  .metric-change {
+    @include type-style('label-01');
+    margin-top: $spacing-03;
+    
+    &.positive {
+      color: #24a148;
+    }
+    
+    &.negative {
+      color: #da1e28;
+    }
+  }
+}
+
+// Status Badge
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-02;
+  padding: $spacing-02 $spacing-03;
+  border-radius: 12px;
+  @include type-style('label-01');
+  font-weight: 600;
+  
+  &.critical {
+    background-color: #fff1f1;
+    color: #da1e28;
+  }
+  
+  &.high {
+    background-color: #fff8e1;
+    color: #f1c21b;
+  }
+  
+  &.medium {
+    background-color: #e5f6ff;
+    color: #0043ce;
+  }
+  
+  &.low {
+    background-color: #defbe6;
+    color: #24a148;
+  }
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: $spacing-05;
+}
+
+// Empty State
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: $spacing-09;
+  
+  h3 {
+    @include type-style('heading-03');
+    margin-bottom: $spacing-03;
+  }
+  
+  p {
+    @include type-style('body-long-01');
+    color: $text-secondary;
+    margin-bottom: $spacing-06;
+    max-width: 400px;
+  }
+}
+
+// Code Diff
+.code-diff {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  
+  .line-added {
+    background-color: #defbe6;
+    color: #0e6027;
+  }
+  
+  .line-removed {
+    background-color: #fff1f1;
+    color: #750e13;
+  }
+}
+
+// Smooth theme transition
+* {
+  transition: background-color $duration-moderate-01 motion(standard, productive),
+              color $duration-moderate-01 motion(standard, productive),
+              border-color $duration-moderate-01 motion(standard, productive);
+}
+
+// Dark theme adjustments
+[data-carbon-theme='g100'] {
+  .status-badge {
+    &.critical {
+      background-color: #520408;
+      color: #ffb3b8;
+    }
+    
+    &.high {
+      background-color: #684e00;
+      color: #f1c21b;
+    }
+    
+    &.medium {
+      background-color: #001d6c;
+      color: #78a9ff;
+    }
+    
+    &.low {
+      background-color: #044317;
+      color: #6fdc8c;
+    }
+  }
+  
+  .code-diff {
+    .line-added {
+      background-color: #044317;
+      color: #6fdc8c;
+    }
+    
+    .line-removed {
+      background-color: #520408;
+      color: #ffb3b8;
+    }
+  }
+}
+
+// Made with Bob

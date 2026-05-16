@@ -1,0 +1,725 @@
+# IBM Dexter PDF Documentation Generation Skill
+
+## Skill Overview
+
+This skill enables the generation of professional, enterprise-grade PDF documentation reports for the IBM Dexter AI Code Review platform. It supports creating various types of technical documentation including architecture reports, code review summaries, security audits, sprint reports, and Architecture Decision Records (ADRs).
+
+## Purpose
+
+Generate comprehensive, branded PDF documentation that adheres to IBM design standards and provides clear, actionable insights for engineering teams, stakeholders, and compliance requirements.
+
+## Capabilities
+
+### 1. Project Architecture Documentation
+- Generate complete system architecture overviews
+- Include component diagrams and data flow visualizations
+- Document microservice boundaries and dependencies
+- Create API contract documentation
+- Include technology stack summaries
+- Generate deployment architecture diagrams
+
+### 2. Technical Specification Reports
+- Create detailed technical specifications for features
+- Document API endpoints with request/response examples
+- Include database schema documentation
+- Generate integration specifications
+- Document security requirements and implementations
+- Create performance benchmarks and requirements
+
+### 3. Code Review Summary Reports
+- Generate PR review analytics and trends
+- Create team productivity metrics reports
+- Document security findings and remediation status
+- Include code quality metrics and trends
+- Generate compliance validation reports
+- Create agent performance analytics
+
+### 4. Sprint/Milestone Reports
+- Generate sprint retrospective documentation
+- Create milestone achievement reports
+- Document velocity and productivity metrics
+- Include burndown charts and progress tracking
+- Generate team capacity and allocation reports
+- Create release notes and changelogs
+
+### 5. Security Audit Reports
+- Generate comprehensive security assessment reports
+- Document vulnerability findings with severity levels
+- Create remediation tracking reports
+- Include compliance validation results
+- Generate dependency security analysis
+- Create secret scanning and IAM audit reports
+
+### 6. Architecture Decision Records (ADRs)
+- Generate standardized ADR documents
+- Include context, decision, and consequences
+- Document alternatives considered
+- Create decision timeline and status tracking
+- Include stakeholder approval records
+- Generate ADR index and cross-references
+
+## Technical Specifications
+
+### Required Python Libraries
+
+```python
+# Core PDF Generation
+reportlab>=4.0.0          # Professional PDF generation
+weasyprint>=60.0          # HTML/CSS to PDF conversion
+pypdf>=3.17.0             # PDF manipulation and merging
+
+# Document Processing
+markdown>=3.5.0           # Markdown parsing
+python-docx>=1.1.0        # DOCX generation support
+beautifulsoup4>=4.12.0    # HTML parsing
+lxml>=4.9.0               # XML/HTML processing
+
+# Visualization
+matplotlib>=3.8.0         # Charts and graphs
+plotly>=5.18.0            # Interactive visualizations
+pillow>=10.1.0            # Image processing
+
+# Code Highlighting
+pygments>=2.17.0          # Syntax highlighting for code blocks
+
+# Typography and Styling
+ibm-plex>=1.0.0           # IBM Plex font family (if available)
+cssutils>=2.9.0           # CSS parsing and manipulation
+
+# Data Processing
+pandas>=2.1.0             # Data manipulation for reports
+jinja2>=3.1.0             # Template rendering
+```
+
+### IBM Branding Elements
+
+#### Typography
+- **Primary Font**: IBM Plex Sans
+- **Monospace Font**: IBM Plex Mono (for code blocks)
+- **Heading Hierarchy**: 
+  - H1: IBM Plex Sans Bold, 32pt
+  - H2: IBM Plex Sans SemiBold, 24pt
+  - H3: IBM Plex Sans Medium, 18pt
+  - Body: IBM Plex Sans Regular, 11pt
+  - Code: IBM Plex Mono Regular, 10pt
+
+#### Color Palette
+- **Primary Blue**: #0f62fe (IBM Blue)
+- **Dark Blue**: #002d9c (IBM Dark Blue)
+- **Gray Scale**: 
+  - Gray 100: #161616 (text)
+  - Gray 70: #525252 (secondary text)
+  - Gray 20: #e0e0e0 (borders)
+  - Gray 10: #f4f4f4 (backgrounds)
+- **Status Colors**:
+  - Success: #24a148 (green)
+  - Warning: #f1c21b (yellow)
+  - Error: #da1e28 (red)
+  - Info: #0043ce (blue)
+
+#### Layout Standards
+- **Page Size**: A4 (210mm × 297mm)
+- **Margins**: 25mm top/bottom, 20mm left/right
+- **Line Height**: 1.5 for body text
+- **Paragraph Spacing**: 12pt after paragraphs
+- **Section Spacing**: 24pt between major sections
+
+### PDF Features
+
+#### Table of Contents
+- Auto-generated with page numbers
+- Hierarchical structure (up to 3 levels)
+- Clickable links to sections
+- Styled with IBM design system
+
+#### Headers and Footers
+- **Header**: 
+  - Left: IBM Dexter logo
+  - Center: Document title
+  - Right: Document date
+- **Footer**:
+  - Left: Confidentiality classification
+  - Center: Page number (Page X of Y)
+  - Right: Document version
+
+#### Code Syntax Highlighting
+- Support for 50+ programming languages
+- IBM-themed syntax highlighting colors
+- Line numbers for code blocks
+- Inline code styling with monospace font
+- Copy-friendly formatting
+
+#### Charts and Diagrams
+- Matplotlib integration for statistical charts
+- Plotly support for interactive visualizations
+- Mermaid diagram rendering
+- Architecture diagram embedding
+- SVG and PNG image support
+- Automatic image scaling and positioning
+
+#### Multi-Page Layouts
+- Automatic page breaks
+- Widow/orphan control
+- Keep-together blocks for tables
+- Landscape orientation support for wide content
+- Multi-column layouts where appropriate
+
+## Integration with IBM Dexter
+
+### 1. PR Review Report Generation
+
+**Use Case**: Generate comprehensive PDF reports for pull request reviews
+
+**Integration Points**:
+- `/api/v1/reviews/{review_id}/export/pdf`
+- Access review findings from PostgreSQL
+- Include agent analysis results
+- Embed code diffs with syntax highlighting
+- Include security and compliance findings
+
+**Report Sections**:
+- Executive Summary
+- PR Metadata (author, reviewers, dates)
+- Agent Analysis Results
+  - Security Agent findings
+  - Architecture Agent findings
+  - Compliance Agent findings
+  - Performance Agent findings
+  - Modernization Agent findings
+- Code Changes Overview
+- Detailed Findings by Severity
+- Recommendations and Action Items
+- Approval Status and Sign-offs
+
+**Example Usage**:
+```python
+from ibm_dexter.pdf_generator import PRReviewReportGenerator
+
+generator = PRReviewReportGenerator(
+    review_id="rev_12345",
+    include_code_diffs=True,
+    include_agent_reasoning=True,
+    branding="ibm"
+)
+
+pdf_path = generator.generate(
+    output_path="/reports/pr_review_12345.pdf",
+    template="enterprise"
+)
+```
+
+### 2. Architecture Documentation Generation
+
+**Use Case**: Create comprehensive architecture documentation PDFs
+
+**Integration Points**:
+- `/api/v1/architecture/export/pdf`
+- Access repository metadata
+- Include dependency graphs
+- Embed architecture diagrams
+- Document microservice relationships
+
+**Report Sections**:
+- System Overview
+- Architecture Principles
+- Component Catalog
+- Service Dependencies
+- API Contracts
+- Data Flow Diagrams
+- Deployment Architecture
+- Security Architecture
+- Technology Stack
+- ADR Summary
+
+**Example Usage**:
+```python
+from ibm_dexter.pdf_generator import ArchitectureDocGenerator
+
+generator = ArchitectureDocGenerator(
+    repository_id="repo_67890",
+    include_diagrams=True,
+    include_dependencies=True,
+    depth="comprehensive"
+)
+
+pdf_path = generator.generate(
+    output_path="/docs/architecture_overview.pdf",
+    template="technical"
+)
+```
+
+### 3. Analytics Dashboard Export
+
+**Use Case**: Export analytics dashboards and metrics to PDF
+
+**Integration Points**:
+- `/api/v1/analytics/export/pdf`
+- Access metrics from PostgreSQL
+- Generate charts with matplotlib/plotly
+- Include trend analysis
+- Export team productivity data
+
+**Report Sections**:
+- Executive Dashboard
+- Review Metrics Overview
+- Security Trends
+- Code Quality Metrics
+- Team Productivity
+- Agent Performance
+- Repository Insights
+- Time-Series Analysis
+- Comparative Analysis
+
+**Example Usage**:
+```python
+from ibm_dexter.pdf_generator import AnalyticsDashboardExporter
+
+exporter = AnalyticsDashboardExporter(
+    date_range=("2026-01-01", "2026-05-15"),
+    repositories=["repo_1", "repo_2"],
+    include_charts=True,
+    chart_style="ibm"
+)
+
+pdf_path = exporter.generate(
+    output_path="/reports/analytics_q2_2026.pdf",
+    template="executive"
+)
+```
+
+### 4. Compliance Report Generation
+
+**Use Case**: Create compliance and audit reports for governance
+
+**Integration Points**:
+- `/api/v1/compliance/export/pdf`
+- Access compliance findings
+- Include audit trails
+- Document policy violations
+- Track remediation status
+
+**Report Sections**:
+- Compliance Overview
+- Policy Adherence Summary
+- Violation Details by Severity
+- Remediation Tracking
+- Audit Trail
+- Compliance Trends
+- Risk Assessment
+- Recommendations
+- Sign-off Requirements
+
+**Example Usage**:
+```python
+from ibm_dexter.pdf_generator import ComplianceReportGenerator
+
+generator = ComplianceReportGenerator(
+    compliance_scan_id="scan_54321",
+    include_audit_trail=True,
+    include_remediation_plan=True,
+    classification="confidential"
+)
+
+pdf_path = generator.generate(
+    output_path="/compliance/audit_report_2026_q2.pdf",
+    template="compliance"
+)
+```
+
+## Output Format Specifications
+
+### File Naming Convention
+```
+{document_type}_{identifier}_{date}_{version}.pdf
+
+Examples:
+- pr_review_12345_2026-05-15_v1.pdf
+- architecture_ibm_dexter_2026-05-15_v2.pdf
+- security_audit_q2_2026_2026-05-15_v1.pdf
+- sprint_report_sprint_42_2026-05-15_v1.pdf
+```
+
+### Metadata Embedding
+All generated PDFs include embedded metadata:
+- Title
+- Author (IBM Dexter AI)
+- Subject
+- Keywords
+- Creation Date
+- Modification Date
+- Producer (IBM Dexter PDF Generator v1.0)
+- Custom Properties:
+  - Document Type
+  - IBM Dexter Version
+  - Repository ID (if applicable)
+  - Review ID (if applicable)
+  - Classification Level
+
+### PDF/A Compliance
+- Generate PDF/A-2b compliant documents for archival
+- Embed all fonts
+- Include XMP metadata
+- Ensure long-term readability
+
+### Accessibility Features
+- Tagged PDF structure
+- Alt text for images
+- Logical reading order
+- Bookmarks for navigation
+- Screen reader compatibility
+
+## Error Handling Guidelines
+
+### Common Error Scenarios
+
+#### 1. Missing Data
+```python
+class MissingDataError(Exception):
+    """Raised when required data is not available"""
+    pass
+
+# Handle gracefully with placeholder content
+try:
+    review_data = fetch_review_data(review_id)
+except DataNotFoundError:
+    logger.warning(f"Review {review_id} not found, using placeholder")
+    review_data = generate_placeholder_data()
+```
+
+#### 2. Font Loading Failures
+```python
+# Fallback to system fonts if IBM Plex not available
+try:
+    register_ibm_plex_fonts()
+except FontNotFoundError:
+    logger.warning("IBM Plex fonts not found, using fallback")
+    register_fallback_fonts()  # Use Arial/Helvetica
+```
+
+#### 3. Image Rendering Issues
+```python
+# Handle missing or corrupted images
+try:
+    embed_diagram(diagram_path)
+except ImageError as e:
+    logger.error(f"Failed to embed diagram: {e}")
+    add_placeholder_image("Diagram unavailable")
+```
+
+#### 4. Large Document Handling
+```python
+# Implement pagination for large datasets
+if len(findings) > MAX_FINDINGS_PER_PAGE:
+    paginate_findings(findings, page_size=50)
+    add_continuation_markers()
+```
+
+#### 5. Template Rendering Failures
+```python
+# Graceful degradation to basic template
+try:
+    render_template("enterprise_template.html", context)
+except TemplateError:
+    logger.error("Template rendering failed, using basic template")
+    render_template("basic_template.html", context)
+```
+
+### Validation Checks
+
+Before generating PDF:
+- Validate all required data is present
+- Check font availability
+- Verify image paths exist
+- Validate color codes
+- Check page size and margins
+- Verify template compatibility
+
+After generating PDF:
+- Verify file size is reasonable (< 50MB)
+- Check page count matches expectations
+- Validate PDF structure
+- Test PDF opens correctly
+- Verify all links work
+- Check embedded fonts
+
+### Logging Strategy
+
+```python
+import logging
+
+logger = logging.getLogger("ibm_dexter.pdf_generator")
+
+# Log levels:
+# DEBUG: Detailed generation steps
+# INFO: Generation start/complete, file paths
+# WARNING: Fallbacks used, missing optional data
+# ERROR: Generation failures, data issues
+# CRITICAL: System-level failures
+
+logger.info(f"Starting PDF generation for review {review_id}")
+logger.debug(f"Using template: {template_name}")
+logger.warning(f"Missing optional field: {field_name}, using default")
+logger.error(f"Failed to generate chart: {error_message}")
+```
+
+## Template System
+
+### Available Templates
+
+#### 1. Enterprise Template
+- Professional layout with IBM branding
+- Comprehensive sections
+- Executive summary focus
+- Suitable for stakeholder reports
+
+#### 2. Technical Template
+- Developer-focused layout
+- Code-heavy formatting
+- Detailed technical sections
+- Suitable for engineering documentation
+
+#### 3. Executive Template
+- High-level overview
+- Visual-heavy with charts
+- Minimal technical details
+- Suitable for management reports
+
+#### 4. Compliance Template
+- Audit-focused layout
+- Regulatory compliance sections
+- Sign-off areas
+- Suitable for governance reports
+
+#### 5. Basic Template
+- Simple, clean layout
+- Minimal styling
+- Fast generation
+- Suitable for quick exports
+
+### Custom Template Creation
+
+```python
+from ibm_dexter.pdf_generator import PDFTemplate
+
+class CustomTemplate(PDFTemplate):
+    def __init__(self):
+        super().__init__()
+        self.page_size = "A4"
+        self.margins = {"top": 25, "bottom": 25, "left": 20, "right": 20}
+        self.fonts = {"heading": "IBM Plex Sans Bold", "body": "IBM Plex Sans"}
+        
+    def render_header(self, canvas, doc):
+        # Custom header implementation
+        pass
+        
+    def render_footer(self, canvas, doc):
+        # Custom footer implementation
+        pass
+```
+
+## Performance Considerations
+
+### Optimization Strategies
+
+1. **Lazy Loading**: Load data only when needed
+2. **Caching**: Cache frequently used templates and fonts
+3. **Async Generation**: Use background workers for large reports
+4. **Compression**: Apply PDF compression for smaller file sizes
+5. **Batch Processing**: Generate multiple reports in parallel
+
+### Performance Targets
+
+- Small reports (< 10 pages): < 5 seconds
+- Medium reports (10-50 pages): < 30 seconds
+- Large reports (50-200 pages): < 2 minutes
+- Very large reports (> 200 pages): < 5 minutes
+
+### Resource Limits
+
+- Maximum file size: 50MB
+- Maximum pages: 500 pages
+- Maximum images: 100 images per document
+- Maximum chart resolution: 300 DPI
+
+## Security Considerations
+
+### Data Handling
+- Sanitize all user input
+- Validate file paths to prevent directory traversal
+- Encrypt sensitive data in PDFs (optional)
+- Support password protection for confidential reports
+- Implement access control for PDF generation APIs
+
+### Confidentiality Classifications
+- **Public**: No restrictions
+- **Internal**: IBM employees only
+- **Confidential**: Restricted distribution
+- **Highly Confidential**: Need-to-know basis
+
+Add watermarks and headers based on classification level.
+
+## Example Workflows
+
+### Workflow 1: Automated PR Review Report
+```python
+# Triggered by PR review completion webhook
+@app.post("/webhooks/review-completed")
+async def on_review_completed(review_id: str):
+    # Generate PDF report
+    generator = PRReviewReportGenerator(review_id)
+    pdf_path = await generator.generate_async()
+    
+    # Upload to object storage
+    storage_url = await upload_to_storage(pdf_path)
+    
+    # Notify stakeholders
+    await notify_stakeholders(review_id, storage_url)
+    
+    return {"status": "success", "pdf_url": storage_url}
+```
+
+### Workflow 2: Scheduled Architecture Documentation
+```python
+# Scheduled weekly architecture documentation update
+@scheduler.scheduled_job("cron", day_of_week="mon", hour=9)
+async def generate_weekly_architecture_docs():
+    for repo in active_repositories:
+        generator = ArchitectureDocGenerator(repo.id)
+        pdf_path = await generator.generate_async()
+        
+        # Version and archive
+        archive_document(pdf_path, repo.id)
+        
+        # Update documentation portal
+        update_docs_portal(repo.id, pdf_path)
+```
+
+### Workflow 3: On-Demand Compliance Report
+```python
+# User-initiated compliance report generation
+@app.get("/api/v1/compliance/{scan_id}/export")
+async def export_compliance_report(scan_id: str, user: User):
+    # Check permissions
+    if not user.has_permission("compliance:export"):
+        raise PermissionError("Insufficient permissions")
+    
+    # Generate report
+    generator = ComplianceReportGenerator(scan_id)
+    pdf_path = await generator.generate_async()
+    
+    # Return as download
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        filename=f"compliance_report_{scan_id}.pdf"
+    )
+```
+
+## Testing Requirements
+
+### Unit Tests
+- Test each report generator independently
+- Mock data sources
+- Verify PDF structure
+- Test error handling
+- Validate template rendering
+
+### Integration Tests
+- Test with real database connections
+- Verify chart generation
+- Test image embedding
+- Validate font loading
+- Test multi-page layouts
+
+### Visual Regression Tests
+- Compare generated PDFs against baselines
+- Verify layout consistency
+- Check font rendering
+- Validate color accuracy
+- Test across different page sizes
+
+### Performance Tests
+- Benchmark generation times
+- Test with large datasets
+- Measure memory usage
+- Test concurrent generation
+- Validate resource cleanup
+
+## Maintenance and Updates
+
+### Version Control
+- Semantic versioning for skill updates
+- Changelog for each version
+- Backward compatibility guarantees
+- Migration guides for breaking changes
+
+### Monitoring
+- Track generation success/failure rates
+- Monitor generation times
+- Alert on errors
+- Track resource usage
+- Monitor storage consumption
+
+### Documentation Updates
+- Keep examples current
+- Update API references
+- Document new features
+- Maintain troubleshooting guide
+- Update integration guides
+
+## Future Enhancements
+
+### Planned Features
+- Interactive PDF forms
+- Digital signatures support
+- Advanced chart types (Gantt, network graphs)
+- Real-time collaborative editing
+- PDF comparison and diff tools
+- Multi-language support
+- Custom branding per organization
+- AI-generated summaries
+- Automated report scheduling
+- Integration with IBM BOB AI for report generation
+
+### Research Areas
+- Machine learning for layout optimization
+- Natural language generation for summaries
+- Automated diagram generation from code
+- Smart content recommendations
+- Predictive analytics in reports
+
+## Support and Resources
+
+### Documentation
+- Full API reference: `/docs/api/pdf-generation`
+- Template guide: `/docs/templates`
+- Troubleshooting: `/docs/troubleshooting/pdf`
+- Best practices: `/docs/best-practices/documentation`
+
+### Community
+- GitHub Discussions: IBM Dexter PDF Generation
+- Slack Channel: #ibm-dexter-docs
+- Stack Overflow Tag: ibm-dexter-pdf
+
+### Contact
+- Technical Support: dexter-support@ibm.com
+- Feature Requests: dexter-features@ibm.com
+- Security Issues: dexter-security@ibm.com
+
+---
+
+## Skill Metadata
+
+**Skill Name**: IBM Dexter PDF Documentation Generation  
+**Version**: 1.0.0  
+**Author**: IBM Dexter Team  
+**License**: IBM Internal Use  
+**Last Updated**: May 15, 2026  
+**Compatibility**: IBM Dexter v1.0+  
+**Dependencies**: Python 3.11+, ReportLab 4.0+, WeasyPrint 60.0+  
+**Category**: Documentation, Reporting, Export  
+**Tags**: pdf, documentation, reports, architecture, compliance, analytics
+
+---
+
+**End of Skill Definition**

@@ -1,0 +1,60 @@
+# ============================================================================
+# MVP REQUIREMENTS - Minimal PR Review Bot
+# ============================================================================
+# This file contains ONLY the essential dependencies needed for the MVP
+# PR Review Bot. Install time: ~2 minutes
+#
+# Install: pip install -r requirements-mvp.txt
+# ============================================================================
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# AI & LLM (Ollama only for MVP)
+ollama==0.1.6
+langchain==0.1.0
+langchain-core==0.1.10
+langchain-community==0.0.13
+
+# Vector Store (ChromaDB - simpler than Db2 for MVP)
+chromadb==0.4.18
+
+# GitHub Integration
+PyGithub==2.1.1
+
+# Database (SQLite via SQLAlchemy)
+sqlalchemy==2.0.23
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Configuration & Environment
+python-dotenv==1.0.0
+pydantic==2.5.2
+pydantic-settings==2.1.0
+email-validator>=2.0.0
+
+# HTTP Client
+httpx==0.25.2
+
+# Utilities
+python-dateutil==2.8.2
+typing-extensions>=4.0.0
+
+# ============================================================================
+# NOT INCLUDED IN MVP (Add later if needed)
+# ============================================================================
+# - IBM Db2 (using ChromaDB instead)
+# - GitLab support (GitHub only for MVP)
+# - Celery/Redis (no background tasks yet)
+# - Multiple LLM providers (Ollama only)
+# - Advanced analytics
+# - Testing frameworks (add for development)
+# ============================================================================
+
+# Total packages: ~15 core dependencies
+# Install time: ~2 minutes
+# Disk space: ~500MB

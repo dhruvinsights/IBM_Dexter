@@ -1,0 +1,552 @@
+# IBM Dexter RAG Pipeline Skill
+
+## Overview
+This skill provides comprehensive guidance for implementing a Retrieval-Augmented Generation (RAG) pipeline for IBM Dexter AI Code Reviewer. The RAG system enables intelligent context retrieval from enterprise documents, code repositories, and documentation to enhance code review quality.
+
+## Architecture Overview
+
+### High-Level Components
+```
+Document Sources → Ingestion → Preprocessing → Embedding → Vector DB → Retrieval → Context Assembly
+```
+
+### Core Components
+1. **Document Ingestion Service**: Extract content from PDFs, Markdown, DOCX, Confluence
+2. **Embedding Service**: Convert text to vectors using OpenAI Ada-002, Sentence-BERT, or Cohere
+3. **Vector Store**: Store embeddings in Qdrant, Weaviate, or ChromaDB
+4. **Retrieval Service**: Semantic search, keyword search, hybrid search
+5. **Context Provider**: Deliver relevant context to multi-agent system
+
+## Document Ingestion
+
+### Supported Formats
+- **PDF**: Technical documents, specifications, reports
+- **Markdown**: README files, documentation, wikis
+- **DOCX**: Word documents, proposals, guidelines
+- **Confluence**: Enterprise wikis, team documentation
+- **Code Files**: Source code with syntax awareness
+
+### Chunking Strategy
+```python
+# Optimal chunk size: 512-1024 tokens
+# Overlap: 10-20% between chunks
+# Preserve: Sentence boundaries, code blocks, semantic units
+
+class DocumentChunker:
+    def __init__(self, chunk_size=512, overlap=50):
+        self.chunk_size = chunk_size
+        self.overlap = overlap
+    
+    def chunk_by_tokens(self, text, preserve_sentences=True):
+        """Split text into chunks by token count"""
+        pass
+    
+    def chunk_by_semantic_units(self, text, document_type):
+        """Chunk by paragraphs, sections, or functions"""
+        pass
+```
+
+### Parser Examples
+
+#### PDF Parser
+```python
+class PDFParser:
+    """Extract text, tables, and metadata from PDFs"""
+    
+    def parse(self, pdf_path):
+        return {
+            'text': str,
+            'metadata': dict,
+            'sections': list,
+            'tables': list
+        }
+```
+
+#### Confluence Parser
+```python
+class ConfluenceParser:
+    """Fetch and parse Confluence pages via REST API"""
+    
+    def __init__(self, base_url, auth_token):
+        self.base_url = base_url
+        self.auth_token = auth_token
+    
+    def parse(self, page_id, include_children=True):
+        """Fetch page content with metadata"""
+        pass
+    
+    def sync_space(self, space_key):
+        """Sync entire Confluence space"""
+        pass
+```
+
+## Embedding Generation
+
+### Model Selection
+
+| Model | Dimensions | Cost | Best For |
+|-------|-----------|------|----------|
+| OpenAI Ada-002 | 1536 | $0.0001/1K tokens | General purpose, high quality |
+| Sentence-BERT | 768 | Free (self-hosted) | Privacy, code similarity |
+| Cohere Embed | 4096 | $0.0001/1K tokens | Multilingual, large context |
+
+### Embedding Service
+```python
+class EmbeddingService:
+    def __init__(self, model_name='openai-ada-002'):
+        self.model_name = model_name
+        self.cache = EmbeddingCache()
+    
+    def generate_embedding(self, text):
+        """Generate embedding with caching"""
+        if cached := self.cache.get(text):
+            return cached
+        embedding = self._call_model(text)
+        self.cache.set(text, embedding)
+        return embedding
+    
+    def batch_generate(self, texts):
+        """Batch processing for efficiency"""
+        pass
+```
+
+### Optimization Techniques
+- **Dimension Reduction**: PCA, UMAP (reduce to 512 dims)
+- **Quantization**: int8 (8x reduction), binary (32x reduction)
+- **Caching**: Redis for distributed, in-memory for speed
+
+## Vector Database Integration
+
+### Database Comparison
+
+| Feature | Qdrant | Weaviate | ChromaDB |
+|---------|--------|----------|----------|
+| Open Source | ✅ | ✅ | ✅ |
+| Filtering | ✅✅✅ | ✅✅ | ✅ |
+| Hybrid Search | ✅ | ✅ | ❌ |
+| Ease of Use | ✅✅ | ✅✅ | ✅✅✅ |
+
+### Qdrant Integration
+```python
+class QdrantVectorStore:
+    def __init__(self, host='localhost', port=6333):
+        self.client = QdrantClient(host=host, port=port)
+        self.collection_name = 'dexter_documents'
+    
+    def create_collection(self, vector_size=1536):
+        """Create collection with HNSW index"""
+        pass
+    
+    def upsert_vectors(self, vectors, payloads, ids=None):
+        """Insert/update vectors with metadata"""
+        pass
+    
+    def search(self, query_vector, limit=10, filters=None):
+        """Search with optional metadata filtering"""
+        pass
+```
+
+### Payload Structure
+```python
+payload = {
+    'text': str,              # Original text chunk
+    'document_id': str,       # Source document ID
+    'document_type': str,     # pdf, markdown, code, etc.
+    'source': str,            # File path or URL
+    'created_at': datetime,   # Timestamp
+    'tags': list,             # Custom tags
+    'project': str,           # Project identifier
+    'language': str,          # Programming language (for code)
+    'section': str            # Document section/header
+}
+```
+
+## Context Retrieval
+
+### Retrieval Pipeline
+```python
+class ContextRetrievalPipeline:
+    def __init__(self, vector_store, embedding_service):
+        self.vector_store = vector_store
+        self.embedding_service = embedding_service
+        self.reranker = Reranker()
+    
+    def retrieve(self, query, top_k=10, filters=None):
+        """
+        1. Generate query embedding
+        2. Search vector store
+        3. Apply filters
+        4. Rerank results
+        5. Assemble context
+        """
+        pass
+    
+    def retrieve_with_reranking(self, query, initial_k=50, final_k=10):
+        """Two-stage retrieval for better quality"""
+        pass
+```
+
+### Semantic Search
+```python
+class SemanticSearchEngine:
+    def search(self, query_embedding, top_k=10, threshold=0.7):
+        """Cosine similarity search"""
+        pass
+    
+    def multi_vector_search(self, query_embeddings, aggregation='max'):
+        """Search with multiple query vectors"""
+        pass
+```
+
+### Reranking
+```python
+class Reranker:
+    def __init__(self, model_name='cross-encoder/ms-marco-MiniLM-L-6-v2'):
+        self.model = self._load_model(model_name)
+    
+    def rerank(self, query, documents, top_k=10):
+        """Rerank using cross-encoder for better relevance"""
+        pass
+    
+    def rerank_with_diversity(self, query, documents, top_k=10):
+        """Maximal Marginal Relevance (MMR) for diversity"""
+        pass
+```
+
+## Hybrid Search Implementation
+
+### Hybrid Search Engine
+```python
+class HybridSearchEngine:
+    def __init__(self, vector_store, keyword_index):
+        self.vector_store = vector_store
+        self.keyword_index = keyword_index
+    
+    def hybrid_search(self, query, top_k=10, semantic_weight=0.7):
+        """Combine semantic and keyword search"""
+        semantic_results = self.vector_store.search(query)
+        keyword_results = self.keyword_index.search(query)
+        return self.reciprocal_rank_fusion(semantic_results, keyword_results)
+    
+    def reciprocal_rank_fusion(self, semantic_results, keyword_results, k=60):
+        """RRF: score(d) = Σ 1/(k + rank(d))"""
+        pass
+```
+
+### Keyword Search (BM25)
+```python
+class KeywordSearchEngine:
+    def search(self, query, top_k=10):
+        """BM25 ranking algorithm"""
+        pass
+    
+    def boolean_search(self, query_terms, operator='AND'):
+        """Boolean queries: AND, OR, NOT"""
+        pass
+    
+    def phrase_search(self, phrase, slop=0):
+        """Exact phrase matching with slop"""
+        pass
+```
+
+## Caching Strategy
+
+### Multi-Level Caching
+```python
+class RAGCacheManager:
+    def __init__(self):
+        self.embedding_cache = EmbeddingCache()      # L1: Embeddings
+        self.query_cache = QueryResultCache()        # L2: Query results
+        self.context_cache = ContextCache()          # L3: Assembled contexts
+    
+    def get_cached_embedding(self, text):
+        """Check L1 cache"""
+        pass
+    
+    def get_cached_query_results(self, query_hash):
+        """Check L2 cache"""
+        pass
+```
+
+### Cache Configuration
+- **Embedding Cache**: Redis, TTL=24h, LRU eviction
+- **Query Cache**: Redis, TTL=30min, similarity-based matching
+- **Context Cache**: In-memory, TTL=15min, size-based eviction
+
+## Incremental Updates
+
+### Update Pipeline
+```python
+class IncrementalUpdatePipeline:
+    def __init__(self, vector_store, embedding_service):
+        self.vector_store = vector_store
+        self.embedding_service = embedding_service
+        self.change_detector = ChangeDetector()
+    
+    def update_document(self, document_id, new_content):
+        """
+        1. Detect changes
+        2. Identify affected chunks
+        3. Regenerate embeddings for changed chunks only
+        4. Update vector store
+        5. Invalidate caches
+        """
+        pass
+```
+
+### Change Detection
+```python
+class ChangeDetector:
+    def detect_changes(self, old_document, new_document):
+        """
+        Returns:
+        {
+            'added_chunks': list,
+            'modified_chunks': list,
+            'deleted_chunks': list,
+            'unchanged_chunks': list
+        }
+        """
+        pass
+```
+
+## Integration with Multi-Agent System
+
+### Agent Context Provider
+```python
+class AgentContextProvider:
+    def __init__(self, rag_pipeline):
+        self.rag_pipeline = rag_pipeline
+        self.agent_profiles = {
+            'code_review': {'filters': {'type': 'standards'}, 'top_k': 5},
+            'security': {'filters': {'type': 'security'}, 'top_k': 10},
+            'architecture': {'filters': {'type': 'patterns'}, 'top_k': 5},
+            'performance': {'filters': {'type': 'optimization'}, 'top_k': 5}
+        }
+    
+    def get_context_for_agent(self, agent_type, query, code_snippet=None):
+        """Retrieve agent-specific context"""
+        profile = self.agent_profiles[agent_type]
+        return self.rag_pipeline.retrieve(
+            query=query,
+            filters=profile['filters'],
+            top_k=profile['top_k']
+        )
+    
+    def get_multi_agent_context(self, query, code_snippet):
+        """Retrieve context for all agents simultaneously"""
+        return {
+            agent: self.get_context_for_agent(agent, query, code_snippet)
+            for agent in self.agent_profiles.keys()
+        }
+```
+
+## Performance Optimization
+
+### Query Optimization
+```python
+class QueryOptimizer:
+    def optimize_query(self, query):
+        """
+        - Remove stop words
+        - Normalize text
+        - Expand abbreviations
+        - Add context
+        """
+        pass
+    
+    def batch_queries(self, queries):
+        """Batch processing for efficiency"""
+        pass
+```
+
+### Index Optimization
+```python
+class IndexOptimizer:
+    def tune_hnsw_parameters(self, index):
+        """
+        HNSW Parameters:
+        - M: Number of connections (16-64)
+        - ef_construction: Build-time search depth (100-500)
+        - ef_search: Query-time search depth (50-200)
+        """
+        pass
+```
+
+### Performance Monitoring
+```python
+class PerformanceMonitor:
+    def track_metrics(self):
+        """
+        Metrics:
+        - Query latency (P50, P95, P99)
+        - Throughput (queries/sec)
+        - Cache hit rate
+        - Embedding generation time
+        - Index size and memory
+        """
+        pass
+```
+
+## IBM Dexter Use Cases
+
+### Use Case 1: Code Review Context
+```python
+class CodeReviewContextProvider:
+    def get_review_context(self, code_snippet, language, project):
+        """
+        Retrieve:
+        - Coding standards
+        - Best practices
+        - Similar code examples
+        - Previous review comments
+        - Architecture guidelines
+        """
+        pass
+```
+
+### Use Case 2: Security Knowledge Base
+```python
+class SecurityKnowledgeBase:
+    def get_security_context(self, code_snippet, language):
+        """
+        Retrieve:
+        - OWASP Top 10 vulnerabilities
+        - Secure coding patterns
+        - Vulnerability examples
+        - Remediation guidance
+        """
+        pass
+    
+    def check_vulnerability_patterns(self, code_snippet):
+        """Check against known vulnerability patterns"""
+        pass
+```
+
+### Use Case 3: Architecture Pattern Matching
+```python
+class ArchitecturePatternMatcher:
+    def identify_patterns(self, code_structure):
+        """
+        Identify:
+        - Design patterns (GoF)
+        - Architectural patterns (MVC, microservices)
+        - Anti-patterns
+        - IBM-specific patterns
+        """
+        pass
+```
+
+### Use Case 4: Documentation Retrieval
+```python
+class DocumentationRetriever:
+    def get_api_documentation(self, api_name, version):
+        """Retrieve API docs"""
+        pass
+    
+    def get_framework_guides(self, framework, topic):
+        """Retrieve framework-specific guides"""
+        pass
+```
+
+### Use Case 5: Historical Context
+```python
+class HistoricalContextProvider:
+    def get_file_history(self, file_path):
+        """Retrieve review history for a file"""
+        pass
+    
+    def get_similar_issues(self, code_snippet):
+        """Find similar issues from past reviews"""
+        pass
+```
+
+## Best Practices
+
+### Document Chunking
+1. **Chunk Size**: 512-1024 tokens (balance context vs. specificity)
+2. **Overlap**: 10-20% between chunks (preserve context)
+3. **Boundaries**: Preserve sentences, paragraphs, code blocks
+4. **Metadata**: Include source, section, timestamp
+
+### Embedding Generation
+1. **Model Selection**: Test multiple models for your domain
+2. **Batch Processing**: Process in batches of 100-1000
+3. **Caching**: Cache aggressively (24h TTL)
+4. **Rate Limiting**: Respect API limits
+
+### Retrieval
+1. **Hybrid Search**: Combine semantic + keyword (70/30 weight)
+2. **Reranking**: Always rerank top 50 → 10 results
+3. **Filtering**: Apply metadata filters early
+4. **Diversity**: Use MMR to avoid redundant results
+
+### Performance
+1. **Indexing**: HNSW with M=32, ef_construction=200
+2. **Caching**: Multi-level (embeddings, queries, contexts)
+3. **Monitoring**: Track P95 latency, cache hit rate
+4. **Scaling**: Horizontal scaling with sharding
+
+## Troubleshooting
+
+### Low Retrieval Quality
+**Symptoms**: Irrelevant results, low scores
+**Solutions**:
+- Verify embedding model quality
+- Adjust chunk size (try 256, 512, 1024)
+- Implement reranking
+- Use hybrid search
+- Check metadata filters
+
+### Slow Performance
+**Symptoms**: High latency, timeouts
+**Solutions**:
+- Optimize HNSW parameters
+- Implement caching
+- Use batch processing
+- Reduce embedding dimensions
+- Scale infrastructure
+
+### High Costs
+**Symptoms**: Excessive API calls
+**Solutions**:
+- Aggressive caching (hit rate >80%)
+- Batch processing
+- Self-hosted models
+- Optimize chunk size
+- Monitor usage patterns
+
+### Stale Results
+**Symptoms**: Outdated information
+**Solutions**:
+- Implement incremental updates
+- Reduce cache TTL
+- Automate document sync
+- Monitor update pipeline
+
+## Implementation Checklist
+
+- [ ] Set up document ingestion pipeline
+- [ ] Configure embedding service (OpenAI/Sentence-BERT)
+- [ ] Deploy vector database (Qdrant/Weaviate/ChromaDB)
+- [ ] Implement semantic search
+- [ ] Add keyword search (BM25)
+- [ ] Implement hybrid search with RRF
+- [ ] Set up multi-level caching (Redis)
+- [ ] Implement reranking (cross-encoder)
+- [ ] Configure incremental updates
+- [ ] Integrate with multi-agent system
+- [ ] Set up performance monitoring
+- [ ] Implement agent context providers
+- [ ] Add security knowledge base
+- [ ] Configure architecture pattern matching
+- [ ] Set up documentation retrieval
+- [ ] Implement historical context provider
+- [ ] Optimize HNSW parameters
+- [ ] Configure cache TTLs
+- [ ] Set up alerts and monitoring
+- [ ] Document API endpoints
+
+## Conclusion
+
+This RAG Pipeline skill provides a comprehensive framework for implementing retrieval-augmented generation in IBM Dexter. Key components include document ingestion, embedding generation, vector storage, hybrid search, caching, and multi-agent integration. Follow best practices for optimal performance and quality.

@@ -1,0 +1,1393 @@
+---
+name: IBM Dexter Carbon Design System
+version: 1.0.0
+description: Comprehensive Carbon Design System patterns for IBM Dexter UI with DataTables, forms, theming, and accessibility compliance
+tags: [carbon, ui, design-system, react, accessibility, ibm-design, mvp]
+---
+
+# IBM Dexter Carbon Design System Skill
+
+## Overview
+
+This skill provides comprehensive guidance for implementing IBM Carbon Design System components in IBM Dexter's React frontend. It covers component patterns, theming, accessibility, responsive layouts, and best practices for building enterprise-grade UIs that align with IBM Design Language.
+
+**Key Focus**: Practical patterns for existing pages (Dashboard, ReviewDetail, Settings) with production-ready code examples.
+
+## Core Capabilities
+
+1. **DataTable Implementation** - Advanced tables for review lists with sorting, filtering, and pagination
+2. **Form Validation Patterns** - Robust form handling with Carbon components
+3. **Theme Management** - Light/dark mode with IBM color tokens
+4. **Loading States** - Skeleton loaders and progress indicators
+5. **Empty States** - User-friendly empty state patterns
+6. **Error Handling** - Consistent error display and recovery
+7. **Responsive Layouts** - Mobile-first Carbon Grid implementation
+8. **Accessibility Compliance** - WCAG 2.1 AA standards
+9. **Icon Usage** - Proper Carbon icon integration
+10. **Notification Patterns** - Toast notifications and inline messages
+
+## Implementation Guide
+
+### Step 1: Install Carbon Dependencies
+
+Verify `frontend/package.json` includes:
+
+```json
+{
+  "dependencies": {
+    "@carbon/react": "^1.37.0",
+    "@carbon/icons-react": "^11.26.0",
+    "@carbon/charts": "^1.13.0",
+    "@carbon/charts-react": "^1.13.0"
+  }
+}
+```
+
+Install if missing:
+
+```bash
+cd frontend
+npm install @carbon/react @carbon/icons-react @carbon/charts @carbon/charts-react
+```
+
+### Step 2: Configure Theme Provider
+
+Update `frontend/src/App.jsx`:
+
+```jsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Theme } from '@carbon/react';
+import { useThemeStore } from './store/useThemeStore';
+import MainLayout from './components/layout/MainLayout';
+import Dashboard from './pages/Dashboard/Dashboard';
+import ReviewDetail from './pages/ReviewDetail/ReviewDetail';
+import Settings from './pages/Settings/Settings';
+import './styles/App.scss';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
+
+function App() {
+  const { theme } = useThemeStore();
+
+  return (
+    <Theme theme={theme}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="reviews/:id" element={<ReviewDetail />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </Theme>
+  );
+}
+
+export default App;
+```
+
+### Step 3: Enhance Theme Store
+
+Update `frontend/src/store/useThemeStore.js`:
+
+```javascript
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export const useThemeStore = create(
+  persist(
+    (set) => ({
+      theme: 'g100', // IBM Carbon themes: white, g10, g90, g100
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () =>
+        set((state) => ({
+          theme: state.theme === 'g100' ? 'white' : 'g100',
+        })),
+    }),
+    {
+      name: 'dexter-theme-storage',
+    }
+  )
+);
+```
+
+### Step 4: Implement DataTable for Reviews
+
+Create `frontend/src/components/features/ReviewsTable.jsx`:
+
+```jsx
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  DataTable,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
+  TableBatchActions,
+  TableBatchAction,
+  TableSelectAll,
+  TableSelectRow,
+  Pagination,
+  Tag,
+  Button,
+  OverflowMenu,
+  OverflowMenuItem,
+} from '@carbon/react';
+import {
+  View,
+  TrashCan,
+  Download,
+  Renew,
+} from '@carbon/icons-react';
+import './ReviewsTable.scss';
+
+const headers = [
+  { key: 'id', header: 'ID' },
+  { key: 'title', header: 'Pull Request' },
+  { key: 'status', header: 'Status' },
+  { key: 'severity', header: 'Severity' },
+  { key: 'findings', header: 'Findings' },
+  { key: 'created_at', header: 'Created' },
+  { key: 'actions', header: 'Actions' },
+];
+
+const getStatusTag = (status) => {
+  const statusMap = {
+    completed: { type: 'green', label: 'Completed' },
+    pending: { type: 'blue', label: 'Pending' },
+    failed: { type: 'red', label: 'Failed' },
+    in_progress: { type: 'purple', label: 'In Progress' },
+  };
+  
+  const config = statusMap[status] || { type: 'gray', label: status };
+  return <Tag type={config.type}>{config.label}</Tag>;
+};
+
+const getSeverityTag = (severity) => {
+  const severityMap = {
+    critical: { type: 'red', label: 'Critical' },
+    high: { type: 'magenta', label: 'High' },
+    medium: { type: 'purple', label: 'Medium' },
+    low: { type: 'cyan', label: 'Low' },
+  };
+  
+  const config = severityMap[severity] || { type: 'gray', label: 'None' };
+  return <Tag type={config.type} size="sm">{config.label}</Tag>;
+};
+
+const ReviewsTable = ({ reviews = [], onRefresh, onDelete, onExport }) => {
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Transform data for DataTable
+  const rows = useMemo(() => {
+    return reviews.map((review) => ({
+      id: review.id.toString(),
+      title: review.pull_request?.title || 'N/A',
+      status: review.status,
+      severity: review.highest_severity || 'low',
+      findings: review.findings?.length || 0,
+      created_at: new Date(review.created_at).toLocaleDateString(),
+      review_data: review, // Store full data for actions
+    }));
+  }, [reviews]);
+
+  // Pagination
+  const paginatedRows = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    return rows.slice(start, end);
+  }, [rows, page, pageSize]);
+
+  const handleViewReview = (reviewId) => {
+    navigate(`/reviews/${reviewId}`);
+  };
+
+  const handleBatchDelete = (selectedRows) => {
+    const ids = selectedRows.map((row) => row.id);
+    onDelete?.(ids);
+  };
+
+  return (
+    <div className="reviews-table">
+      <DataTable
+        rows={paginatedRows}
+        headers={headers}
+        isSortable
+        useZebraStyles
+      >
+        {({
+          rows,
+          headers,
+          getHeaderProps,
+          getRowProps,
+          getTableProps,
+          getTableContainerProps,
+          getToolbarProps,
+          getBatchActionProps,
+          getSelectionProps,
+          selectedRows,
+          onInputChange,
+        }) => (
+          <TableContainer
+            title="Code Reviews"
+            description="All code review results from IBM Dexter AI agents"
+            {...getTableContainerProps()}
+          >
+            <TableToolbar {...getToolbarProps()}>
+              <TableBatchActions {...getBatchActionProps()}>
+                <TableBatchAction
+                  tabIndex={getBatchActionProps().shouldShowBatchActions ? 0 : -1}
+                  renderIcon={TrashCan}
+                  onClick={() => handleBatchDelete(selectedRows)}
+                >
+                  Delete
+                </TableBatchAction>
+                <TableBatchAction
+                  tabIndex={getBatchActionProps().shouldShowBatchActions ? 0 : -1}
+                  renderIcon={Download}
+                  onClick={() => console.log('Export selected')}
+                >
+                  Export
+                </TableBatchAction>
+              </TableBatchActions>
+              <TableToolbarContent>
+                <TableToolbarSearch
+                  persistent
+                  placeholder="Search reviews..."
+                  onChange={onInputChange}
+                />
+                <Button
+                  kind="ghost"
+                  renderIcon={Renew}
+                  iconDescription="Refresh"
+                  hasIconOnly
+                  onClick={onRefresh}
+                />
+              </TableToolbarContent>
+            </TableToolbar>
+            <Table {...getTableProps()}>
+              <TableHead>
+                <TableRow>
+                  <TableSelectAll {...getSelectionProps()} />
+                  {headers.map((header) => (
+                    <TableHeader
+                      key={header.key}
+                      {...getHeaderProps({ header })}
+                    >
+                      {header.header}
+                    </TableHeader>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.id} {...getRowProps({ row })}>
+                    <TableSelectRow {...getSelectionProps({ row })} />
+                    {row.cells.map((cell) => {
+                      if (cell.info.header === 'status') {
+                        return (
+                          <TableCell key={cell.id}>
+                            {getStatusTag(cell.value)}
+                          </TableCell>
+                        );
+                      }
+                      if (cell.info.header === 'severity') {
+                        return (
+                          <TableCell key={cell.id}>
+                            {getSeverityTag(cell.value)}
+                          </TableCell>
+                        );
+                      }
+                      if (cell.info.header === 'actions') {
+                        return (
+                          <TableCell key={cell.id}>
+                            <OverflowMenu
+                              size="sm"
+                              flipped
+                              aria-label="Actions"
+                            >
+                              <OverflowMenuItem
+                                itemText="View Details"
+                                onClick={() => handleViewReview(row.id)}
+                              />
+                              <OverflowMenuItem
+                                itemText="Export PDF"
+                                onClick={() => onExport?.(row.id)}
+                              />
+                              <OverflowMenuItem
+                                itemText="Delete"
+                                isDelete
+                                onClick={() => onDelete?.([row.id])}
+                              />
+                            </OverflowMenu>
+                          </TableCell>
+                        );
+                      }
+                      return <TableCell key={cell.id}>{cell.value}</TableCell>;
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <Pagination
+              backwardText="Previous page"
+              forwardText="Next page"
+              itemsPerPageText="Items per page:"
+              page={page}
+              pageSize={pageSize}
+              pageSizes={[10, 20, 30, 40, 50]}
+              totalItems={rows.length}
+              onChange={({ page, pageSize }) => {
+                setPage(page);
+                setPageSize(pageSize);
+              }}
+            />
+          </TableContainer>
+        )}
+      </DataTable>
+    </div>
+  );
+};
+
+export default ReviewsTable;
+```
+
+### Step 5: Implement Form Validation Pattern
+
+Create `frontend/src/components/features/SettingsForm.jsx`:
+
+```jsx
+import { useState } from 'react';
+import {
+  Form,
+  FormGroup,
+  TextInput,
+  Select,
+  SelectItem,
+  Toggle,
+  Button,
+  InlineNotification,
+  Stack,
+} from '@carbon/react';
+import { Save, Reset } from '@carbon/icons-react';
+import './SettingsForm.scss';
+
+const SettingsForm = ({ initialValues = {}, onSave }) => {
+  const [formData, setFormData] = useState({
+    username: initialValues.username || '',
+    email: initialValues.email || '',
+    language: initialValues.language || 'en',
+    emailNotifications: initialValues.emailNotifications ?? true,
+    reviewNotifications: initialValues.reviewNotifications ?? true,
+    securityAlerts: initialValues.securityAlerts ?? true,
+  });
+
+  const [errors, setErrors] = useState({});
+  const [saveStatus, setSaveStatus] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Username validation
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      setSaveStatus({
+        kind: 'error',
+        title: 'Validation Error',
+        subtitle: 'Please fix the errors before saving',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSaveStatus(null);
+
+    try {
+      await onSave(formData);
+      setSaveStatus({
+        kind: 'success',
+        title: 'Settings Saved',
+        subtitle: 'Your preferences have been updated successfully',
+      });
+    } catch (error) {
+      setSaveStatus({
+        kind: 'error',
+        title: 'Save Failed',
+        subtitle: error.message || 'Failed to save settings',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      username: initialValues.username || '',
+      email: initialValues.email || '',
+      language: initialValues.language || 'en',
+      emailNotifications: initialValues.emailNotifications ?? true,
+      reviewNotifications: initialValues.reviewNotifications ?? true,
+      securityAlerts: initialValues.securityAlerts ?? true,
+    });
+    setErrors({});
+    setSaveStatus(null);
+  };
+
+  return (
+    <div className="settings-form">
+      {saveStatus && (
+        <InlineNotification
+          kind={saveStatus.kind}
+          title={saveStatus.title}
+          subtitle={saveStatus.subtitle}
+          onCloseButtonClick={() => setSaveStatus(null)}
+          lowContrast
+        />
+      )}
+
+      <Form onSubmit={handleSubmit}>
+        <Stack gap={6}>
+          <FormGroup legendText="User Information">
+            <TextInput
+              id="username"
+              labelText="Username"
+              placeholder="Enter your username"
+              value={formData.username}
+              onChange={(e) => handleInputChange('username', e.target.value)}
+              invalid={!!errors.username}
+              invalidText={errors.username}
+              required
+            />
+
+            <TextInput
+              id="email"
+              labelText="Email"
+              type="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              invalid={!!errors.email}
+              invalidText={errors.email}
+              required
+            />
+
+            <Select
+              id="language"
+              labelText="Language"
+              value={formData.language}
+              onChange={(e) => handleInputChange('language', e.target.value)}
+            >
+              <SelectItem value="en" text="English" />
+              <SelectItem value="es" text="Spanish" />
+              <SelectItem value="fr" text="French" />
+              <SelectItem value="de" text="German" />
+            </Select>
+          </FormGroup>
+
+          <FormGroup legendText="Notification Preferences">
+            <Toggle
+              id="email-notifications"
+              labelText="Email Notifications"
+              labelA="Off"
+              labelB="On"
+              toggled={formData.emailNotifications}
+              onToggle={(checked) =>
+                handleInputChange('emailNotifications', checked)
+              }
+            />
+
+            <Toggle
+              id="review-notifications"
+              labelText="Review Completion Notifications"
+              labelA="Off"
+              labelB="On"
+              toggled={formData.reviewNotifications}
+              onToggle={(checked) =>
+                handleInputChange('reviewNotifications', checked)
+              }
+            />
+
+            <Toggle
+              id="security-alerts"
+              labelText="Security Alerts"
+              labelA="Off"
+              labelB="On"
+              toggled={formData.securityAlerts}
+              onToggle={(checked) =>
+                handleInputChange('securityAlerts', checked)
+              }
+            />
+          </FormGroup>
+
+          <div className="form-actions">
+            <Button
+              kind="primary"
+              type="submit"
+              renderIcon={Save}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Button
+              kind="secondary"
+              renderIcon={Reset}
+              onClick={handleReset}
+              disabled={isSubmitting}
+            >
+              Reset
+            </Button>
+          </div>
+        </Stack>
+      </Form>
+    </div>
+  );
+};
+
+export default SettingsForm;
+```
+
+### Step 6: Implement Loading States
+
+Create `frontend/src/components/ui/LoadingState.jsx`:
+
+```jsx
+import {
+  Grid,
+  Column,
+  SkeletonText,
+  SkeletonPlaceholder,
+  Loading,
+} from '@carbon/react';
+import './LoadingState.scss';
+
+export const DashboardSkeleton = () => (
+  <div className="dashboard-skeleton">
+    <SkeletonText heading width="30%" />
+    <SkeletonText paragraph width="50%" lineCount={1} />
+    
+    <Grid narrow className="skeleton-grid">
+      {[1, 2, 3, 4].map((i) => (
+        <Column key={i} sm={4} md={4} lg={4}>
+          <SkeletonPlaceholder className="skeleton-card" />
+        </Column>
+      ))}
+    </Grid>
+
+    <div className="skeleton-table">
+      <SkeletonText heading width="20%" />
+      <SkeletonPlaceholder style={{ height: '400px', marginTop: '1rem' }} />
+    </div>
+  </div>
+);
+
+export const ReviewDetailSkeleton = () => (
+  <div className="review-detail-skeleton">
+    <SkeletonText heading width="40%" />
+    <SkeletonText paragraph width="60%" lineCount={2} />
+    
+    <Grid narrow>
+      <Column sm={4} md={8} lg={12}>
+        <SkeletonPlaceholder style={{ height: '200px', marginTop: '2rem' }} />
+      </Column>
+      <Column sm={4} md={8} lg={12}>
+        <SkeletonPlaceholder style={{ height: '300px', marginTop: '1rem' }} />
+      </Column>
+    </Grid>
+  </div>
+);
+
+export const TableSkeleton = ({ rows = 5 }) => (
+  <div className="table-skeleton">
+    {Array.from({ length: rows }).map((_, i) => (
+      <SkeletonText key={i} paragraph width="100%" lineCount={1} />
+    ))}
+  </div>
+);
+
+export const InlineLoader = ({ description = 'Loading...' }) => (
+  <Loading description={description} withOverlay={false} small />
+);
+
+export const FullPageLoader = ({ description = 'Loading...' }) => (
+  <Loading description={description} withOverlay active />
+);
+```
+
+### Step 7: Implement Empty States
+
+Create `frontend/src/components/ui/EmptyState.jsx`:
+
+```jsx
+import { Tile, Button } from '@carbon/react';
+import { Add, Renew } from '@carbon/icons-react';
+import './EmptyState.scss';
+
+const EmptyState = ({
+  icon: Icon,
+  title,
+  description,
+  action,
+  actionLabel,
+  secondaryAction,
+  secondaryActionLabel,
+}) => {
+  return (
+    <Tile className="empty-state">
+      <div className="empty-state-content">
+        {Icon && (
+          <div className="empty-state-icon">
+            <Icon size={64} />
+          </div>
+        )}
+        <h3 className="empty-state-title">{title}</h3>
+        <p className="empty-state-description">{description}</p>
+        {(action || secondaryAction) && (
+          <div className="empty-state-actions">
+            {action && (
+              <Button
+                kind="primary"
+                renderIcon={Add}
+                onClick={action}
+              >
+                {actionLabel || 'Get Started'}
+              </Button>
+            )}
+            {secondaryAction && (
+              <Button
+                kind="secondary"
+                renderIcon={Renew}
+                onClick={secondaryAction}
+              >
+                {secondaryActionLabel || 'Refresh'}
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </Tile>
+  );
+};
+
+export default EmptyState;
+
+// Usage examples
+export const NoReviewsState = ({ onCreateReview, onRefresh }) => (
+  <EmptyState
+    title="No reviews yet"
+    description="Start by connecting a repository and triggering your first code review"
+    action={onCreateReview}
+    actionLabel="Create Review"
+    secondaryAction={onRefresh}
+    secondaryActionLabel="Refresh"
+  />
+);
+
+export const NoDataState = ({ onRefresh }) => (
+  <EmptyState
+    title="No data available"
+    description="There's no data to display at the moment"
+    secondaryAction={onRefresh}
+    secondaryActionLabel="Refresh"
+  />
+);
+```
+
+### Step 8: Implement Error States
+
+Create `frontend/src/components/ui/ErrorState.jsx`:
+
+```jsx
+import { Tile, Button } from '@carbon/react';
+import { ErrorFilled, Renew } from '@carbon/icons-react';
+import './ErrorState.scss';
+
+const ErrorState = ({
+  title = 'Something went wrong',
+  message = 'An unexpected error occurred. Please try again.',
+  error,
+  onRetry,
+  onGoBack,
+}) => {
+  return (
+    <Tile className="error-state">
+      <div className="error-state-content">
+        <ErrorFilled size={64} className="error-state-icon" />
+        <h3 className="error-state-title">{title}</h3>
+        <p className="error-state-message">{message}</p>
+        {error && process.env.NODE_ENV === 'development' && (
+          <details className="error-state-details">
+            <summary>Error Details</summary>
+            <pre>{error.toString()}</pre>
+          </details>
+        )}
+        <div className="error-state-actions">
+          {onRetry && (
+            <Button
+              kind="primary"
+              renderIcon={Renew}
+              onClick={onRetry}
+            >
+              Try Again
+            </Button>
+          )}
+          {onGoBack && (
+            <Button kind="secondary" onClick={onGoBack}>
+              Go Back
+            </Button>
+          )}
+        </div>
+      </div>
+    </Tile>
+  );
+};
+
+export default ErrorState;
+```
+
+### Step 9: Implement Notification System
+
+Create `frontend/src/components/ui/NotificationManager.jsx`:
+
+```jsx
+import { useEffect } from 'react';
+import { ToastNotification } from '@carbon/react';
+import { create } from 'zustand';
+import './NotificationManager.scss';
+
+// Notification store
+export const useNotificationStore = create((set) => ({
+  notifications: [],
+  addNotification: (notification) =>
+    set((state) => ({
+      notifications: [
+        ...state.notifications,
+        { ...notification, id: Date.now() },
+      ],
+    })),
+  removeNotification: (id) =>
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n.id !== id),
+    })),
+  clearAll: () => set({ notifications: [] }),
+}));
+
+const NotificationManager = () => {
+  const { notifications, removeNotification } = useNotificationStore();
+
+  useEffect(() => {
+    // Auto-dismiss notifications after 5 seconds
+    const timers = notifications.map((notification) =>
+      setTimeout(() => {
+        removeNotification(notification.id);
+      }, 5000)
+    );
+
+    return () => timers.forEach(clearTimeout);
+  }, [notifications, removeNotification]);
+
+  return (
+    <div className="notification-manager">
+      {notifications.map((notification) => (
+        <ToastNotification
+          key={notification.id}
+          kind={notification.kind || 'info'}
+          title={notification.title}
+          subtitle={notification.subtitle}
+          caption={notification.caption}
+          onClose={() => removeNotification(notification.id)}
+          lowContrast
+        />
+      ))}
+    </div>
+  );
+};
+
+export default NotificationManager;
+
+// Helper functions
+export const notify = {
+  success: (title, subtitle) =>
+    useNotificationStore.getState().addNotification({
+      kind: 'success',
+      title,
+      subtitle,
+    }),
+  error: (title, subtitle) =>
+    useNotificationStore.getState().addNotification({
+      kind: 'error',
+      title,
+      subtitle,
+    }),
+  warning: (title, subtitle) =>
+    useNotificationStore.getState().addNotification({
+      kind: 'warning',
+      title,
+      subtitle,
+    }),
+  info: (title, subtitle) =>
+    useNotificationStore.getState().addNotification({
+      kind: 'info',
+      title,
+      subtitle,
+    }),
+};
+```
+
+### Step 10: Responsive Grid Patterns
+
+Create `frontend/src/styles/_grid-patterns.scss`:
+
+```scss
+// Carbon Grid Patterns for IBM Dexter
+
+// Dashboard Grid
+.dashboard-grid {
+  // Metrics cards
+  .metrics-row {
+    margin-bottom: 2rem;
+  }
+
+  // Responsive breakpoints
+  @media (max-width: 672px) {
+    // Small screens: stack cards
+    .cds--col {
+      margin-bottom: 1rem;
+    }
+  }
+
+  @media (min-width: 672px) and (max-width: 1056px) {
+    // Medium screens: 2 columns
+    .cds--col-md-4 {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+  }
+
+  @media (min-width: 1056px) {
+    // Large screens: 4 columns
+    .cds--col-lg-4 {
+      flex: 0 0 25%;
+      max-width: 25%;
+    }
+  }
+}
+
+// Detail Page Grid
+.detail-grid {
+  .main-content {
+    @media (min-width: 1056px) {
+      flex: 0 0 66.666%;
+      max-width: 66.666%;
+    }
+  }
+
+  .sidebar {
+    @media (min-width: 1056px) {
+      flex: 0 0 33.333%;
+      max-width: 33.333%;
+    }
+  }
+}
+
+// Settings Grid
+.settings-grid {
+  .settings-section {
+    margin-bottom: 2rem;
+
+    @media (min-width: 1056px) {
+      flex: 0 0 66.666%;
+      max-width: 66.666%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+```
+
+## Code Examples
+
+### Example 1: Enhanced Dashboard with DataTable
+
+```jsx
+import { useQuery } from '@tanstack/react-query';
+import { Grid, Column } from '@carbon/react';
+import ReviewsTable from '../../components/features/ReviewsTable';
+import { DashboardSkeleton } from '../../components/ui/LoadingState';
+import { NoReviewsState } from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
+import { notify } from '../../components/ui/NotificationManager';
+import { reviewsAPI } from '../../services/api';
+import './Dashboard.scss';
+
+const Dashboard = () => {
+  const {
+    data: reviews,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['reviews'],
+    queryFn: () => reviewsAPI.getAll().then((res) => res.data),
+  });
+
+  const handleRefresh = async () => {
+    await refetch();
+    notify.success('Refreshed', 'Reviews list updated');
+  };
+
+  const handleDelete = async (ids) => {
+    try {
+      await Promise.all(ids.map((id) => reviewsAPI.delete(id)));
+      await refetch();
+      notify.success('Deleted', `${ids.length} review(s) deleted`);
+    } catch (error) {
+      notify.error('Delete Failed', error.message);
+    }
+  };
+
+  const handleExport = async (id) => {
+    try {
+      await reviewsAPI.exportPDF(id);
+      notify.success('Exported', 'PDF downloaded successfully');
+    } catch (error) {
+      notify.error('Export Failed', error.message);
+    }
+  };
+
+  if (isLoading) return <DashboardSkeleton />;
+  
+  if (isError) {
+    return (
+      <ErrorState
+        title="Failed to load reviews"
+        message={error.message}
+        error={error}
+        onRetry={refetch}
+      />
+    );
+  }
+
+  if (!reviews || reviews.length === 0) {
+    return <NoReviewsState onRefresh={refetch} />;
+  }
+
+  return (
+    <div className="dashboard">
+      <div className="page-header">
+        <h1>Dashboard</h1>
+        <p>Overview of your code review analytics and insights</p>
+      </div>
+
+      <Grid narrow>
+        <Column sm={4} md={8} lg={16}>
+          <ReviewsTable
+            reviews={reviews}
+            onRefresh={handleRefresh}
+            onDelete={handleDelete}
+            onExport={handleExport}
+          />
+        </Column>
+      </Grid>
+    </div>
+  );
+};
+
+export default Dashboard;
+```
+
+### Example 2: Enhanced Settings Page
+
+```jsx
+import { useState } from 'react';
+import { Grid, Column, Tile, Tabs, TabList, Tab, TabPanels, TabPanel } from '@carbon/react';
+import SettingsForm from '../../components/features/SettingsForm';
+import { notify } from '../../components/ui/NotificationManager';
+import { settingsAPI } from '../../services/api';
+import './Settings.scss';
+
+const Settings = () => {
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleSavePreferences = async (formData) => {
+    try {
+      await settingsAPI.updatePreferences(formData);
+      notify.success('Settings Saved', 'Your preferences have been updated');
+    } catch (error) {
+      notify.error('Save Failed', error.message);
+      throw error;
+    }
+  };
+
+  const handleSaveIntegrations = async (formData) => {
+    try {
+      await settingsAPI.updateIntegrations(formData);
+      notify.success('Integrations Updated', 'Your integrations have been configured');
+    } catch (error) {
+      notify.error('Update Failed', error.message);
+      throw error;
+    }
+  };
+
+  return (
+    <div className="settings">
+      <div className="page-header">
+        <h1>Settings</h1>
+        <p>Manage your preferences and integrations</p>
+      </div>
+
+      <Grid narrow>
+        <Column sm={4} md={8} lg={12}>
+          <Tile>
+            <Tabs selectedIndex={activeTab} onChange={({ selectedIndex }) => setActiveTab(selectedIndex)}>
+              <TabList aria-label="Settings tabs">
+                <Tab>User Preferences</Tab>
+                <Tab>Integrations</Tab>
+                <Tab>Security</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <SettingsForm
+                    initialValues={{
+                      username: 'developer@ibm.com',
+                      email: 'developer@ibm.com',
+                      language: 'en',
+                    }}
+                    onSave={handleSavePreferences}
+                  />
+                </TabPanel>
+                <TabPanel>
+                  <p>Integration settings coming soon...</p>
+                </TabPanel>
+                <TabPanel>
+                  <p>Security settings coming soon...</p>
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </Tile>
+        </Column>
+      </Grid>
+    </div>
+  );
+};
+
+export default Settings;
+```
+
+### Example 3: Theme Switcher Component
+
+```jsx
+import { Toggle } from '@carbon/react';
+import { Light, Asleep } from '@carbon/icons-react';
+import { useThemeStore } from '../../store/useThemeStore';
+import './ThemeSwitcher.scss';
+
+const ThemeSwitcher = () => {
+  const { theme, toggleTheme } = useThemeStore();
+  const isDark = theme === 'g100';
+
+  return (
+    <div className="theme-switcher">
+      <Toggle
+        id="theme-toggle"
+        labelText="Theme"
+        labelA="Light"
+        labelB="Dark"
+        toggled={isDark}
+        onToggle={toggleTheme}
+        size="sm"
+      />
+      <div className="theme-icon">
+        {isDark ? <Asleep size={20} /> : <Light size={20} />}
+      </div>
+    </div>
+  );
+};
+
+export default ThemeSwitcher;
+```
+
+## Integration Points
+
+### Frontend Components
+
+1. **Layout Components**:
+   - `frontend/src/components/layout/MainLayout.jsx` - Add NotificationManager
+   - `frontend/src/components/layout/AppHeader.jsx` - Add ThemeSwitcher
+
+2. **Page Components**:
+   - `frontend/src/pages/Dashboard/Dashboard.jsx` - Use ReviewsTable
+   - `frontend/src/pages/Settings/Settings.jsx` - Use SettingsForm
+   - `frontend/src/pages/ReviewDetail/ReviewDetail.jsx` - Use loading/error states
+
+3. **New Components**:
+   - `frontend/src/components/features/ReviewsTable.jsx`
+   - `frontend/src/components/features/SettingsForm.jsx`
+   - `frontend/src/components/ui/LoadingState.jsx`
+   - `frontend/src/components/ui/EmptyState.jsx`
+   - `frontend/src/components/ui/ErrorState.jsx`
+   - `frontend/src/components/ui/NotificationManager.jsx`
+
+### Styling
+
+1. **Global Styles**: `frontend/src/styles/App.scss`
+2. **Grid Patterns**: `frontend/src/styles/_grid-patterns.scss`
+3. **Component Styles**: Individual `.scss` files per component
+
+## Testing Strategy
+
+### Component Tests
+
+Create `frontend/src/components/features/__tests__/ReviewsTable.test.jsx`:
+
+```javascript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import ReviewsTable from '../ReviewsTable';
+
+const mockReviews = [
+  {
+    id: 1,
+    pull_request: { title: 'Test PR' },
+    status: 'completed',
+    highest_severity: 'high',
+    findings: [{ id: 1 }, { id: 2 }],
+    created_at: '2026-05-16T10:00:00Z',
+  },
+];
+
+describe('ReviewsTable', () => {
+  it('renders reviews correctly', () => {
+    render(
+      <BrowserRouter>
+        <ReviewsTable reviews={mockReviews} />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByText('Test PR')).toBeInTheDocument();
+    expect(screen.getByText('Completed')).toBeInTheDocument();
+  });
+
+  it('calls onRefresh when refresh button clicked', () => {
+    const onRefresh = vi.fn();
+    render(
+      <BrowserRouter>
+        <ReviewsTable reviews={mockReviews} onRefresh={onRefresh} />
+      </BrowserRouter>
+    );
+
+    const refreshButton = screen.getByLabelText('Refresh');
+    fireEvent.click(refreshButton);
+
+    expect(onRefresh).toHaveBeenCalled();
+  });
+
+  it('handles row selection', () => {
+    render(
+      <BrowserRouter>
+        <ReviewsTable reviews={mockReviews} />
+      </BrowserRouter>
+    );
+
+    const checkbox = screen.getAllByRole('checkbox')[1]; // First row checkbox
+    fireEvent.click(checkbox);
+
+    expect(checkbox).toBeChecked();
+  });
+});
+```
+
+### Accessibility Tests
+
+```javascript
+import { describe, it, expect } from 'vitest';
+import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
+import ReviewsTable from '../ReviewsTable';
+
+expect.extend(toHaveNoViolations);
+
+describe('ReviewsTable Accessibility', () => {
+  it('should not have accessibility violations', async () => {
+    const { container } = render(
+      <BrowserRouter>
+        <ReviewsTable reviews={[]} />
+      </BrowserRouter>
+    );
+
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+```
+
+## Best Practices
+
+### DO:
+- ✅ Use Carbon components for all UI elements
+- ✅ Follow IBM Design Language color tokens
+- ✅ Implement proper loading states with skeletons
+- ✅ Provide meaningful empty states
+- ✅ Handle errors gracefully with retry options
+- ✅ Use semantic HTML and ARIA labels
+- ✅ Test for accessibility (WCAG 2.1 AA)
+- ✅ Implement responsive layouts with Carbon Grid
+- ✅ Use Carbon icons consistently
+- ✅ Provide keyboard navigation support
+
+### DON'T:
+- ❌ Don't create custom components when Carbon provides them
+- ❌ Don't use inline styles (use SCSS with Carbon tokens)
+- ❌ Don't ignore loading/error states
+- ❌ Don't hardcode colors (use Carbon tokens)
+- ❌ Don't skip accessibility attributes
+- ❌ Don't use non-Carbon icons
+- ❌ Don't break responsive layouts
+- ❌ Don't ignore form validation
+- ❌ Don't use deprecated Carbon components
+
+## Common Pitfalls
+
+### Pitfall 1: Incorrect Theme Provider Setup
+**Problem**: Theme not applying correctly.
+
+**Solution**:
+```jsx
+// Wrap entire app with Theme component
+import { Theme } from '@carbon/react';
+
+<Theme theme="g100">
+  <App />
+</Theme>
+```
+
+### Pitfall 2: DataTable Performance Issues
+**Problem**: Slow rendering with large datasets.
+
+**Solution**:
+```jsx
+// Use pagination and memoization
+const paginatedRows = useMemo(() => {
+  const start = (page - 1) * pageSize;
+  return rows.slice(start, start + pageSize);
+}, [rows, page, pageSize]);
+```
+
+### Pitfall 3: Form Validation Not Working
+**Problem**: Form submits with invalid data.
+
+**Solution**:
+```jsx
+// Always validate before submission
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (!validateForm()) {
+    return; // Don't submit
+  }
+  // Submit form
+};
+```
+
+### Pitfall 4: Missing Accessibility Labels
+**Problem**: Screen readers can't navigate properly.
+
+**Solution**:
+```jsx
+// Always provide aria-label
+<Button
+  kind="ghost"
+  renderIcon={Renew}
+  iconDescription="Refresh reviews"
+  hasIconOnly
+  aria-label="Refresh reviews"
+/>
+```
+
+## MVP Scope
+
+### Included in MVP:
+- ✅ DataTable for reviews list
+- ✅ Form validation for settings
+- ✅ Theme switching (light/dark)
+- ✅ Loading states with skeletons
+- ✅ Empty states
+- ✅ Error states with retry
+- ✅ Toast notifications
+- ✅ Responsive grid layouts
+- ✅ Basic accessibility compliance
+- ✅ Icon integration
+
+### Deferred Post-MVP:
+- 🔄 Advanced DataTable features (column customization, export)
+- 🔄 Multi-step forms with wizard pattern
+- 🔄 Custom theme creation
+- 🔄 Advanced charts with @carbon/charts
+- 🔄 Drag-and-drop interfaces
+- 🔄 Advanced animations
+- 🔄 Internationalization (i18n)
+- 🔄 Advanced accessibility features (screen reader optimization)
+- 🔄 Offline support
+- 🔄 Progressive Web App (PWA) features
+
+### Success Metrics:
+- 100% Carbon component usage (no custom UI components)
+- WCAG 2.1 AA compliance for all pages
+- < 3 second page load time
+- Mobile-responsive on all screen sizes
+- Zero console warnings related to Carbon
+- Consistent IBM Design Language application

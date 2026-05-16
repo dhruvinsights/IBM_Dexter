@@ -1,0 +1,466 @@
+on_failure()
+            raise
+    
+    def _should_attempt_reset(self) -> bool:
+        """Check if circuit breaker should attempt reset"""
+        if self.last_failure_time is None:
+            return True
+        
+        elapsed = time.time() - self.last_failure_time
+        return elapsed >= self.recovery_timeout
+    
+    def _on_success(self):
+        """Handle successful execution"""
+        self.failure_count = 0
+        self.state = "closed"
+    
+    def _on_failure(self):
+        """Handle failed execution"""
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        
+        if self.failure_count >= self.failure_threshold:
+            self.state = "open"
+```
+
+### 15. Agent Performance Monitoring
+
+```python
+from dataclasses import dataclass
+from typing import Dict, Any, List
+import time
+from datetime import datetime
+
+@dataclass
+class AgentMetrics:
+    agent_name: str
+    execution_count: int
+    success_count: int
+    failure_count: int
+    timeout_count: int
+    average_execution_time: float
+    total_findings: int
+    average_confidence: float
+    last_execution: datetime
+
+class AgentMonitor:
+    """Monitor agent performance and health"""
+    
+    def __init__(self, redis_client):
+        self.redis = redis_client
+        self.namespace = "dexter:agents:metrics"
+    
+    async def record_execution(
+        self,
+        agent_name: str,
+        status: str,
+        execution_time: float,
+        findings_count: int,
+        confidence: float
+    ):
+        """Record agent execution metrics"""
+        key = f"{self.namespace}:{agent_name}"
+        
+        # Get current metrics
+        current = await self.redis.hgetall(key)
+        
+        # Update metrics
+        execution_count = int(current.get("execution_count", 0)) + 1
+        success_count = int(current.get("success_count", 0))
+        failure_count = int(current.get("failure_count", 0))
+        timeout_count = int(current.get("timeout_count", 0))
+        
+        if status == "success":
+            success_count += 1
+        elif status == "failed":
+            failure_count += 1
+        elif status == "timeout":
+            timeout_count += 1
+        
+        # Calculate averages
+        total_time = float(current.get("total_time", 0)) + execution_time
+        avg_time = total_time / execution_count
+        
+        total_findings = int(current.get("total_findings", 0)) + findings_count
+        total_confidence = float(current.get("total_confidence", 0)) + confidence
+        avg_confidence = total_confidence / execution_count
+        
+        # Save metrics
+        await self.redis.hset(key, mapping={
+            "execution_count": execution_count,
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "timeout_count": timeout_count,
+            "total_time": total_time,
+            "average_time": avg_time,
+            "total_findings": total_findings,
+            "total_confidence": total_confidence,
+            "average_confidence": avg_confidence,
+            "last_execution": datetime.utcnow().isoformat()
+        })
+    
+    async def get_metrics(self, agent_name: str) -> AgentMetrics:
+        """Get agent metrics"""
+        key = f"{self.namespace}:{agent_name}"
+        data = await self.redis.hgetall(key)
+        
+        if not data:
+            return None
+        
+        return AgentMetrics(
+            agent_name=agent_name,
+            execution_count=int(data["execution_count"]),
+            success_count=int(data["success_count"]),
+            failure_count=int(data["failure_count"]),
+            timeout_count=int(data["timeout_count"]),
+            average_execution_time=float(data["average_time"]),
+            total_findings=int(data["total_findings"]),
+            average_confidence=float(data["average_confidence"]),
+            last_execution=datetime.fromisoformat(data["last_execution"])
+        )
+    
+    async def get_all_metrics(self) -> List[AgentMetrics]:
+        """Get metrics for all agents"""
+        pattern = f"{self.namespace}:*"
+        keys = await self.redis.keys(pattern)
+        
+        metrics = []
+        for key in keys:
+            agent_name = key.split(":")[-1]
+            agent_metrics = await self.get_metrics(agent_name)
+            if agent_metrics:
+                metrics.append(agent_metrics)
+        
+        return metrics
+```
+
+### 16. Integration with RAG Pipeline
+
+```python
+from typing import List, Dict, Any
+
+class AgentRAGIntegration:
+    """Integrate agents with RAG pipeline"""
+    
+    def __init__(self, vector_store, embeddings):
+        self.vector_store = vector_store
+        self.embeddings = embeddings
+    
+    async def get_relevant_context(
+        self,
+        query: str,
+        agent_name: str,
+        k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Get relevant context for agent query"""
+        
+        # Search vector store
+        results = self.vector_store.similarity_search_with_score(
+            query,
+            k=k,
+            filter={
+                "agent": agent_name,
+                "type": "knowledge"
+            }
+        )
+        
+        return [
+            {
+                "content": doc.page_content,
+                "metadata": doc.metadata,
+                "relevance_score": score
+            }
+            for doc, score in results
+        ]
+    
+    async def add_agent_knowledge(
+        self,
+        agent_name: str,
+        content: str,
+        metadata: Dict[str, Any]
+    ):
+        """Add knowledge to agent's context"""
+        
+        self.vector_store.add_texts(
+            texts=[content],
+            metadatas=[{
+                **metadata,
+                "agent": agent_name,
+                "type": "knowledge",
+                "timestamp": datetime.utcnow().isoformat()
+            }]
+        )
+    
+    async def update_from_findings(
+        self,
+        agent_name: str,
+        findings: List[Dict[str, Any]]
+    ):
+        """Update knowledge base from agent findings"""
+        
+        for finding in findings:
+            # Create knowledge entry
+            content = f"""
+Issue: {finding['title']}
+Category: {finding['category']}
+Severity: {finding['severity']}
+Description: {finding['description']}
+Recommendation: {finding['recommendation']}
+            """.strip()
+            
+            await self.add_agent_knowledge(
+                agent_name,
+                content,
+                {
+                    "category": finding["category"],
+                    "severity": finding["severity"],
+                    "confidence": finding["confidence"]
+                }
+            )
+```
+
+### 17. IBM BOB AI Integration
+
+```python
+class BOBAIIntegration:
+    """Integration with IBM BOB AI"""
+    
+    def __init__(self, bob_api_url: str, api_key: str):
+        self.bob_api_url = bob_api_url
+        self.api_key = api_key
+    
+    async def query_bob(
+        self,
+        question: str,
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Query BOB AI for assistance"""
+        
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "question": question,
+                "context": context,
+                "mode": "code_review"
+            }
+            
+            async with session.post(
+                f"{self.bob_api_url}/query",
+                headers=headers,
+                json=payload
+            ) as response:
+                return await response.json()
+    
+    async def get_recommendations(
+        self,
+        findings: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Get BOB AI recommendations for findings"""
+        
+        recommendations = []
+        
+        for finding in findings:
+            question = f"""
+How can I fix this {finding['severity']} {finding['category']} issue?
+
+Issue: {finding['title']}
+Description: {finding['description']}
+Code: {finding['code_snippet']}
+            """
+            
+            result = await self.query_bob(
+                question,
+                {"finding": finding}
+            )
+            
+            recommendations.append({
+                "finding_id": finding.get("id"),
+                "bob_recommendation": result.get("answer"),
+                "confidence": result.get("confidence")
+            })
+        
+        return recommendations
+```
+
+### 18. Best Practices
+
+#### Agent Isolation
+- Each agent should be independent and stateless
+- Agents should not directly depend on other agents
+- Use message passing for inter-agent communication
+- Maintain separate vector stores for each agent
+- Implement proper error boundaries
+
+#### Prompt Engineering
+- Use clear, specific system prompts for each agent
+- Include examples in prompts for better results
+- Optimize prompts for token efficiency
+- Use structured output formats (JSON)
+- Include relevant context from RAG
+
+#### Context Management
+- Monitor token usage per agent
+- Implement context window optimization
+- Prioritize most relevant context
+- Use chunking for large code diffs
+- Cache frequently used context
+
+#### Error Handling
+- Implement retry logic with exponential backoff
+- Use circuit breakers for failing agents
+- Gracefully handle agent timeouts
+- Log all errors for debugging
+- Provide fallback mechanisms
+
+#### Performance Optimization
+- Run agents in parallel when possible
+- Cache agent results for similar inputs
+- Optimize vector store queries
+- Use batch processing for multiple PRs
+- Monitor and optimize slow agents
+
+#### Result Quality
+- Implement confidence scoring
+- Use multiple agents for validation
+- Resolve conflicts intelligently
+- Deduplicate findings
+- Prioritize by severity and confidence
+
+### 19. Configuration Example
+
+```yaml
+# config/agents.yaml
+agents:
+  security:
+    enabled: true
+    timeout: 300
+    max_retries: 3
+    llm:
+      provider: watsonx
+      model: ibm/granite-13b-chat-v2
+      temperature: 0.7
+    vector_store:
+      collection: security_knowledge
+      top_k: 5
+    
+  architecture:
+    enabled: true
+    timeout: 300
+    max_retries: 3
+    llm:
+      provider: watsonx
+      model: ibm/granite-13b-chat-v2
+      temperature: 0.7
+    vector_store:
+      collection: architecture_knowledge
+      top_k: 5
+  
+  compliance:
+    enabled: true
+    timeout: 300
+    max_retries: 3
+    llm:
+      provider: ollama
+      model: deepseek-coder:33b
+      temperature: 0.5
+    vector_store:
+      collection: compliance_knowledge
+      top_k: 5
+  
+  modernization:
+    enabled: true
+    timeout: 300
+    max_retries: 3
+    llm:
+      provider: watsonx
+      model: ibm/granite-13b-chat-v2
+      temperature: 0.8
+    vector_store:
+      collection: modernization_knowledge
+      top_k: 5
+  
+  performance:
+    enabled: true
+    timeout: 300
+    max_retries: 3
+    llm:
+      provider: ollama
+      model: deepseek-coder:33b
+      temperature: 0.6
+    vector_store:
+      collection: performance_knowledge
+      top_k: 5
+
+orchestration:
+  mode: parallel  # parallel, sequential, conditional
+  aggregation:
+    deduplication: true
+    conflict_resolution: confidence_based
+    prioritization: severity_first
+  
+state_management:
+  backend: redis
+  ttl: 7200
+  checkpoint_interval: 300
+
+monitoring:
+  enabled: true
+  metrics_retention: 30  # days
+  alert_on_failure_rate: 0.2
+  alert_on_timeout_rate: 0.1
+```
+
+### 20. Deployment Considerations
+
+#### Scalability
+- Deploy agents as separate microservices
+- Use container orchestration (Kubernetes)
+- Implement horizontal scaling
+- Use load balancing for agent requests
+- Implement request queuing with Celery
+
+#### High Availability
+- Deploy multiple instances of each agent
+- Implement health checks
+- Use circuit breakers
+- Implement graceful degradation
+- Maintain agent redundancy
+
+#### Security
+- Secure agent communication with TLS
+- Implement authentication for agent APIs
+- Encrypt sensitive data in transit and at rest
+- Use secrets management (HashiCorp Vault)
+- Implement rate limiting
+
+#### Monitoring
+- Track agent performance metrics
+- Monitor resource utilization
+- Set up alerting for failures
+- Implement distributed tracing
+- Use centralized logging
+
+#### Cost Optimization
+- Cache agent results
+- Optimize LLM token usage
+- Use local LLMs where appropriate
+- Implement request batching
+- Monitor and optimize slow agents
+
+## Summary
+
+This skill provides a comprehensive framework for implementing a multi-agent AI system in IBM Dexter. The system leverages specialized agents for different aspects of code review, orchestrates them efficiently using LangGraph, and aggregates results intelligently to provide high-quality, actionable feedback on pull requests.
+
+Key benefits:
+- **Specialized Expertise**: Each agent focuses on specific domain
+- **Parallel Processing**: Multiple agents analyze code simultaneously
+- **Intelligent Aggregation**: Deduplication and conflict resolution
+- **Scalable Architecture**: Microservices-based design
+- **Flexible LLM Support**: Works with Watsonx, Ollama, and others
+- **Production Ready**: Error handling, monitoring, and resilience
+
+The multi-agent approach enables IBM Dexter to provide comprehensive code reviews that cover security, architecture, compliance, modernization, and performance aspects, making it a powerful tool for maintaining code quality and accelerating development workflows.

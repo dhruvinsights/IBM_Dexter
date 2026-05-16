@@ -1,0 +1,15 @@
+[run]
+source =
+    app
+branch = True
+
+[report]
+show_missing = True
+skip_covered = False
+omit =
+    app/tests/*
+    */__init__.py
+    */conftest.py
+
+[html]
+directory = coverage_html_report

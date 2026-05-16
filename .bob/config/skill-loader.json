@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "auto_load": true,
+  "skill_directories": [
+    "skills/core",
+    "skills/integration",
+    "skills/testing"
+  ],
+  "skill_mapping": {
+    "pdf_generation": "skills/core/ibm-dexter-pdf-documentation.skill",
+    "carbon_design": "skills/core/ibm-carbon-design-integration.skill",
+    "testing_coverage": "skills/testing/ibm-dexter-testing-coverage.skill",
+    "multi_agent_ai": "skills/core/ibm-dexter-multi-agent-ai.skill",
+    "rag_pipeline": "skills/core/ibm-dexter-rag-pipeline.skill",
+    "bob_integration": "skills/integration/ibm-dexter-bob-integration.skill"
+  },
+  "prompt_triggers": {
+    "pdf|report|documentation": ["pdf_generation"],
+    "ui|design|carbon|frontend": ["carbon_design"],
+    "test|coverage|quality": ["testing_coverage"],
+    "agent|ai|llm|review": ["multi_agent_ai"],
+    "rag|retrieval|search|context": ["rag_pipeline"],
+    "bob|integration|api": ["bob_integration"]
+  }
+}

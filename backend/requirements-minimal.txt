@@ -1,0 +1,67 @@
+# ============================================================================
+# MINIMAL REQUIREMENTS - Fast Install (~2-3 minutes)
+# ============================================================================
+# This file contains only essential dependencies for running IBM Dexter
+# with Ollama (local LLM). Perfect for development and testing.
+#
+# Install: pip install -r requirements-minimal.txt
+# ============================================================================
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# LangChain Core (NO heavy LLM providers)
+langchain==0.1.0
+langchain-core==0.1.10
+langchain-community==0.0.13
+
+# Ollama Integration (lightweight, local LLM)
+ollama==0.1.6
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# HTTP Client
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Utilities
+pydantic==2.5.2
+pydantic-settings==2.1.0
+python-dateutil==2.8.2
+
+# GitHub/GitLab Integration
+PyGithub==2.1.1
+python-gitlab==4.2.0
+
+# Vector Store (lightweight alternative to Db2)
+chromadb==0.4.18
+
+# ============================================================================
+# Optional: Uncomment if needed
+# ============================================================================
+
+# IBM Db2 Integration (uncomment if using Db2 instead of ChromaDB)
+# ibm-db==3.2.0
+# ibm-db-sa==0.4.0
+
+# Background Tasks (uncomment if using Celery)
+# celery==5.3.4
+# redis==5.0.1
+
+# Testing (uncomment for development)
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+# pytest-cov==4.1.0
+
+# Code Quality (uncomment for development)
+# black==23.11.0
+# ruff==0.1.6

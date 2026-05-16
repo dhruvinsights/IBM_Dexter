@@ -1,0 +1,1310 @@
+---
+name: IBM Dexter PDF Export
+version: 1.0.0
+description: Lightweight PDF generation for IBM-branded code review reports and analytics snapshots with synchronous generation for MVP
+tags: [pdf, export, reporting, ibm-branding, documentation, mvp]
+---
+
+# IBM Dexter PDF Export Skill
+
+## Overview
+
+This skill enables IBM Dexter to generate professional, IBM-branded PDF reports for code reviews and analytics. It provides synchronous PDF generation optimized for MVP deployment, supporting review summaries, analytics snapshots, and markdown-to-PDF conversion with charts and visualizations.
+
+**Key Focus**: Lightweight, fast, and reliable PDF generation without complex async workflows or heavy dependencies.
+
+## Core Capabilities
+
+1. **Review Summary Export** - Generate comprehensive PDF reports for individual code reviews
+2. **Analytics Snapshot Export** - Create visual analytics reports with charts and metrics
+3. **IBM Branding** - Apply consistent IBM Design Language styling and branding
+4. **Markdown to PDF** - Convert markdown content to formatted PDF documents
+5. **Chart Integration** - Embed matplotlib/plotly charts in PDF reports
+6. **Synchronous Generation** - Fast, blocking PDF creation suitable for API responses
+7. **Template System** - Reusable templates for different report types
+
+## Implementation Guide
+
+### Step 1: Install Dependencies
+
+Add to `backend/requirements-mvp.txt`:
+
+```txt
+# PDF Generation (MVP - Lightweight)
+reportlab==4.0.7          # Core PDF generation
+markdown2==2.4.10         # Markdown to HTML conversion
+Pillow==10.1.0           # Image processing for charts
+matplotlib==3.8.2        # Chart generation (already in requirements)
+```
+
+**Why ReportLab?**
+- Pure Python, no external dependencies
+- Fast synchronous generation
+- Excellent for programmatic PDF creation
+- IBM has used it in enterprise projects
+- Better for MVP than WeasyPrint (which requires system libraries)
+
+### Step 2: Create PDF Service
+
+Create `backend/app/services/pdf_service.py`:
+
+```python
+"""PDF generation service for IBM Dexter reports."""
+
+from __future__ import annotations
+
+import io
+import logging
+from datetime import datetime
+from typing import Any, Optional
+
+import markdown2
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    PageBreak,
+    Image,
+    KeepTogether,
+)
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+
+logger = logging.getLogger(__name__)
+
+
+class IBMPDFStyle:
+    """IBM Design Language color palette and styles."""
+    
+    # IBM Color Palette
+    IBM_BLUE = colors.HexColor("#0f62fe")
+    IBM_BLUE_DARK = colors.HexColor("#002d9c")
+    IBM_GRAY_10 = colors.HexColor("#f4f4f4")
+    IBM_GRAY_20 = colors.HexColor("#e0e0e0")
+    IBM_GRAY_50 = colors.HexColor("#8d8d8d")
+    IBM_GRAY_100 = colors.HexColor("#161616")
+    IBM_RED = colors.HexColor("#da1e28")
+    IBM_ORANGE = colors.HexColor("#ff832b")
+    IBM_YELLOW = colors.HexColor("#f1c21b")
+    IBM_GREEN = colors.HexColor("#24a148")
+    
+    # Severity Colors
+    CRITICAL = IBM_RED
+    HIGH = IBM_ORANGE
+    MEDIUM = IBM_YELLOW
+    LOW = IBM_BLUE
+    INFO = IBM_GRAY_50
+    
+    @classmethod
+    def get_severity_color(cls, severity: str) -> colors.Color:
+        """Get color for severity level."""
+        severity_map = {
+            "critical": cls.CRITICAL,
+            "high": cls.HIGH,
+            "medium": cls.MEDIUM,
+            "low": cls.LOW,
+            "info": cls.INFO,
+        }
+        return severity_map.get(severity.lower(), cls.IBM_GRAY_50)
+
+
+class PDFService:
+    """Service for generating IBM-branded PDF reports."""
+    
+    def __init__(self):
+        """Initialize PDF service with IBM styles."""
+        self.styles = getSampleStyleSheet()
+        self._setup_ibm_styles()
+    
+    def _setup_ibm_styles(self) -> None:
+        """Configure IBM Design Language styles."""
+        # Title style
+        self.styles.add(ParagraphStyle(
+            name='IBMTitle',
+            parent=self.styles['Heading1'],
+            fontSize=24,
+            textColor=IBMPDFStyle.IBM_BLUE_DARK,
+            spaceAfter=30,
+            fontName='Helvetica-Bold',
+        ))
+        
+        # Heading style
+        self.styles.add(ParagraphStyle(
+            name='IBMHeading',
+            parent=self.styles['Heading2'],
+            fontSize=16,
+            textColor=IBMPDFStyle.IBM_BLUE,
+            spaceAfter=12,
+            spaceBefore=12,
+            fontName='Helvetica-Bold',
+        ))
+        
+        # Subheading style
+        self.styles.add(ParagraphStyle(
+            name='IBMSubheading',
+            parent=self.styles['Heading3'],
+            fontSize=12,
+            textColor=IBMPDFStyle.IBM_GRAY_100,
+            spaceAfter=6,
+            fontName='Helvetica-Bold',
+        ))
+        
+        # Body text
+        self.styles.add(ParagraphStyle(
+            name='IBMBody',
+            parent=self.styles['Normal'],
+            fontSize=10,
+            textColor=IBMPDFStyle.IBM_GRAY_100,
+            spaceAfter=6,
+            fontName='Helvetica',
+        ))
+        
+        # Code style
+        self.styles.add(ParagraphStyle(
+            name='IBMCode',
+            parent=self.styles['Code'],
+            fontSize=9,
+            textColor=IBMPDFStyle.IBM_GRAY_100,
+            backColor=IBMPDFStyle.IBM_GRAY_10,
+            fontName='Courier',
+            leftIndent=10,
+            rightIndent=10,
+        ))
+    
+    def generate_review_pdf(
+        self,
+        review_data: dict[str, Any],
+        pull_request_data: dict[str, Any],
+    ) -> bytes:
+        """
+        Generate PDF report for a code review.
+        
+        Args:
+            review_data: Review model data with findings and agent_results
+            pull_request_data: Pull request model data
+            
+        Returns:
+            PDF file as bytes
+        """
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=18,
+        )
+        
+        story = []
+        
+        # Header
+        story.extend(self._build_header(review_data, pull_request_data))
+        
+        # Executive Summary
+        story.extend(self._build_executive_summary(review_data))
+        
+        # Findings by Severity
+        story.extend(self._build_findings_section(review_data))
+        
+        # Agent Results
+        story.extend(self._build_agent_results(review_data))
+        
+        # Footer
+        story.extend(self._build_footer())
+        
+        # Build PDF
+        doc.build(story)
+        
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+        
+        logger.info(f"Generated PDF report for review {review_data.get('id')}")
+        return pdf_bytes
+    
+    def _build_header(
+        self,
+        review_data: dict[str, Any],
+        pull_request_data: dict[str, Any],
+    ) -> list:
+        """Build PDF header with IBM branding."""
+        elements = []
+        
+        # Title
+        title = Paragraph(
+            "IBM Dexter Code Review Report",
+            self.styles['IBMTitle']
+        )
+        elements.append(title)
+        elements.append(Spacer(1, 0.2 * inch))
+        
+        # Metadata table
+        pr_title = pull_request_data.get('title', 'N/A')
+        pr_number = pull_request_data.get('number', 'N/A')
+        pr_author = pull_request_data.get('author', 'N/A')
+        review_status = review_data.get('status', 'N/A')
+        created_at = review_data.get('created_at', 'N/A')
+        
+        metadata = [
+            ['Pull Request:', f"#{pr_number} - {pr_title}"],
+            ['Author:', pr_author],
+            ['Review Status:', review_status],
+            ['Generated:', created_at],
+        ]
+        
+        table = Table(metadata, colWidths=[2 * inch, 4.5 * inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), IBMPDFStyle.IBM_GRAY_10),
+            ('TEXTCOLOR', (0, 0), (-1, -1), IBMPDFStyle.IBM_GRAY_100),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, IBMPDFStyle.IBM_GRAY_20),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 0.3 * inch))
+        
+        return elements
+    
+    def _build_executive_summary(self, review_data: dict[str, Any]) -> list:
+        """Build executive summary section."""
+        elements = []
+        
+        elements.append(Paragraph("Executive Summary", self.styles['IBMHeading']))
+        
+        findings = review_data.get('findings', [])
+        
+        # Count by severity
+        severity_counts = {}
+        for finding in findings:
+            severity = finding.get('severity', 'info').lower()
+            severity_counts[severity] = severity_counts.get(severity, 0) + 1
+        
+        # Summary stats
+        total_findings = len(findings)
+        critical_count = severity_counts.get('critical', 0)
+        high_count = severity_counts.get('high', 0)
+        medium_count = severity_counts.get('medium', 0)
+        low_count = severity_counts.get('low', 0)
+        
+        summary_data = [
+            ['Total Findings', str(total_findings)],
+            ['Critical', str(critical_count)],
+            ['High', str(high_count)],
+            ['Medium', str(medium_count)],
+            ['Low', str(low_count)],
+        ]
+        
+        table = Table(summary_data, colWidths=[3 * inch, 1.5 * inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), IBMPDFStyle.IBM_BLUE),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, IBMPDFStyle.IBM_GRAY_20),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, IBMPDFStyle.IBM_GRAY_10]),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 0.3 * inch))
+        
+        return elements
+    
+    def _build_findings_section(self, review_data: dict[str, Any]) -> list:
+        """Build detailed findings section."""
+        elements = []
+        
+        elements.append(Paragraph("Detailed Findings", self.styles['IBMHeading']))
+        elements.append(Spacer(1, 0.1 * inch))
+        
+        findings = review_data.get('findings', [])
+        
+        # Group by severity
+        by_severity = {}
+        for finding in findings:
+            severity = finding.get('severity', 'info').lower()
+            if severity not in by_severity:
+                by_severity[severity] = []
+            by_severity[severity].append(finding)
+        
+        # Order: critical, high, medium, low, info
+        severity_order = ['critical', 'high', 'medium', 'low', 'info']
+        
+        for severity in severity_order:
+            if severity not in by_severity:
+                continue
+            
+            findings_list = by_severity[severity]
+            
+            # Severity header
+            severity_title = f"{severity.upper()} Severity ({len(findings_list)} findings)"
+            elements.append(Paragraph(severity_title, self.styles['IBMSubheading']))
+            
+            # Each finding
+            for idx, finding in enumerate(findings_list, 1):
+                finding_elements = self._build_finding_item(finding, idx, severity)
+                elements.extend(finding_elements)
+            
+            elements.append(Spacer(1, 0.2 * inch))
+        
+        return elements
+    
+    def _build_finding_item(
+        self,
+        finding: dict[str, Any],
+        index: int,
+        severity: str,
+    ) -> list:
+        """Build a single finding item."""
+        elements = []
+        
+        # Finding header
+        title = finding.get('title', 'Untitled Finding')
+        category = finding.get('category', 'General')
+        
+        header_text = f"<b>{index}. {title}</b> [{category}]"
+        elements.append(Paragraph(header_text, self.styles['IBMBody']))
+        
+        # Description
+        description = finding.get('description', 'No description provided.')
+        elements.append(Paragraph(description, self.styles['IBMBody']))
+        
+        # File location
+        file_path = finding.get('file_path', '')
+        line_number = finding.get('line_number', '')
+        if file_path:
+            location = f"<i>Location: {file_path}"
+            if line_number:
+                location += f" (Line {line_number})"
+            location += "</i>"
+            elements.append(Paragraph(location, self.styles['IBMBody']))
+        
+        # Code snippet
+        code_snippet = finding.get('code_snippet', '')
+        if code_snippet:
+            # Escape HTML and preserve formatting
+            code_snippet = code_snippet.replace('&', '&')
+            code_snippet = code_snippet.replace('<', '<')
+            code_snippet = code_snippet.replace('>', '>')
+            code_text = f"<font name='Courier' size='8'>{code_snippet}</font>"
+            elements.append(Paragraph(code_text, self.styles['IBMCode']))
+        
+        # Recommendation
+        recommendation = finding.get('recommendation', '')
+        if recommendation:
+            rec_text = f"<b>Recommendation:</b> {recommendation}"
+            elements.append(Paragraph(rec_text, self.styles['IBMBody']))
+        
+        elements.append(Spacer(1, 0.15 * inch))
+        
+        return elements
+    
+    def _build_agent_results(self, review_data: dict[str, Any]) -> list:
+        """Build agent-specific results section."""
+        elements = []
+        
+        elements.append(PageBreak())
+        elements.append(Paragraph("Agent Analysis Details", self.styles['IBMHeading']))
+        elements.append(Spacer(1, 0.1 * inch))
+        
+        agent_results = review_data.get('agent_results', {})
+        
+        for agent_name, result in agent_results.items():
+            # Agent header
+            agent_title = f"{agent_name.replace('_', ' ').title()} Agent"
+            elements.append(Paragraph(agent_title, self.styles['IBMSubheading']))
+            
+            # Agent summary
+            summary = result.get('summary', 'No summary available.')
+            elements.append(Paragraph(summary, self.styles['IBMBody']))
+            
+            # Agent metrics
+            metrics = result.get('metrics', {})
+            if metrics:
+                metric_data = [[k.replace('_', ' ').title(), str(v)] for k, v in metrics.items()]
+                table = Table(metric_data, colWidths=[3 * inch, 2 * inch])
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (0, -1), IBMPDFStyle.IBM_GRAY_10),
+                    ('GRID', (0, 0), (-1, -1), 0.5, IBMPDFStyle.IBM_GRAY_20),
+                    ('FONTSIZE', (0, 0), (-1, -1), 9),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ]))
+                elements.append(table)
+            
+            elements.append(Spacer(1, 0.2 * inch))
+        
+        return elements
+    
+    def _build_footer(self) -> list:
+        """Build PDF footer."""
+        elements = []
+        
+        elements.append(Spacer(1, 0.5 * inch))
+        
+        footer_text = (
+            "<i>Generated by IBM Dexter - AI-Powered Code Review Platform</i><br/>"
+            f"<i>Report Date: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</i>"
+        )
+        
+        footer = Paragraph(footer_text, self.styles['IBMBody'])
+        elements.append(footer)
+        
+        return elements
+    
+    def generate_analytics_pdf(
+        self,
+        analytics_data: dict[str, Any],
+        chart_images: Optional[list[bytes]] = None,
+    ) -> bytes:
+        """
+        Generate PDF report for analytics dashboard.
+        
+        Args:
+            analytics_data: Analytics metrics and data
+            chart_images: Optional list of chart images as bytes
+            
+        Returns:
+            PDF file as bytes
+        """
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=18,
+        )
+        
+        story = []
+        
+        # Title
+        title = Paragraph(
+            "IBM Dexter Analytics Report",
+            self.styles['IBMTitle']
+        )
+        story.append(title)
+        story.append(Spacer(1, 0.3 * inch))
+        
+        # Time period
+        time_period = analytics_data.get('time_period', 'Last 30 days')
+        period_text = f"<b>Time Period:</b> {time_period}"
+        story.append(Paragraph(period_text, self.styles['IBMBody']))
+        story.append(Spacer(1, 0.2 * inch))
+        
+        # Key metrics
+        story.append(Paragraph("Key Metrics", self.styles['IBMHeading']))
+        
+        metrics = analytics_data.get('metrics', {})
+        metric_data = [
+            ['Total Reviews', str(metrics.get('total_reviews', 0))],
+            ['Total Findings', str(metrics.get('total_findings', 0))],
+            ['Critical Issues', str(metrics.get('critical_issues', 0))],
+            ['Average Review Time', metrics.get('avg_review_time', 'N/A')],
+            ['Code Quality Score', str(metrics.get('quality_score', 'N/A'))],
+        ]
+        
+        table = Table(metric_data, colWidths=[3 * inch, 2 * inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), IBMPDFStyle.IBM_BLUE),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, IBMPDFStyle.IBM_GRAY_20),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, IBMPDFStyle.IBM_GRAY_10]),
+        ]))
+        
+        story.append(table)
+        story.append(Spacer(1, 0.3 * inch))
+        
+        # Charts
+        if chart_images:
+            story.append(Paragraph("Visualizations", self.styles['IBMHeading']))
+            
+            for chart_bytes in chart_images:
+                img_buffer = io.BytesIO(chart_bytes)
+                img = Image(img_buffer, width=5 * inch, height=3 * inch)
+                story.append(img)
+                story.append(Spacer(1, 0.2 * inch))
+        
+        # Footer
+        story.extend(self._build_footer())
+        
+        # Build PDF
+        doc.build(story)
+        
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+        
+        logger.info("Generated analytics PDF report")
+        return pdf_bytes
+    
+    def markdown_to_pdf(self, markdown_content: str, title: str = "Document") -> bytes:
+        """
+        Convert markdown content to PDF.
+        
+        Args:
+            markdown_content: Markdown text
+            title: Document title
+            
+        Returns:
+            PDF file as bytes
+        """
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=18,
+        )
+        
+        story = []
+        
+        # Title
+        story.append(Paragraph(title, self.styles['IBMTitle']))
+        story.append(Spacer(1, 0.3 * inch))
+        
+        # Convert markdown to HTML
+        html_content = markdown2.markdown(
+            markdown_content,
+            extras=['fenced-code-blocks', 'tables', 'header-ids']
+        )
+        
+        # Parse HTML and convert to ReportLab elements
+        # For MVP, use simple paragraph conversion
+        # TODO: Enhance with proper HTML parsing for complex markdown
+        paragraphs = html_content.split('\n\n')
+        
+        for para in paragraphs:
+            if para.strip():
+                # Remove basic HTML tags for MVP
+                clean_text = para.replace('<p>', '').replace('</p>', '')
+                clean_text = clean_text.replace('<strong>', '<b>').replace('</strong>', '</b>')
+                clean_text = clean_text.replace('<em>', '<i>').replace('</em>', '</i>')
+                
+                story.append(Paragraph(clean_text, self.styles['IBMBody']))
+                story.append(Spacer(1, 0.1 * inch))
+        
+        # Footer
+        story.extend(self._build_footer())
+        
+        # Build PDF
+        doc.build(story)
+        
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+        
+        logger.info(f"Generated PDF from markdown: {title}")
+        return pdf_bytes
+
+
+# Singleton instance
+_pdf_service: Optional[PDFService] = None
+
+
+def get_pdf_service() -> PDFService:
+    """Get or create PDF service singleton."""
+    global _pdf_service
+    if _pdf_service is None:
+        _pdf_service = PDFService()
+    return _pdf_service
+```
+
+### Step 3: Add API Endpoints
+
+Update `backend/app/api/v1/endpoints/reviews.py`:
+
+```python
+"""Review retrieval and export API endpoints."""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
+
+from app.api.v1.endpoints.pull_requests import _REVIEWS, _PULL_REQUESTS
+from app.services.pdf_service import get_pdf_service
+
+router = APIRouter()
+
+
+@router.get("/reviews")
+async def list_reviews() -> list[dict]:
+    """Return all recorded review runs."""
+    return _REVIEWS
+
+
+@router.get("/reviews/{review_id}")
+async def get_review(review_id: int) -> dict:
+    """Get a specific review by ID."""
+    for review in _REVIEWS:
+        if review.get("id") == review_id:
+            return review
+    raise HTTPException(status_code=404, detail="Review not found")
+
+
+@router.get("/reviews/{review_id}/export/pdf")
+async def export_review_pdf(review_id: int) -> Response:
+    """
+    Export a review as a PDF report.
+    
+    Returns PDF file with IBM branding.
+    """
+    # Find review
+    review_data = None
+    for review in _REVIEWS:
+        if review.get("id") == review_id:
+            review_data = review
+            break
+    
+    if not review_data:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    # Find associated pull request
+    pr_id = review_data.get("pull_request_id")
+    pr_data = None
+    for pr in _PULL_REQUESTS:
+        if pr.get("id") == pr_id:
+            pr_data = pr
+            break
+    
+    if not pr_data:
+        raise HTTPException(status_code=404, detail="Pull request not found")
+    
+    # Generate PDF
+    pdf_service = get_pdf_service()
+    pdf_bytes = pdf_service.generate_review_pdf(review_data, pr_data)
+    
+    # Return as downloadable file
+    filename = f"dexter_review_{review_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+```
+
+Create `backend/app/api/v1/endpoints/analytics.py`:
+
+```python
+"""Analytics and reporting API endpoints."""
+
+from __future__ import annotations
+
+from fastapi import APIRouter
+from fastapi.responses import Response
+
+from app.services.pdf_service import get_pdf_service
+from app.services.analytics_service import get_analytics_service
+
+router = APIRouter()
+
+
+@router.get("/analytics/summary")
+async def get_analytics_summary() -> dict:
+    """Get analytics summary data."""
+    analytics_service = get_analytics_service()
+    return await analytics_service.get_summary()
+
+
+@router.get("/analytics/export/pdf")
+async def export_analytics_pdf() -> Response:
+    """
+    Export analytics dashboard as PDF report.
+    
+    Returns PDF file with charts and metrics.
+    """
+    # Get analytics data
+    analytics_service = get_analytics_service()
+    analytics_data = await analytics_service.get_summary()
+    
+    # TODO: Generate chart images (deferred for MVP)
+    # For MVP, generate PDF without charts
+    chart_images = None
+    
+    # Generate PDF
+    pdf_service = get_pdf_service()
+    pdf_bytes = pdf_service.generate_analytics_pdf(
+        analytics_data,
+        chart_images=chart_images
+    )
+    
+    # Return as downloadable file
+    filename = "dexter_analytics.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+```
+
+### Step 4: Register Routes
+
+Update `backend/main.py` to include analytics router:
+
+```python
+from app.api.v1.endpoints import analytics
+
+# Add to router registration
+app.include_router(
+    analytics.router,
+    prefix="/api/v1/analytics",
+    tags=["analytics"]
+)
+```
+
+### Step 5: Frontend Integration
+
+Update `frontend/src/services/api.js`:
+
+```javascript
+// Add PDF export functions
+export const exportReviewPDF = async (reviewId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/reviews/${reviewId}/export/pdf`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to export PDF');
+    }
+    
+    // Download file
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dexter_review_${reviewId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    throw error;
+  }
+};
+
+export const exportAnalyticsPDF = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/analytics/export/pdf`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to export analytics PDF');
+    }
+    
+    // Download file
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dexter_analytics.pdf';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error exporting analytics PDF:', error);
+    throw error;
+  }
+};
+```
+
+Add export button to `frontend/src/pages/ReviewDetail/ReviewDetail.jsx`:
+
+```jsx
+import { exportReviewPDF } from '../../services/api';
+
+// Inside component
+const handleExportPDF = async () => {
+  try {
+    setLoading(true);
+    await exportReviewPDF(reviewId);
+    // Show success notification
+  } catch (error) {
+    console.error('Failed to export PDF:', error);
+    // Show error notification
+  } finally {
+    setLoading(false);
+  }
+};
+
+// In JSX
+<Button
+  kind="secondary"
+  renderIcon={Download}
+  onClick={handleExportPDF}
+  disabled={loading}
+>
+  Export PDF
+</Button>
+```
+
+## Code Examples
+
+### Example 1: Generate Review PDF
+
+```python
+from app.services.pdf_service import get_pdf_service
+
+# Sample review data
+review_data = {
+    "id": 123,
+    "pull_request_id": 456,
+    "status": "completed",
+    "created_at": "2026-05-16T10:30:00Z",
+    "findings": [
+        {
+            "severity": "high",
+            "title": "SQL Injection Vulnerability",
+            "category": "Security",
+            "description": "User input is directly concatenated into SQL query",
+            "file_path": "src/database/queries.py",
+            "line_number": 45,
+            "code_snippet": "query = f\"SELECT * FROM users WHERE id = {user_id}\"",
+            "recommendation": "Use parameterized queries or ORM"
+        },
+        {
+            "severity": "medium",
+            "title": "Missing Error Handling",
+            "category": "Reliability",
+            "description": "Network call lacks try-except block",
+            "file_path": "src/api/client.py",
+            "line_number": 78,
+            "recommendation": "Add proper exception handling"
+        }
+    ],
+    "agent_results": {
+        "security_agent": {
+            "summary": "Found 1 critical security issue requiring immediate attention",
+            "metrics": {
+                "vulnerabilities_found": 1,
+                "security_score": 6.5
+            }
+        }
+    }
+}
+
+pull_request_data = {
+    "id": 456,
+    "number": 789,
+    "title": "Add user authentication feature",
+    "author": "john.doe@ibm.com"
+}
+
+# Generate PDF
+pdf_service = get_pdf_service()
+pdf_bytes = pdf_service.generate_review_pdf(review_data, pull_request_data)
+
+# Save to file
+with open("review_report.pdf", "wb") as f:
+    f.write(pdf_bytes)
+```
+
+### Example 2: Generate Analytics PDF
+
+```python
+from app.services.pdf_service import get_pdf_service
+
+analytics_data = {
+    "time_period": "Last 30 days",
+    "metrics": {
+        "total_reviews": 145,
+        "total_findings": 523,
+        "critical_issues": 12,
+        "avg_review_time": "4.5 hours",
+        "quality_score": 8.2
+    }
+}
+
+pdf_service = get_pdf_service()
+pdf_bytes = pdf_service.generate_analytics_pdf(analytics_data)
+
+with open("analytics_report.pdf", "wb") as f:
+    f.write(pdf_bytes)
+```
+
+### Example 3: Markdown to PDF
+
+```python
+from app.services.pdf_service import get_pdf_service
+
+markdown_content = """
+# Code Review Guidelines
+
+## Security Best Practices
+
+- Always validate user input
+- Use parameterized queries
+- Implement proper authentication
+
+## Code Quality
+
+- Follow PEP 8 style guide
+- Write comprehensive tests
+- Document complex logic
+"""
+
+pdf_service = get_pdf_service()
+pdf_bytes = pdf_service.markdown_to_pdf(
+    markdown_content,
+    title="IBM Dexter Code Review Guidelines"
+)
+
+with open("guidelines.pdf", "wb") as f:
+    f.write(pdf_bytes)
+```
+
+## Integration Points
+
+### Backend Integration
+
+1. **Service Layer**: `backend/app/services/pdf_service.py`
+   - Core PDF generation logic
+   - IBM branding and styling
+   - Template management
+
+2. **API Endpoints**:
+   - `GET /api/v1/reviews/{id}/export/pdf` - Export single review
+   - `GET /api/v1/analytics/export/pdf` - Export analytics dashboard
+
+3. **Models Integration**:
+   - Uses `Review` model from `backend/app/models/review.py`
+   - Uses `PullRequest` model from `backend/app/models/pull_request.py`
+
+### Frontend Integration
+
+1. **API Service**: `frontend/src/services/api.js`
+   - `exportReviewPDF(reviewId)` function
+   - `exportAnalyticsPDF()` function
+
+2. **UI Components**:
+   - Export button in `ReviewDetail` page
+   - Export button in Analytics dashboard
+   - Download progress indicators
+
+## Testing Strategy
+
+### Unit Tests
+
+Create `backend/app/tests/test_pdf_service.py`:
+
+```python
+"""Tests for PDF generation service."""
+
+import pytest
+from app.services.pdf_service import PDFService, IBMPDFStyle
+
+
+def test_pdf_service_initialization():
+    """Test PDF service initializes correctly."""
+    service = PDFService()
+    assert service is not None
+    assert 'IBMTitle' in service.styles
+    assert 'IBMHeading' in service.styles
+
+
+def test_generate_review_pdf():
+    """Test review PDF generation."""
+    service = PDFService()
+    
+    review_data = {
+        "id": 1,
+        "pull_request_id": 1,
+        "status": "completed",
+        "created_at": "2026-05-16T10:00:00Z",
+        "findings": [
+            {
+                "severity": "high",
+                "title": "Test Finding",
+                "category": "Security",
+                "description": "Test description",
+                "file_path": "test.py",
+                "line_number": 10,
+                "recommendation": "Fix it"
+            }
+        ],
+        "agent_results": {}
+    }
+    
+    pr_data = {
+        "id": 1,
+        "number": 100,
+        "title": "Test PR",
+        "author": "test@ibm.com"
+    }
+    
+    pdf_bytes = service.generate_review_pdf(review_data, pr_data)
+    
+    assert pdf_bytes is not None
+    assert len(pdf_bytes) > 0
+    assert pdf_bytes[:4] == b'%PDF'  # PDF magic number
+
+
+def test_generate_analytics_pdf():
+    """Test analytics PDF generation."""
+    service = PDFService()
+    
+    analytics_data = {
+        "time_period": "Last 30 days",
+        "metrics": {
+            "total_reviews": 100,
+            "total_findings": 500,
+            "critical_issues": 10
+        }
+    }
+    
+    pdf_bytes = service.generate_analytics_pdf(analytics_data)
+    
+    assert pdf_bytes is not None
+    assert len(pdf_bytes) > 0
+    assert pdf_bytes[:4] == b'%PDF'
+
+
+def test_markdown_to_pdf():
+    """Test markdown to PDF conversion."""
+    service = PDFService()
+    
+    markdown = "# Test\n\nThis is a test."
+    pdf_bytes = service.markdown_to_pdf(markdown, "Test Document")
+    
+    assert pdf_bytes is not None
+    assert len(pdf_bytes) > 0
+    assert pdf_bytes[:4] == b'%PDF'
+
+
+def test_ibm_color_palette():
+    """Test IBM color definitions."""
+    assert IBMPDFStyle.IBM_BLUE is not None
+    assert IBMPDFStyle.get_severity_color('critical') == IBMPDFStyle.CRITICAL
+    assert IBMPDFStyle.get_severity_color('high') == IBMPDFStyle.HIGH
+```
+
+### Integration Tests
+
+Create `backend/app/tests/test_pdf_endpoints.py`:
+
+```python
+"""Tests for PDF export endpoints."""
+
+import pytest
+from fastapi.testclient import TestClient
+from main import app
+
+client = TestClient(app)
+
+
+def test_export_review_pdf_success():
+    """Test successful review PDF export."""
+    # Assuming review ID 1 exists in test data
+    response = client.get("/api/v1/reviews/1/export/pdf")
+    
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert "attachment" in response.headers["content-disposition"]
+    assert len(response.content) > 0
+
+
+def test_export_review_pdf_not_found():
+    """Test PDF export for non-existent review."""
+    response = client.get("/api/v1/reviews/99999/export/pdf")
+    
+    assert response.status_code == 404
+
+
+def test_export_analytics_pdf():
+    """Test analytics PDF export."""
+    response = client.get("/api/v1/analytics/export/pdf")
+    
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert len(response.content) > 0
+```
+
+### Frontend Tests
+
+Create `frontend/src/services/__tests__/api.test.js`:
+
+```javascript
+import { describe, it, expect, vi } from 'vitest';
+import { exportReviewPDF, exportAnalyticsPDF } from '../api';
+
+describe('PDF Export Functions', () => {
+  it('should export review PDF', async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob(['test'], { type: 'application/pdf' })),
+      })
+    );
+    
+    const result = await exportReviewPDF(123);
+    expect(result.success).toBe(true);
+  });
+  
+  it('should export analytics PDF', async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob(['test'], { type: 'application/pdf' })),
+      })
+    );
+    
+    const result = await exportAnalyticsPDF();
+    expect(result.success).toBe(true);
+  });
+});
+```
+
+## Best Practices
+
+### DO:
+- ✅ Use synchronous PDF generation for MVP (simpler, faster)
+- ✅ Apply IBM Design Language colors and typography
+- ✅ Include comprehensive metadata in reports
+- ✅ Escape HTML/special characters in user content
+- ✅ Set appropriate Content-Disposition headers
+- ✅ Log PDF generation events for monitoring
+- ✅ Use singleton pattern for PDF service
+- ✅ Validate input data before generation
+- ✅ Handle missing/optional fields gracefully
+
+### DON'T:
+- ❌ Don't use async PDF generation for MVP (adds complexity)
+- ❌ Don't embed large images without compression
+- ❌ Don't generate PDFs in frontend (security risk)
+- ❌ Don't store generated PDFs (generate on-demand)
+- ❌ Don't expose internal file paths in PDFs
+- ❌ Don't include sensitive data without sanitization
+- ❌ Don't use WeasyPrint (requires system dependencies)
+- ❌ Don't generate PDFs for every request (use caching if needed)
+
+## Common Pitfalls
+
+### Pitfall 1: Memory Issues with Large Reports
+**Problem**: Large reviews with many findings cause memory issues.
+
+**Solution**:
+```python
+# Paginate findings if count exceeds threshold
+MAX_FINDINGS_PER_PAGE = 50
+
+def _build_findings_section(self, review_data: dict[str, Any]) -> list:
+    findings = review_data.get('findings', [])
+    
+    if len(findings) > MAX_FINDINGS_PER_PAGE:
+        # Split into multiple pages
+        for i in range(0, len(findings), MAX_FINDINGS_PER_PAGE):
+            chunk = findings[i:i + MAX_FINDINGS_PER_PAGE]
+            # Build page for chunk
+            # Add page break
+    else:
+        # Build single page
+```
+
+### Pitfall 2: Special Characters Breaking PDF
+**Problem**: Code snippets with special characters cause rendering errors.
+
+**Solution**:
+```python
+# Always escape HTML entities
+code_snippet = code_snippet.replace('&', '&')
+code_snippet = code_snippet.replace('<', '<')
+code_snippet = code_snippet.replace('>', '>')
+code_snippet = code_snippet.replace('"', '"')
+```
+
+### Pitfall 3: Slow PDF Generation
+**Problem**: PDF generation takes too long for large reports.
+
+**Solution**:
+```python
+# Use streaming response for large PDFs
+from fastapi.responses import StreamingResponse
+
+@router.get("/reviews/{review_id}/export/pdf")
+async def export_review_pdf(review_id: int):
+    # Generate PDF
+    pdf_bytes = pdf_service.generate_review_pdf(review_data, pr_data)
+    
+    # Stream response
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=review_{review_id}.pdf"}
+    )
+```
+
+### Pitfall 4: Missing Dependencies
+**Problem**: ReportLab not installed or wrong version.
+
+**Solution**:
+```bash
+# Always specify exact versions
+pip install reportlab==4.0.7
+
+# Verify installation
+python -c "import reportlab; print(reportlab.Version)"
+```
+
+##  MVP Scope
+
+### Included in MVP:
+- ✅ Basic review PDF export with IBM branding
+- ✅ Analytics summary PDF export
+- ✅ Synchronous PDF generation
+- ✅ ReportLab-based implementation
+- ✅ Essential styling and formatting
+- ✅ Frontend download integration
+- ✅ Basic error handling
+- ✅ Unit and integration tests
+
+### Deferred Post-MVP:
+- 🔄 Chart/visualization embedding (requires matplotlib integration)
+- 🔄 Advanced markdown parsing (tables, complex formatting)
+- 🔄 PDF templates for different report types
+- 🔄 Async PDF generation with job queues
+- 🔄 PDF caching and optimization
+- 🔄 Custom fonts and advanced typography
+- 🔄 PDF encryption and security features
+- 🔄 Batch PDF generation
+- 🔄 Email PDF delivery
+- 🔄 PDF preview functionality
+
+### Success Metrics:
+- PDF generation completes in < 5 seconds for typical reviews
+- Generated PDFs are < 5MB for standard reports
+- 100% of critical review data included in exports
+- Zero PDF generation failures in normal operation
+- IBM branding consistently applied across all reports

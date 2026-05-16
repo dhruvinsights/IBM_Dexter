@@ -1,0 +1,551 @@
+---
+name: IBM Dexter Comprehensive Testing MVP
+version: 1.0.0
+description: Complete testing strategy for IBM Dexter MVP with 100% critical path coverage, pytest patterns, Vitest/RTL patterns, and CI/CD integration
+tags: [testing, pytest, vitest, coverage, ci-cd, quality-assurance, mvp]
+---
+
+# IBM Dexter Comprehensive Testing MVP Skill
+
+## Overview
+
+This skill provides a complete testing strategy for IBM Dexter MVP, targeting 100% coverage of critical paths. It includes backend pytest patterns, frontend Vitest/React Testing Library patterns, mock strategies for LLMs and external APIs, coverage enforcement, and CI/CD integration.
+
+**Key Focus**: Practical, production-ready tests that ensure reliability and enable confident deployment.
+
+## Core Capabilities
+
+1. **Backend Testing** - Pytest patterns for FastAPI endpoints and services
+2. **Frontend Testing** - Vitest + React Testing Library for components
+3. **Mock Strategies** - LLM and external API mocking
+4. **Coverage Enforcement** - 100% critical path coverage configuration
+5. **Integration Testing** - End-to-end API flow testing
+6. **Unit Testing** - Isolated component and function testing
+7. **CI/CD Integration** - GitHub Actions workflow
+8. **Test Data Management** - Fixtures and factories
+9. **Performance Testing** - Basic load testing patterns
+10. **Security Testing** - Authentication and authorization tests
+
+## Critical Path Modules (100% Coverage Target)
+
+### Backend Critical Paths:
+- `backend/app/api/v1/endpoints/pull_requests.py` - PR review execution
+- `backend/app/api/v1/endpoints/reviews.py` - Review retrieval
+- `backend/app/api/v1/endpoints/webhooks.py` - Webhook handling
+- `backend/app/services/ai_service.py` - AI orchestration
+- `backend/app/services/github_service.py` - GitHub integration
+
+### Frontend Critical Paths:
+- `frontend/src/services/api.js` - API client
+- `frontend/src/pages/Dashboard/Dashboard.jsx` - Main dashboard
+- `frontend/src/pages/ReviewDetail/ReviewDetail.jsx` - Review details
+
+## Implementation Guide
+
+### Step 1: Backend Testing Setup
+
+Update `backend/requirements-mvp.txt`:
+
+```txt
+# Testing Dependencies
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+httpx==0.25.2
+faker==20.1.0
+freezegun==1.4.0
+```
+
+### Step 2: Enhanced Pytest Configuration
+
+Update `backend/pytest.ini`:
+
+```ini
+[pytest]
+pythonpath = .
+testpaths = app/tests
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+asyncio_mode = auto
+
+addopts =
+    -ra
+    --strict-markers
+    --cov=app
+    --cov-report=term-missing
+    --cov-report=html
+    --cov-report=xml
+    --cov-fail-under=80
+    --maxfail=5
+    -v
+
+markers =
+    unit: Unit tests
+    integration: Integration tests
+    slow: Slow running tests
+    critical: Critical path tests
+```
+
+### Step 3: Comprehensive Test Fixtures
+
+Create `backend/app/tests/conftest.py`:
+
+```python
+"""Comprehensive pytest fixtures for IBM Dexter testing."""
+
+from __future__ import annotations
+
+import hashlib
+import hmac
+from typing import Any, Generator
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from faker import Faker
+from fastapi.testclient import TestClient
+
+from app.api.v1.endpoints.auth import _USERS
+from app.api.v1.endpoints.pull_requests import _REVIEWS, _PULL_REQUESTS
+from app.api.v1.endpoints.repositories import _REPOSITORIES
+from app.core.config import get_settings
+from main import app
+
+settings = get_settings()
+fake = Faker()
+
+
+@pytest.fixture(autouse=True)
+def reset_in_memory_stores() -> None:
+    """Reset mutable in-memory stores between tests."""
+    _USERS.clear()
+    _REPOSITORIES.clear()
+    _REVIEWS.clear()
+    _PULL_REQUESTS.clear()
+
+
+@pytest.fixture()
+def client() -> TestClient:
+    """Create a FastAPI test client."""
+    return TestClient(app)
+
+
+@pytest.fixture()
+def registered_user(client: TestClient) -> dict[str, Any]:
+    """Create and return a registered test user."""
+    payload = {"email": fake.email(), "password": "Test123!@#"}
+    response = client.post("/api/v1/register", json=payload)
+    assert response.status_code == 201
+    user_data = response.json()
+    user_data["password"] = payload["password"]
+    return user_data
+
+
+@pytest.fixture()
+def auth_tokens(client: TestClient, registered_user: dict[str, Any]) -> dict[str, Any]:
+    """Authenticate the registered user and return tokens."""
+    response = client.post(
+        "/api/v1/login",
+        json={"email": registered_user["email"], "password": registered_user["password"]},
+    )
+    assert response.status_code == 200
+    return response.json()
+
+
+@pytest.fixture()
+def review_diffs() -> list[dict[str, Any]]:
+    """Return sample code diffs for review."""
+    return [
+        {
+            "filename": "app.py",
+            "patch": """
+@@ -1,3 +1,5 @@
+ def authenticate(username, password):
+-    query = f"SELECT * FROM users WHERE username = '{username}'"
++    query = "SELECT * FROM users WHERE username = ?"
++    cursor.execute(query, (username,))
+     return cursor.fetchone()
+""",
+        }
+    ]
+
+
+@pytest.fixture()
+def mock_llm_response() -> dict[str, Any]:
+    """Return a mock LLM response."""
+    return {
+        "findings": [
+            {
+                "severity": "high",
+                "title": "SQL Injection Vulnerability",
+                "category": "Security",
+                "description": "User input directly in SQL query",
+                "file_path": "app.py",
+                "line_number": 45,
+                "recommendation": "Use parameterized queries",
+            }
+        ],
+        "summary": "Found 1 security issue",
+        "metrics": {"total_findings": 1, "high": 1},
+    }
+
+
+@pytest.fixture()
+def mock_ai_service() -> Generator[AsyncMock, None, None]:
+    """Mock AI service for testing."""
+    with patch("app.services.ai_service.AIReviewService") as mock:
+        mock_service = AsyncMock()
+        mock.return_value = mock_service
+        mock_service.review_code.return_value = {
+            "findings": [],
+            "summary": "No issues found",
+            "agent_results": {},
+        }
+        yield mock_service
+```
+
+### Step 4: Critical Path Tests - Pull Requests
+
+Create `backend/app/tests/test_pull_requests.py`:
+
+```python
+"""Comprehensive tests for pull request endpoints (Critical Path)."""
+
+import pytest
+from fastapi.testclient import TestClient
+
+
+@pytest.mark.critical
+class TestPullRequestReview:
+    """Test pull request review execution (Critical Path)."""
+
+    def test_review_pull_request_success(
+        self, client: TestClient, review_diffs: list[dict], mock_ai_service
+    ):
+        """Test successful PR review execution."""
+        response = client.post(
+            "/api/v1/pull-requests/1/review",
+            json={"diffs": review_diffs, "context": ["Follow IBM standards"]},
+        )
+
+        assert response.status_code == 202
+        body = response.json()
+        assert body["status"] == "completed"
+        assert "result" in body
+        assert "findings" in body["result"]
+
+    def test_review_pull_request_empty_diffs(self, client: TestClient):
+        """Test PR review with empty diffs."""
+        response = client.post("/api/v1/pull-requests/1/review", json={"diffs": []})
+        assert response.status_code == 400
+
+    def test_review_stores_result(self, client: TestClient, review_diffs: list[dict]):
+        """Test that review results are stored."""
+        review_response = client.post(
+            "/api/v1/pull-requests/1/review", json={"diffs": review_diffs}
+        )
+        assert review_response.status_code == 202
+
+        reviews_response = client.get("/api/v1/reviews")
+        assert reviews_response.status_code == 200
+        reviews = reviews_response.json()
+        assert len(reviews) == 1
+```
+
+### Step 5: Frontend Testing Setup
+
+Create `frontend/vitest.config.js`:
+
+```javascript
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setup.js',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: ['node_modules/', 'src/tests/', '**/*.test.{js,jsx}'],
+      thresholds: {
+        'src/services/api.js': {
+          lines: 100,
+          functions: 100,
+          branches: 100,
+          statements: 100,
+        },
+      },
+    },
+  },
+});
+```
+
+Update `frontend/package.json`:
+
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/user-event": "^14.5.1",
+    "@vitest/ui": "^1.0.4",
+    "jsdom": "^23.0.1",
+    "vitest": "^1.0.4",
+    "@vitest/coverage-v8": "^1.0.4"
+  }
+}
+```
+
+### Step 6: Frontend Test Setup
+
+Create `frontend/src/tests/setup.js`:
+
+```javascript
+import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
+import { afterEach, vi } from 'vitest';
+
+afterEach(() => {
+  cleanup();
+});
+
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+global.fetch = vi.fn();
+```
+
+### Step 7: Frontend Critical Path Tests
+
+Create `frontend/src/services/__tests__/api.test.js`:
+
+```javascript
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { reviewsAPI, exportReviewPDF } from '../api';
+
+describe('API Service (Critical Path)', () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  describe('reviewsAPI', () => {
+    it('should fetch all reviews', async () => {
+      const mockReviews = [{ id: 1, status: 'completed' }];
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: mockReviews }),
+      });
+
+      const result = await reviewsAPI.getAll();
+      expect(result.data).toEqual(mockReviews);
+    });
+
+    it('should handle fetch errors', async () => {
+      global.fetch.mockRejectedValueOnce(new Error('Network error'));
+      await expect(reviewsAPI.getAll()).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('exportReviewPDF', () => {
+    it('should download PDF successfully', async () => {
+      const mockBlob = new Blob(['pdf'], { type: 'application/pdf' });
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        blob: async () => mockBlob,
+      });
+
+      const createElementSpy = vi.spyOn(document, 'createElement');
+      await exportReviewPDF(1);
+      expect(createElementSpy).toHaveBeenCalledWith('a');
+    });
+  });
+});
+```
+
+### Step 8: CI/CD Integration
+
+Create `.github/workflows/test.yml`:
+
+```yaml
+name: Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements-mvp.txt
+      
+      - name: Run tests with coverage
+        run: |
+          cd backend
+          pytest --cov=app --cov-report=xml --cov-report=term-missing
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Run tests with coverage
+        run: |
+          cd frontend
+          npm run test:coverage
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+```
+
+## Code Examples
+
+### Example 1: Testing with Mocks
+
+```python
+@pytest.mark.asyncio
+async def test_review_with_mock_llm(mock_ai_service):
+    service = AIReviewService()
+    mock_ai_service.review_code.return_value = {
+        "findings": [{"severity": "high"}],
+        "summary": "Found issues",
+    }
+    result = await service.review_code({}, [])
+    assert len(result["findings"]) == 1
+```
+
+### Example 2: Testing React Components
+
+```javascript
+it('should handle button click', async () => {
+  const user = userEvent.setup();
+  const onRefresh = vi.fn();
+  render(<Dashboard onRefresh={onRefresh} />);
+  const button = screen.getByRole('button', { name: /refresh/i });
+  await user.click(button);
+  expect(onRefresh).toHaveBeenCalled();
+});
+```
+
+## Integration Points
+
+### Backend Testing
+- `backend/app/tests/` - All test files
+- `backend/pytest.ini` - Pytest configuration
+
+### Frontend Testing
+- `frontend/src/**/__tests__/` - Test files
+- `frontend/vitest.config.js` - Vitest configuration
+
+### CI/CD
+- `.github/workflows/test.yml` - GitHub Actions workflow
+
+## Best Practices
+
+### DO:
+- ✅ Write tests before fixing bugs
+- ✅ Test critical paths first
+- ✅ Use descriptive test names
+- ✅ Mock external dependencies
+- ✅ Test error cases
+- ✅ Use fixtures for test data
+- ✅ Run tests in CI/CD
+- ✅ Maintain high coverage
+
+### DON'T:
+- ❌ Don't skip tests
+- ❌ Don't test implementation details
+- ❌ Don't use real external APIs
+- ❌ Don't ignore flaky tests
+- ❌ Don't commit failing tests
+
+## Common Pitfalls
+
+### Pitfall 1: Not Mocking External Services
+**Solution**: Always mock LLM and API calls
+
+### Pitfall 2: Flaky Tests
+**Solution**: Use fixtures and reset state
+
+### Pitfall 3: Low Coverage
+**Solution**: Focus on critical paths first
+
+## MVP Scope
+
+### Included in MVP:
+- ✅ Backend unit tests
+- ✅ Frontend component tests
+- ✅ API integration tests
+- ✅ Mock strategies
+- ✅ CI/CD integration
+- ✅ Coverage reporting
+
+### Deferred Post-MVP:
+- 🔄 E2E tests with Playwright
+- 🔄 Performance testing
+- 🔄 Load testing
+- 🔄 Security scanning
+
+### Success Metrics:
+- 100% critical path coverage
+- < 5 minute test suite runtime
+- Zero flaky tests
+- All tests pass in CI/CD
