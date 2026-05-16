@@ -1,0 +1,439 @@
+# ============================================
+# IBM Dexter - Comprehensive .gitignore
+# ============================================
+
+# ============================================
+# Python
+# ============================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+venv/
+env/
+ENV/
+backend/venv/
+backend/env/
+.venv/
+.env/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# ============================================
+# Environment Variables & Secrets
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+*.env
+.envrc
+
+# API Keys and Secrets
+secrets/
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+credentials.json
+service-account.json
+*-credentials.json
+
+# IBM Specific
+ibm-credentials.env
+watsonx-credentials.json
+db2-credentials.json
+
+# ============================================
+# Node.js / Frontend
+# ============================================
+# Dependencies
+node_modules/
+frontend/node_modules/
+jspm_packages/
+
+# Production build
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/out/
+
+# Testing
+frontend/coverage/
+
+# Misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# ============================================
+# Database Files
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+dexter.db
+test.db
+local.db
+
+# Database dumps
+*.sql
+*.dump
+*.backup
+
+# Vector Store Data
+chromadb_data/
+qdrant_data/
+weaviate_data/
+vector_store/
+embeddings/
+
+# ============================================
+# Docker
+# ============================================
+docker-compose.override.yml
+.dockerignore
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+log/
+backend/logs/
+frontend/logs/
+
+# ============================================
+# OS Files
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# IDE & Editors
+# ============================================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================
+# AI & ML Models
+# ============================================
+# Model files
+*.h5
+*.pkl
+*.pickle
+*.joblib
+*.model
+*.onnx
+*.pt
+*.pth
+*.safetensors
+
+# Model directories
+models/
+checkpoints/
+saved_models/
+model_cache/
+
+# Ollama models (if stored locally)
+ollama_models/
+
+# ============================================
+# Data Files
+# ============================================
+# Large data files
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.arrow
+*.hdf5
+*.h5
+
+# Exclude data directories
+data/
+datasets/
+raw_data/
+processed_data/
+
+# But include sample/test data
+!sample_data/
+!test_data/
+
+# ============================================
+# Documentation Build
+# ============================================
+docs/_build/
+docs/.doctrees/
+site/
+
+# ============================================
+# Temporary & Cache Files
+# ============================================
+*.swp
+*.swo
+*.bak
+*.orig
+*.rej
+*~
+.*.swp
+.*.swo
+
+# Cache directories
+.cache/
+.parcel-cache/
+.turbo/
+
+# ============================================
+# CI/CD
+# ============================================
+.github/workflows/*.local.yml
+
+# ============================================
+# Monitoring & Observability
+# ============================================
+# Prometheus
+prometheus_data/
+
+# Grafana
+grafana_data/
+
+# ============================================
+# Kubernetes & OpenShift
+# ============================================
+# Helm
+charts/*.tgz
+
+# Kustomize
+kustomization.yaml.bak
+
+# ============================================
+# Terraform
+# ============================================
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+
+# ============================================
+# Project Specific
+# ============================================
+# IBM Dexter specific
+backend/dexter.db
+backend/chromadb_data/
+backend/vector_store/
+backend/uploads/
+backend/temp/
+
+# Test outputs
+test_outputs/
+test_results/
+
+# Local configuration overrides
+local_config.py
+local_settings.py
+
+# ============================================
+# Security & Compliance
+# ============================================
+# Security scan results
+security_reports/
+vulnerability_reports/
+*.sarif
+
+# Compliance reports
+compliance_reports/
+
+# ============================================
+# Performance & Profiling
+# ============================================
+*.prof
+*.lprof
+profile_results/
+
+# ============================================
+# Backup Files
+# ============================================
+*.backup
+*.bak
+*.old
+*_backup
+*_old
+
+# ============================================
+# Miscellaneous
+# ============================================
+# Ignore all .local files
+*.local
+
+# Ignore all .private files
+*.private
+
+# Ignore all .secret files
+*.secret
+
+# Ignore TODO files with sensitive info
+TODO.private.md
+NOTES.private.md
