@@ -545,23 +545,91 @@ const Settings = () => {
                 {/* AI Configuration Tab */}
                 <TabPanel>
                   <div className="tab-content">
-                    <h3>LLM Provider Selection</h3>
-                    <Form>
-                      <FormGroup legendText="">
-                        <Select
-                          id="llm-provider"
-                          labelText="Primary LLM Provider"
-                          defaultValue="ollama"
-                        >
-                          <SelectItem value="ollama" text="Ollama (Local)" />
-                          <SelectItem value="watsonx" text="IBM watsonx.ai" />
-                          <SelectItem value="claude" text="Anthropic Claude" />
-                          <SelectItem value="gpt4" text="OpenAI GPT-4" />
-                        </Select>
-                      </FormGroup>
-                    </Form>
+                    {runtimeSettings?.deployment?.hosted_ollama_notice_visible && (
+                      <InlineNotification
+                        kind="warning"
+                        title="Hosted Dexter cannot use your laptop’s Ollama at localhost"
+                        subtitle={runtimeSettings.deployment.hosted_ollama_notice}
+                        lowContrast
+                        hideCloseButton
+                        style={{ marginBottom: '1rem', maxWidth: '52rem' }}
+                      />
+                    )}
+                    {runtimeSettings?.deployment?.desktop_app_teaser && (
+                      <InlineNotification
+                        kind="info"
+                        title="Local models & Electron"
+                        subtitle={`${runtimeSettings.deployment.desktop_app_teaser} Ollama remains fully supported when Dexter runs beside it (local API or future desktop packaging).`}
+                        lowContrast
+                        hideCloseButton
+                        style={{ marginBottom: '1rem', maxWidth: '52rem' }}
+                      />
+                    )}
 
-                    <h3>Ollama Configuration</h3>
+                    <h3>Chat model (LLM)</h3>
+                    <p className="cds--helper-text" style={{ marginBottom: '1rem', maxWidth: '52rem' }}>
+                      Primary provider and model are set in the backend environment (<code>DEXTER_LLM_PROVIDER</code> and
+                      provider-specific variables). Runtime overrides below apply only to <strong>Ollama</strong> URL/model.
+                    </p>
+                    <Tile style={{ marginBottom: '1.5rem', maxWidth: '52rem' }}>
+                      <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                        <strong>Provider:</strong>{' '}
+                        <code>{runtimeSettings?.llm?.runtime?.provider || runtimeSettings?.llm?.provider || '—'}</code>
+                      </div>
+                      <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                        <strong>Effective model:</strong>{' '}
+                        <code>{runtimeSettings?.llm?.runtime?.effective_model || runtimeSettings?.llm?.model || '—'}</code>
+                      </div>
+                      <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                        <strong>Watsonx configured:</strong>{' '}
+                        {runtimeSettings?.llm?.runtime?.watsonx_configured ? 'yes' : 'no'}
+                        {runtimeSettings?.llm?.runtime?.provider === 'watsonx' && (
+                          <span className="cds--label-01" style={{ marginLeft: '0.75rem' }}>
+                            Project + API key from <code>DEXTER_WATSONX_*</code>
+                          </span>
+                        )}
+                      </div>
+                      <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                        <strong>OpenAI configured:</strong>{' '}
+                        {runtimeSettings?.llm?.runtime?.openai_configured ? 'yes' : 'no'}
+                      </div>
+                      <p className="cds--label-01">{runtimeSettings?.llm?.runtime?.note}</p>
+                    </Tile>
+
+                    <h3>Embeddings (knowledge base &amp; RAG)</h3>
+                    <p className="cds--helper-text" style={{ marginBottom: '1rem', maxWidth: '52rem' }}>
+                      Separate from the chat LLM. Set <code>DEXTER_EMBEDDING_PROVIDER</code> (<code>openai</code> or{' '}
+                      <code>ollama</code>), models, and <code>DEXTER_EMBEDDING_DIMENSION</code> to match your Db2 vector column.
+                    </p>
+                    <Tile style={{ marginBottom: '1.5rem', maxWidth: '52rem' }}>
+                      <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                        <strong>Provider:</strong> <code>{runtimeSettings?.embeddings?.provider || '—'}</code>
+                      </div>
+                      <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                        <strong>Model:</strong> <code>{runtimeSettings?.embeddings?.model || '—'}</code>
+                      </div>
+                      <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                        <strong>Vector dimension:</strong> <code>{runtimeSettings?.embeddings?.dimension ?? '—'}</code>
+                      </div>
+                      {runtimeSettings?.embeddings?.base_url != null && (
+                        <div className="cds--row" style={{ marginBottom: '0.5rem' }}>
+                          <strong>Ollama base URL:</strong> <code>{runtimeSettings.embeddings.base_url}</code>
+                        </div>
+                      )}
+                      {runtimeSettings?.embeddings?.api_key_configured != null && (
+                        <div className="cds--row">
+                          <strong>OpenAI API key configured:</strong>{' '}
+                          {runtimeSettings.embeddings.api_key_configured ? 'yes' : 'no'}
+                        </div>
+                      )}
+                    </Tile>
+
+                    <h3>Ollama (optional — local or reachable server)</h3>
+                    <p className="cds--helper-text" style={{ marginBottom: '1rem', maxWidth: '52rem' }}>
+                      Use when <code>DEXTER_LLM_PROVIDER=ollama</code> or for <code>DEXTER_EMBEDDING_PROVIDER=ollama</code>.
+                      On a hosted server, point this to a URL your API can reach (not only your own{' '}
+                      <code>localhost</code> unless the API runs on the same machine — e.g. upcoming Electron/desktop builds).
+                    </p>
                     {runtimeSettings?.llm?.sources && (
                       <InlineNotification
                         kind="info"

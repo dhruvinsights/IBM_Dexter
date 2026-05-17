@@ -7,15 +7,16 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, HttpUrl
 
+from app.api.v1.endpoints.auth import require_api_user
 from app.services.ai_service import AIReviewService
 from app.services.app_state_persistence import load_pull_request_state, save_pull_request_state
 from app.services.pr_review_runner import run_github_pr_review
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_user)])
 
 
 _GITHUB_PR_REGEX = re.compile(

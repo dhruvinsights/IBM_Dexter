@@ -13,11 +13,12 @@ from passlib.context import CryptContext
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
-settings = get_settings()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_settings = get_settings()
+# bcrypt can fail to initialize on some developer/CI images; use pbkdf2 for automated tests only.
+_hash_scheme = "pbkdf2_sha256" if _settings.app_env == "test" else "bcrypt"
+pwd_context = CryptContext(schemes=[_hash_scheme], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
-api_key_scheme = APIKeyHeader(name=settings.api_key_header_name, auto_error=False)
+api_key_scheme = APIKeyHeader(name=_settings.api_key_header_name, auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -39,14 +40,14 @@ def _build_token(subject: str, expires_delta: timedelta, token_type: str) -> str
         "iat": int(now.timestamp()),
         "exp": int((now + expires_delta).timestamp()),
     }
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(payload, _settings.jwt_secret_key, algorithm=_settings.jwt_algorithm)
 
 
 def create_access_token(subject: str) -> str:
     """Create a short-lived access token."""
     return _build_token(
         subject=subject,
-        expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
+        expires_delta=timedelta(minutes=_settings.access_token_expire_minutes),
         token_type="access",
     )
 
@@ -55,7 +56,7 @@ def create_refresh_token(subject: str) -> str:
     """Create a long-lived refresh token."""
     return _build_token(
         subject=subject,
-        expires_delta=timedelta(minutes=settings.refresh_token_expire_minutes),
+        expires_delta=timedelta(minutes=_settings.refresh_token_expire_minutes),
         token_type="refresh",
     )
 
@@ -63,7 +64,7 @@ def create_refresh_token(subject: str) -> str:
 def decode_token(token: str) -> Dict[str, Any]:
     """Decode and validate a JWT token."""
     try:
-        return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        return jwt.decode(token, _settings.jwt_secret_key, algorithms=[_settings.jwt_algorithm])
     except JWTError as exc:
         logger.warning("Token validation failed: %s", exc)
         raise HTTPException(
@@ -86,9 +87,9 @@ async def validate_api_key(
     x_signature: Optional[str] = Header(default=None),
 ) -> str:
     """Validate an API key or signature-based request."""
-    if api_key and hmac.compare_digest(api_key, settings.api_key):
+    if api_key and hmac.compare_digest(api_key, _settings.api_key):
         return api_key
-    if x_signature and hmac.compare_digest(x_signature, settings.api_key):
+    if x_signature and hmac.compare_digest(x_signature, _settings.api_key):
         return x_signature
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid API key")
 

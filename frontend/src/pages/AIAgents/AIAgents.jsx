@@ -153,6 +153,10 @@ const AIAgents = () => {
         {liveStatus && (
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
             <Tag type="blue" size="sm">LLM: {liveStatus.llm_provider} / {liveStatus.llm_model}</Tag>
+            <Tag type="teal" size="sm">
+              Embeddings: {liveStatus.embedding_provider || '—'} / {liveStatus.embedding_model || '—'}
+              {liveStatus.embedding_dimension ? ` (${liveStatus.embedding_dimension}d)` : ''}
+            </Tag>
             <Tag type="purple" size="sm">{liveStatus.agent_count} active agents</Tag>
           </div>
         )}

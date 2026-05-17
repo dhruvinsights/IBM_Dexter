@@ -11,12 +11,19 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field
 
+from app.api.v1.endpoints.auth import require_api_user
 from app.core.config import get_settings
 from app.core.runtime_config import get_runtime_config
+from app.core.url_safety import assert_http_url_safe_for_fetch
 from app.services.github_service import GitHubService
+from app.services.effective_ai_config import (
+    embedding_runtime_summary,
+    hosted_deployment_hints,
+    llm_runtime_summary,
+)
 from app.services.db2_runtime_settings import (
     db2_kb_storage_target,
     kb_table_prefix,
@@ -26,7 +33,7 @@ from app.services.knowledge_base_service import get_knowledge_base_service, rese
 from app.services.llm_service import get_llm_service
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_user)])
 settings = get_settings()
 
 
@@ -83,10 +90,18 @@ def _normalize_base_url(url: Optional[str]) -> str:
     return str(url).strip().rstrip("/")
 
 
-def _fetch_ollama_tags(base_url: str) -> List[str]:
+def _fetch_ollama_tags(base_url: str, *, user_supplied_url: bool) -> List[str]:
     root = _normalize_base_url(base_url)
     if not root:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ollama base URL is required")
+    cfg = get_settings()
+    allow_loopback = not (
+        user_supplied_url and cfg.app_env in ("staging", "production")
+    )
+    try:
+        assert_http_url_safe_for_fetch(root, allow_loopback=allow_loopback)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     try:
         response = httpx.get(f"{root}/api/tags", timeout=15.0)
         response.raise_for_status()
@@ -121,11 +136,15 @@ async def get_runtime_settings() -> Dict[str, Any]:
             "provider": settings.llm_provider,
             "model": rc.ollama_model(),
             "base_url": rc.ollama_base_url(),
+            "effective_model": llm_runtime_summary(settings, rc)["effective_model"],
+            "runtime": llm_runtime_summary(settings, rc),
             "sources": {
                 "model": "runtime" if rc.has("ollama_model") else "env",
                 "base_url": "runtime" if rc.has("ollama_base_url") else "env",
             },
         },
+        "embeddings": embedding_runtime_summary(settings, rc),
+        "deployment": hosted_deployment_hints(settings),
         "vector_db": {
             "type": settings.vector_db_type,
             "backend": kb.get_backend_info().get("backend"),
@@ -150,8 +169,9 @@ async def get_runtime_settings() -> Dict[str, Any]:
 async def list_ollama_tags(base_url: Optional[str] = None) -> Dict[str, Any]:
     """Proxy Ollama /api/tags so the UI can populate model choices."""
     rc = get_runtime_config()
+    user_supplied = base_url is not None and bool(str(base_url).strip())
     resolved = _normalize_base_url(base_url) or rc.ollama_base_url()
-    models = _fetch_ollama_tags(resolved)
+    models = _fetch_ollama_tags(resolved, user_supplied_url=user_supplied)
     return {"ok": True, "base_url": resolved, "models": models}
 
 
@@ -159,8 +179,9 @@ async def list_ollama_tags(base_url: Optional[str] = None) -> Dict[str, Any]:
 async def ollama_health(base_url: Optional[str] = None) -> Dict[str, Any]:
     """Check that Ollama responds at the configured or provided URL."""
     rc = get_runtime_config()
+    user_supplied = base_url is not None and bool(str(base_url).strip())
     resolved = _normalize_base_url(base_url) or rc.ollama_base_url()
-    models = _fetch_ollama_tags(resolved)
+    models = _fetch_ollama_tags(resolved, user_supplied_url=user_supplied)
     return {"ok": True, "base_url": resolved, "model_count": len(models)}
 
 
@@ -170,6 +191,16 @@ async def update_ollama_settings(payload: OllamaSettingsPayload) -> Dict[str, An
     rc = get_runtime_config()
     if payload.base_url is not None:
         normalized = _normalize_base_url(payload.base_url)
+        if normalized:
+            cfg = get_settings()
+            allow_loopback = cfg.app_env not in ("staging", "production")
+            try:
+                assert_http_url_safe_for_fetch(normalized, allow_loopback=allow_loopback)
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(exc),
+                ) from exc
         rc.set("ollama_base_url", normalized or None)
     if payload.model is not None:
         rc.set("ollama_model", payload.model.strip() or None)

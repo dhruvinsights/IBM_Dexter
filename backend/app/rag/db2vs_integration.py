@@ -461,8 +461,8 @@ async def example_code_review_workflow():
         Document(
             page_content="""
 def authenticate_user(username: str, password: str) -> bool:
-    # TODO: Add password hashing
-    return username == "admin" and password == "password"
+    \"\"\"Example only — use hashed passwords and a real identity provider in production.\"\"\"
+    raise NotImplementedError(\"Use your org\\'s auth stack\")
             """,
             metadata={
                 "file": "auth.py",

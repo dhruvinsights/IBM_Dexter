@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.api.v1.endpoints.auth import require_api_user
 from app.api.v1.endpoints.pull_requests import _REVIEWS
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_user)])
 
 
 @router.get("/reviews")

@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.api.v1.endpoints.auth import require_api_user
 from app.core.config import get_settings
 from app.core.runtime_config import get_runtime_config
 from app.services.ai_service import AIReviewService
 
-router = APIRouter()
+from app.services.effective_ai_config import effective_llm_model
+
+router = APIRouter(dependencies=[Depends(require_api_user)])
 settings = get_settings()
 
 
@@ -62,8 +65,15 @@ async def agents_status() -> Dict[str, Any]:
     rc = get_runtime_config()
     return {
         "llm_provider": settings.llm_provider,
-        "llm_model": rc.ollama_model(),
-        "llm_base_url": rc.ollama_base_url(),
+        "llm_model": effective_llm_model(settings, rc),
+        "llm_base_url": rc.ollama_base_url() if settings.llm_provider.lower() == "ollama" else None,
+        "embedding_provider": settings.embedding_provider,
+        "embedding_model": (
+            settings.openai_embedding_model
+            if settings.embedding_provider.lower() == "openai"
+            else settings.ollama_embedding_model
+        ),
+        "embedding_dimension": settings.embedding_dimension,
         "agent_count": len(review_service.agents),
         "agents": [agent.agent_name for agent in review_service.agents],
     }

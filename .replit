@@ -1,0 +1,17 @@
+# IBM Dexter — Replit (backend API in this Repl).
+# 1. Open backend as working dir or use Shell: pip install from backend/.
+# 2. Secrets: paste keys from backend/.env.example (never commit .env).
+# 3. CORS: set DEXTER_CORS_ORIGINS to https://YOUR_REPL_ID.id.repl.co (or your frontend URL).
+# 4. Frontend: deploy separately (Vercel/Netlify) with VITE_API_URL=https://<this-repl>/api/v1
+
+run = "cd backend && pip install -r requirements.txt -q && python -m uvicorn main:app --host 0.0.0.0 --port 8080"
+
+[nix]
+channel = "stable-24_05"
+
+[languages.python]
+version = "3.11"
+
+[[ports]]
+localPort = 8080
+externalPort = 80

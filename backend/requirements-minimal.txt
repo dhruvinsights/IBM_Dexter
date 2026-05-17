@@ -16,13 +16,13 @@ python-multipart==0.0.6
 sqlalchemy==2.0.23
 alembic==1.12.1
 
-# LangChain Core (NO heavy LLM providers)
-langchain==0.1.0
-langchain-core==0.1.10
-langchain-community==0.0.13
+# LangChain 0.3.x — must satisfy langchain-db2
+langchain>=0.3.13,<0.4.0
+langchain-core>=0.3.15,<0.4.0
+langchain-community>=0.3.20,<0.4.0
 
-# Ollama Integration (lightweight, local LLM)
-ollama==0.1.6
+# Ollama Python client
+ollama>=0.5.3,<1.0.0
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
@@ -30,12 +30,12 @@ passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
 
 # HTTP Client
-httpx==0.25.2
+httpx>=0.25.2,<0.28.0
 aiohttp==3.9.1
 
 # Utilities
-pydantic==2.5.2
-pydantic-settings==2.1.0
+pydantic>=2.7.4,<3.0.0
+pydantic-settings>=2.4.0,<3.0.0
 python-dateutil==2.8.2
 
 # GitHub/GitLab Integration
@@ -43,8 +43,8 @@ PyGithub==2.1.1
 python-gitlab==4.2.0
 
 # Vector Store - IBM Db2 via official LangChain integration
-langchain-db2
-ibm-db>=3.2.0
+langchain-db2==0.1.7
+ibm-db>=3.2.6,<4.0.0
 ibm-db-sa>=0.4.0
 
 # ============================================================================

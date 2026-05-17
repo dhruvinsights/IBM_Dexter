@@ -101,10 +101,10 @@ class Settings(BaseSettings):
     # Legacy AI provider settings (deprecated, use LLM_PROVIDER instead)
     ai_provider: Literal["openai", "watsonx", "anthropic", "mock"] = "mock"
     
-    # LLM Configuration
-    llm_provider: str = "ollama"  # Default to Ollama for local testing
-    
-    # Ollama Configuration (Primary for testing)
+    # LLM Configuration (default: watsonx for hosted / enterprise; override for local + Electron)
+    llm_provider: str = "watsonx"
+
+    # Ollama Configuration (local LLM + optional remote Ollama URL)
     ollama_base_url: str = "http://localhost:11434"
     # Default: strong code model ~10–15GB VRAM at Q4 (run: ollama pull qwen2.5-coder:14b).
     # Larger: qwen2.5-coder:32b / llama3.1:70b (needs much more RAM/VRAM).
@@ -123,6 +123,11 @@ class Settings(BaseSettings):
     # Optional API Keys (User-provided)
     openai_api_key: Optional[str] = None
     openai_model: str = "gpt-4o-mini"
+    # Embeddings (RAG / knowledge base) — OpenAI REST by default for hosted deployments.
+    embedding_provider: str = "openai"  # ollama | openai
+    ollama_embedding_model: str = "nomic-embed-text"
+    openai_embedding_model: str = "text-embedding-3-small"
+
     anthropic_api_key: Optional[str] = None
     anthropic_model: str = "claude-3-sonnet-20240229"
     cohere_api_key: Optional[str] = None
@@ -139,10 +144,10 @@ class Settings(BaseSettings):
     
     # IBM Db2 Vector Database Configuration
     db2_database: str = "TESTDB"
-    db2_hostname: str = "Geetika-5y420-x86.dev.fyre.ibm.com"
+    db2_hostname: str = "localhost"
     db2_port: int = 50000
     db2_protocol: str = "TCPIP"
-    db2_uid: str = "Geetika"
+    db2_uid: str = ""
     db2_pwd: str = ""
     # Db2 CLI / ibm_db connection tuning (SQL30082N reason 17 = mechanism mismatch)
     db2_security: Optional[str] = None  # e.g. SSL for Db2 on Cloud
@@ -151,7 +156,7 @@ class Settings(BaseSettings):
     db2_cli_connection_extra: str = ""  # extra KEY=VAL; fragment appended to the CLI connect string
     db2_schema: str = "DEXTER"
     db2_table_prefix: str = "DEXTER"  # Table prefix for collections (e.g., DEXTER_CODE_EMBEDDINGS)
-    embedding_dimension: int = 384  # Embedding dimension (default: 384 for nomic-embed-text)
+    embedding_dimension: int = 1536  # Match your embedding model / Db2 VECTOR column (e.g. 1536 for text-embedding-3-small)
 
     cors_origins: str = "http://localhost:3000,http://localhost:8000"
 
@@ -165,6 +170,12 @@ class Settings(BaseSettings):
 
     # Public base URL of this Dexter API (no path), e.g. https://dexter-api.example.com — used in webhook setup hints.
     dexter_api_public_url: str = ""
+
+    # When True, show hosted Ollama guidance even in development (for demos/tests).
+    force_hosted_ollama_notice: bool = False
+
+    # MVP / hackathon: default off. Set DEXTER_REQUIRE_API_BEARER_AUTH=true to require JWT or X-API-Key.
+    require_api_bearer_auth: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -225,5 +236,26 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return a cached application settings instance."""
     return Settings()
+
+
+def assert_deployment_safe(settings: Settings) -> None:
+    """Refuse to boot staging/production with documented default secrets."""
+    if settings.app_env not in ("staging", "production"):
+        return
+    problems: list[str] = []
+    if settings.jwt_secret_key.strip() == "change-me-in-production":
+        problems.append("DEXTER_JWT_SECRET_KEY is still the example value")
+    if settings.api_key.strip() == "dexter-local-api-key":
+        problems.append("DEXTER_API_KEY is still the example value")
+    if settings.github_webhook_secret.strip() == "github-webhook-secret":
+        problems.append("DEXTER_GITHUB_WEBHOOK_SECRET is still the example value")
+    if settings.gitlab_webhook_secret.strip() == "gitlab-webhook-secret":
+        problems.append("DEXTER_GITLAB_WEBHOOK_SECRET is still the example value")
+    if problems:
+        raise RuntimeError(
+            "Refusing to start with insecure defaults in "
+            f"{settings.app_env!r}: "
+            + "; ".join(problems)
+        )
 
 # Made with Bob

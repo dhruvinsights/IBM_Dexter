@@ -1,0 +1,10 @@
+# https://docs.railway.app/deploy/config-as-code
+# In Railway: set Root Directory to `backend`, connect this repo, add env vars from DEPLOY.md
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

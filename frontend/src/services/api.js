@@ -1,7 +1,15 @@
 import axios from 'axios';
 
+import { API_BASE_URL } from '../constants/appConstants';
+
+const healthCheckUrl = () => {
+  const trimmed = API_BASE_URL.replace(/\/$/, '');
+  const withoutApi = trimmed.replace(/\/api\/v1$/i, '');
+  return `${withoutApi}/health`;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,16 +27,9 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for handling errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('dexter-token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Reviews API
@@ -55,7 +56,7 @@ export const pullRequestsAPI = {
 
 // Health check
 export const healthAPI = {
-  check: () => axios.get('http://localhost:8000/health'),
+  check: () => axios.get(healthCheckUrl()),
 };
 
 export default api;

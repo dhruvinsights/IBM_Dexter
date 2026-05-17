@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Set
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, HttpUrl
 
 from app.core.config import get_settings
+from app.api.v1.endpoints.auth import require_api_user
 from app.services.app_state_persistence import load_repository_state, save_repository_state
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_user)])
 settings = get_settings()
 
 _LOADED_REPOS, _LOADED_NEXT = load_repository_state()

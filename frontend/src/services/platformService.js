@@ -2,6 +2,12 @@ import axios from 'axios';
 import { API_BASE_URL, ENABLE_MOCK_FALLBACK } from '../constants/appConstants';
 import { buildLiveDashboard } from '../utils/liveDashboard';
 
+const backendHealthUrl = () => {
+  const trimmed = API_BASE_URL.replace(/\/$/, '');
+  const withoutApi = trimmed.replace(/\/api\/v1$/i, '');
+  return `${withoutApi}/health`;
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -51,6 +57,7 @@ const EMPTY_KB_STATUS = {
   backend: 'unknown',
   vector_db_type: 'unknown',
   embedding_model: '',
+  embeddings: null,
   embeddings_healthy: false,
   document_count: 0,
   chunk_count: 0,
@@ -125,7 +132,7 @@ const EMPTY_TEAM_ANALYTICS = {
 export const integrationService = {
   health: () =>
     withFallback(
-      () => axios.get(API_BASE_URL.replace('/api/v1', '/health')),
+      () => axios.get(backendHealthUrl()),
       () => ({ status: 'degraded', backend: 'offline' })
     ),
 };
@@ -299,6 +306,9 @@ export const agentsService = {
       llm_provider: 'unknown',
       llm_model: 'unknown',
       llm_base_url: '',
+      embedding_provider: '',
+      embedding_model: '',
+      embedding_dimension: 0,
       agent_count: 0,
       agents: [],
     })),
@@ -322,6 +332,18 @@ export const runtimeSettingsService = {
         db2_schema: '',
         db2_kb_table: '',
         db2_kb_qualified_table: '',
+      },
+      embeddings: {
+        provider: '',
+        model: '',
+        dimension: 0,
+        api_key_configured: false,
+        base_url: '',
+      },
+      deployment: {
+        hosted_ollama_notice_visible: false,
+        hosted_ollama_notice: '',
+        desktop_app_teaser: '',
       },
       github: { configured: false, source: 'none' },
       runtime_overrides: {},

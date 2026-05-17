@@ -1,7 +1,7 @@
 """Flexible LLM service with support for multiple providers."""
 
 import logging
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 from abc import ABC, abstractmethod
 
 from langchain_core.language_models.llms import LLM
@@ -150,29 +150,66 @@ class WatsonxLLMWrapper(LLM):
             raise
 
 
+class OpenAIChatHTTPLLM(LLM):
+    """OpenAI chat/completions via HTTPS (avoids legacy langchain-openai / SDK version skew)."""
+
+    api_key: str = ""
+    model_name: str = "gpt-4o-mini"
+    temperature: float = 0.7
+    max_tokens: int = 4096
+    request_timeout: int = 120
+
+    @property
+    def _llm_type(self) -> str:
+        return "openai-chat-http"
+
+    def _call(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> str:
+        import httpx
+
+        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+        body: Dict[str, Any] = {
+            "model": self.model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": self.temperature,
+            "max_tokens": min(self.max_tokens, 16384),
+        }
+        with httpx.Client(timeout=self.request_timeout) as client:
+            response = client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                json=body,
+            )
+            response.raise_for_status()
+            data = response.json()
+        choice = (data.get("choices") or [{}])[0]
+        msg = choice.get("message") or {}
+        content = msg.get("content")
+        return (content or "").strip()
+
+
 class OpenAIProvider(BaseLLMProvider):
-    """OpenAI LLM provider."""
-    
+    """OpenAI chat models (Completions API v1/chat/completions)."""
+
     def initialize(self) -> LLM:
         """Initialize OpenAI."""
-        try:
-            from langchain_community.llms import OpenAI
-            
-            logger.info(f"Initializing OpenAI with model: {settings.openai_model}")
-            return OpenAI(
-                api_key=settings.openai_api_key,
-                model=settings.openai_model,
-                temperature=settings.llm_temperature,
-                max_tokens=settings.llm_max_tokens,
-                timeout=settings.llm_timeout,
-            )
-        except Exception as e:
-            logger.error(f"Failed to initialize OpenAI: {e}")
-            raise
-    
+        logger.info("Initializing OpenAI chat model: %s", settings.openai_model)
+        return OpenAIChatHTTPLLM(
+            api_key=(settings.openai_api_key or "").strip(),
+            model_name=settings.openai_model,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
+            request_timeout=settings.llm_timeout,
+        )
+
     def is_available(self) -> bool:
-        """Check if OpenAI is configured."""
-        return bool(settings.openai_api_key)
+        """API key present."""
+        return bool((settings.openai_api_key or "").strip())
 
 
 class AnthropicProvider(BaseLLMProvider):
@@ -239,7 +276,7 @@ class LLMService:
             "cohere": CohereProvider(),
         }
         self.llm: Optional[LLM] = None
-        self.fallback_order = ["ollama", "watsonx", "openai", "anthropic", "cohere"]
+        self.fallback_order = ["watsonx", "openai", "anthropic", "cohere", "ollama"]
         
         # Initialize primary provider
         self._initialize_provider()

@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import hmac
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr
 
+from app.core.config import get_settings
 from app.core.security import (
+    api_key_scheme,
     create_access_token,
     create_refresh_token,
     decode_token,
@@ -17,6 +21,8 @@ from app.core.security import (
     validate_token_type,
     verify_password,
 )
+
+optional_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/v1/login", auto_error=False)
 
 router = APIRouter()
 
@@ -120,5 +126,29 @@ async def refresh_token(payload: RefreshRequest) -> TokenResponse:
 async def read_me(current_user: Annotated[dict[str, object], Depends(_get_current_user_payload)]) -> UserResponse:
     """Return the currently authenticated user."""
     return UserResponse(**current_user)
+
+
+async def require_api_user(
+    token: Annotated[Optional[str], Depends(optional_oauth2)],
+    api_key: Annotated[Optional[str], Security(api_key_scheme)],
+) -> None:
+    """Protect data-plane routes when DEXTER_REQUIRE_API_BEARER_AUTH=true.
+
+    Accepts either a valid JWT access token or a valid ``X-API-Key`` matching ``DEXTER_API_KEY``.
+    """
+    settings = get_settings()
+    if not settings.require_api_bearer_auth:
+        return None
+    if api_key and hmac.compare_digest(api_key, settings.api_key):
+        return None
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    payload = decode_token(token)
+    validate_token_type(payload, "access")
+    email = str(payload.get("sub", ""))
+    if email not in _USERS:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    return None
+
 
 # Made with Bob

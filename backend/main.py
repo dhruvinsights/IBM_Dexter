@@ -17,7 +17,7 @@ from app.api.v1.endpoints import (
     settings as settings_endpoints,
     webhooks,
 )
-from app.core.config import get_settings
+from app.core.config import assert_deployment_safe, get_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,18 +28,22 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     """Manage application startup and shutdown events."""
-    logger.info("Starting IBM Dexter backend in %s mode", settings.app_env)
+    _settings = get_settings()
+    assert_deployment_safe(_settings)
+    logger.info("Starting IBM Dexter backend in %s mode", _settings.app_env)
     yield
     logger.info("Shutting down IBM Dexter backend")
 
+
+_docs_enabled = settings.app_env in ("development", "test")
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="IBM Dexter AI Code Reviewer backend API.",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
     lifespan=lifespan,
 )
 

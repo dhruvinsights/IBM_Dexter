@@ -195,6 +195,9 @@ const KnowledgeBase = () => {
 
   const backendHealthy = !!status?.embeddings_healthy;
   const backendLabel = status?.backend === 'db2' ? 'IBM Db2 Vector' : 'In-memory';
+  const embDisplay = status?.embeddings
+    ? `${status.embeddings.provider} · ${status.embeddings.model} (${status.embeddings.dimension}d)`
+    : status?.embedding_model || 'n/a';
   const vectorDbConcern =
     status?.vector_db_type === 'db2' && status?.vector_db_reachable === false;
   const vectorDbIconColor = vectorDbConcern ? '#da1e28' : '#42be65';
@@ -215,7 +218,7 @@ const KnowledgeBase = () => {
           <h1>Knowledge Base</h1>
         </div>
         <p className="page-header__description">
-          Upload organizational docs and code; agents retrieve relevant context during PR review via Db2 + Ollama embeddings.
+          Upload organizational docs and code; agents retrieve RAG context from Db2 (or in-memory) using your configured embedding backend (OpenAI or Ollama — see Settings / environment).
         </p>
       </div>
 
@@ -257,7 +260,7 @@ const KnowledgeBase = () => {
             </div>
             <div className="stat-tile__content">
               <span className="stat-tile__value">{backendHealthy ? 'Healthy' : 'Unreachable'}</span>
-              <span className="stat-tile__label">Embeddings ({status?.embedding_model || 'n/a'})</span>
+              <span className="stat-tile__label">Embeddings ({embDisplay})</span>
             </div>
           </Tile>
         </Column>
@@ -340,7 +343,7 @@ const KnowledgeBase = () => {
             <div className="section-header">
               <h2>Ingested Documents</h2>
               <p className="section-subtitle">
-                Stored in {backendLabel}, embedded via {status?.embedding_model}.
+                Stored in {backendLabel}, embedded via {embDisplay}.
               </p>
             </div>
             {docsLoading ? (

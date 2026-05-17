@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 from app.core.config import get_settings
 from app.core.data_dir import get_data_dir
 from app.core.runtime_config import get_runtime_config
+from app.services.effective_ai_config import embedding_runtime_summary
 from app.services.embeddings_service import EmbeddingsService, get_embeddings_service
 from app.services.kb_store_sqlite import delete_document as kb_sqlite_delete_document
 from app.services.kb_store_sqlite import load_all as kb_sqlite_load_all
@@ -284,11 +285,15 @@ class KnowledgeBaseService:
 
     def get_backend_info(self) -> Dict[str, Any]:
         """Expose KB backend metadata for the UI / status endpoint."""
+        rc = get_runtime_config()
+        emb = embedding_runtime_summary(settings, rc)
         return {
             "backend": self._backend,
             "vector_db_type": settings.vector_db_type,
-            "ollama_base_url": get_runtime_config().ollama_base_url(),
-            "embedding_model": self.embeddings.model,
+            "ollama_base_url": rc.ollama_base_url(),
+            "embeddings": emb,
+            "embedding_model": emb.get("model", ""),
+            "embedding_provider": emb.get("provider", ""),
         }
 
     # ------------------------------------------------------------------ #

@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import hashlib
 import hmac
+import pytest
+from fastapi.testclient import TestClient
 
 from app.core.config import get_settings
 from app.models.pull_request import PullRequest
@@ -131,6 +135,38 @@ def test_gitlab_webhook_handling(client) -> None:
     )
     assert response.status_code == 200
     assert response.json()["provider"] == "gitlab"
+
+
+def test_repository_requires_auth_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+    repository_payload: dict[str, Any],
+) -> None:
+    """Protected routers reject unauthenticated calls when auth is required."""
+    monkeypatch.setenv("DEXTER_REQUIRE_API_BEARER_AUTH", "true")
+    get_settings.cache_clear()
+    from main import app
+
+    with TestClient(app) as client:
+        response = client.post("/api/v1/repositories", json=repository_payload)
+    assert response.status_code == 401
+
+
+def test_repository_create_ok_with_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+    repository_payload: dict[str, Any],
+) -> None:
+    monkeypatch.setenv("DEXTER_REQUIRE_API_BEARER_AUTH", "true")
+    monkeypatch.setenv("DEXTER_API_KEY", "integration-test-api-key-32chars!")
+    get_settings.cache_clear()
+    from main import app
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/repositories",
+            json=repository_payload,
+            headers={"X-API-Key": "integration-test-api-key-32chars!"},
+        )
+    assert response.status_code == 201
 
 
 def test_model_instantiation() -> None:

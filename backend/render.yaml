@@ -1,0 +1,17 @@
+# https://render.com/docs/blueprint-spec
+# Optional: use Render Blueprint from repo root, or create Web Service manually with:
+# Root Directory: backend, Build: pip install -r requirements.txt, Start: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+services:
+  - type: web
+    name: dexter-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DEXTER_APP_ENV
+        value: development
+      # Set DEXTER_JWT_SECRET_KEY, DEXTER_CORS_ORIGINS, LLM keys, etc. in the dashboard.

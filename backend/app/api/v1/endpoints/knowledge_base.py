@@ -5,14 +5,15 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from pydantic import BaseModel, Field
 
+from app.api.v1.endpoints.auth import require_api_user
 from app.services.document_extract import extract_text_from_bytes
 from app.services.knowledge_base_service import get_knowledge_base_service
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_user)])
 
 
 # --------------------------------------------------------------------------- #

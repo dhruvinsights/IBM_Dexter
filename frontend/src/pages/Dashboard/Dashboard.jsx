@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import {
   Grid,
   Column,
@@ -33,8 +34,29 @@ import { collectFindingsFromReview, worstSeverity, buildLiveDashboard } from '..
 import { useCarbonChartTheme } from '../../hooks/useCarbonChartTheme';
 import './Dashboard.scss';
 
+const DESKTOP_APP_BANNER_KEY = 'dexter-dismiss-desktop-app-notice-v1';
+
 const Dashboard = () => {
   const chartTheme = useCarbonChartTheme();
+  const [showDesktopBanner, setShowDesktopBanner] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      setShowDesktopBanner(window.localStorage.getItem(DESKTOP_APP_BANNER_KEY) !== '1');
+    } catch {
+      setShowDesktopBanner(true);
+    }
+  }, []);
+
+  const dismissDesktopBanner = () => {
+    try {
+      window.localStorage.setItem(DESKTOP_APP_BANNER_KEY, '1');
+    } catch {
+      /* quota / private mode */
+    }
+    setShowDesktopBanner(false);
+  };
 
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
     queryKey: ['dashboard'],
@@ -173,6 +195,17 @@ const Dashboard = () => {
           Live signal from Dexter reviews, knowledge base activity, and delivery health — not slideware.
         </p>
       </div>
+
+      {showDesktopBanner && (
+        <InlineNotification
+          kind="info"
+          title="Desktop app planned — local LLMs with less friction"
+          subtitle="We’re building a Dexter desktop experience (think: the convenience of a Dropbox-style helper on your machine) so you can pair Dexter with on-device models for privacy and cost control. This browser deployment continues to target IBM watsonx, OpenAI, and other cloud or reachable endpoints."
+          lowContrast
+          onClose={dismissDesktopBanner}
+          onCloseButtonClick={dismissDesktopBanner}
+        />
+      )}
 
       {feedErrors?.length > 0 && (
         <InlineNotification

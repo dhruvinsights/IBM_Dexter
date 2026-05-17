@@ -12,15 +12,15 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 
-# AI & LLM (Ollama only for MVP)
-ollama==0.1.6
-langchain==0.1.0
-langchain-core==0.1.10
-langchain-community==0.0.13
+# AI & LLM — LangChain 0.3.x required by langchain-db2
+ollama>=0.5.3,<1.0.0
+langchain>=0.3.13,<0.4.0
+langchain-core>=0.3.15,<0.4.0
+langchain-community>=0.3.20,<0.4.0
 
 # Vector Store - IBM Db2 via official LangChain integration
-langchain-db2
-ibm-db>=3.2.0
+langchain-db2==0.1.7
+ibm-db>=3.2.6,<4.0.0
 ibm-db-sa>=0.4.0
 
 # GitHub Integration
@@ -35,12 +35,12 @@ passlib[bcrypt]==1.7.4
 
 # Configuration & Environment
 python-dotenv==1.0.0
-pydantic==2.5.2
-pydantic-settings==2.1.0
+pydantic>=2.7.4,<3.0.0
+pydantic-settings>=2.4.0,<3.0.0
 email-validator>=2.0.0
 
 # HTTP Client
-httpx==0.25.2
+httpx>=0.25.2,<0.28.0
 
 # Utilities
 python-dateutil==2.8.2

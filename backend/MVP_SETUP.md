@@ -278,11 +278,23 @@ curl http://localhost:11434/api/tags
 ```
 
 ### Issue: "GitHub webhook not receiving events"
+
+**Option A — [Smee](https://smee.io/) (quick local proxy)**  
+1. Open your channel in the browser (e.g. `https://smee.io/<your-channel-id>`).  
+2. In GitHub → repo **Settings → Webhooks**, set **Payload URL** to that **exact** Smee URL (no `/api/v1/...` on GitHub’s side).  
+3. Content type **application/json**. Secret must match `DEXTER_GITHUB_WEBHOOK_SECRET` in `.env`.  
+4. Keep Dexter running on port **8000**, then in another terminal forward Smee → Dexter (full path includes `/api/v1/webhooks/github`):
+
 ```bash
-# For local development, use ngrok
+# No global install required:
+npx smee-client -u https://smee.io/<your-channel-id> -t http://127.0.0.1:8000/api/v1/webhooks/github
+```
+
+**Option B — ngrok**
+```bash
 ngrok http 8000
 
-# Update webhook URL in GitHub App settings to ngrok URL
+# GitHub webhook Payload URL (path included):
 # Example: https://abc123.ngrok.io/api/v1/webhooks/github
 ```
 
