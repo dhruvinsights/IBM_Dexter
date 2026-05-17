@@ -1,4 +1,4 @@
-<p align="left">
+<p align="center">
   <img src="frontend/public/Dexter_logo.svg" alt="IBM Dexter logo" width="100" />
 </p>
 <p align="center">
