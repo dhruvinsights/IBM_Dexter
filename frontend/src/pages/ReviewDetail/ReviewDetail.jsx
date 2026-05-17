@@ -31,6 +31,7 @@ import {
   DocumentView,
 } from '@carbon/icons-react';
 import { platformService } from '../../services/platformService';
+import { APP_SHELL_BASE } from '../../constants/appConstants';
 import './ReviewDetail.scss';
 
 const ReviewDetail = () => {
@@ -52,7 +53,7 @@ const ReviewDetail = () => {
       <div className="empty-state">
         <h3>Review Not Found</h3>
         <p>The review you're looking for doesn't exist.</p>
-        <Button onClick={() => navigate('/reviews')}>Back to Reviews</Button>
+        <Button onClick={() => navigate(`${APP_SHELL_BASE}/reviews`)}>Back to Reviews</Button>
       </div>
     );
   }
@@ -64,8 +65,8 @@ const ReviewDetail = () => {
   return (
     <div className="review-detail">
       <Breadcrumb>
-        <BreadcrumbItem href="/">Dashboard</BreadcrumbItem>
-        <BreadcrumbItem href="/reviews">Reviews</BreadcrumbItem>
+        <BreadcrumbItem href={`${APP_SHELL_BASE}/dashboard`}>Dashboard</BreadcrumbItem>
+        <BreadcrumbItem href={`${APP_SHELL_BASE}/reviews`}>Reviews</BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>Review #{id}</BreadcrumbItem>
       </Breadcrumb>
 

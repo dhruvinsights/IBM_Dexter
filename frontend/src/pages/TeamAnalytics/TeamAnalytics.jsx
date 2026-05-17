@@ -19,9 +19,11 @@ import {
 import { LineChart, AreaChart, SimpleBarChart, DonutChart } from '@carbon/charts-react';
 import '@carbon/charts-react/styles.css';
 import { teamAnalyticsService } from '../../services/platformService';
+import { useCarbonChartTheme } from '../../hooks/useCarbonChartTheme';
 import './TeamAnalytics.scss';
 
 const TeamAnalytics = () => {
+  const chartTheme = useCarbonChartTheme();
   const [selectedTeam, setSelectedTeam] = useState('All Teams');
 
   const { data: analyticsData, isLoading } = useQuery({
@@ -77,6 +79,7 @@ const TeamAnalytics = () => {
     },
     curve: 'curveMonotoneX',
     height: '300px',
+    theme: chartTheme,
   };
 
   // Quality trends chart data
@@ -102,6 +105,7 @@ const TeamAnalytics = () => {
     },
     curve: 'curveMonotoneX',
     height: '300px',
+    theme: chartTheme,
   };
 
   // Team comparison chart data
@@ -126,6 +130,7 @@ const TeamAnalytics = () => {
       },
     },
     height: '300px',
+    theme: chartTheme,
   };
 
   // AI Adoption donut chart
@@ -141,6 +146,7 @@ const TeamAnalytics = () => {
       },
     },
     height: '300px',
+    theme: chartTheme,
   };
 
   return (

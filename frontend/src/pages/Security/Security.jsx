@@ -38,9 +38,11 @@ import {
 import { LineChart, DonutChart } from '@carbon/charts-react';
 import '@carbon/charts-react/styles.css';
 import { securityService } from '../../services/platformService';
+import { useCarbonChartTheme } from '../../hooks/useCarbonChartTheme';
 import './Security.scss';
 
 const Security = () => {
+  const chartTheme = useCarbonChartTheme();
   const [selectedTab, setSelectedTab] = useState(0);
 
   const { data: securityData, isLoading } = useQuery({
@@ -180,6 +182,7 @@ const Security = () => {
     },
     curve: 'curveMonotoneX',
     height: '300px',
+    theme: chartTheme,
   };
 
   const severityDonutData = [
@@ -199,6 +202,7 @@ const Security = () => {
       },
     },
     height: '300px',
+    theme: chartTheme,
   };
 
   return (

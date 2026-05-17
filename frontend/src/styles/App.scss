@@ -5,6 +5,22 @@
 @use '@carbon/motion' as *;
 @use './dexter-theme';
 
+html {
+  background-color: var(--cds-background);
+}
+
+body {
+  margin: 0;
+  background-color: var(--cds-background);
+  color: var(--cds-text-primary);
+}
+
+#root {
+  min-height: 100vh;
+  background-color: var(--cds-background);
+  color: var(--cds-text-primary);
+}
+
 // IBM Gradient Definitions
 .gradient-blue {
   background: linear-gradient(135deg, #0f62fe 0%, #4589ff 100%);

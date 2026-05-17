@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.agents.base_agent import BaseAgent
+from app.services.diff_comment_map import first_added_line_number
 
 
 class ArchitectureAgent(BaseAgent):
@@ -26,10 +27,12 @@ class ArchitectureAgent(BaseAgent):
             patch = str(diff.get("patch", ""))
             filename = str(diff.get("filename", "unknown"))
             if len(patch.splitlines()) > 300:
+                ln = first_added_line_number(patch)
                 findings.append(
                     {
                         "severity": "medium",
                         "file": filename,
+                        "line": ln,
                         "message": "Large patch detected; consider smaller, more focused changes.",
                     }
                 )

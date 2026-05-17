@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional, List, Dict
+from typing import Any, Dict, List, Optional
 
 # Try to import official LangChain Db2 integration
 try:
@@ -58,6 +58,11 @@ class Db2VectorStore:
         table_name: str = "VECTOR_EMBEDDINGS",
         embedding_dimension: int = 384,
         use_langchain: bool = True,
+        security: Optional[str] = None,
+        authentication: Optional[str] = None,
+        ssl_server_certificate: Optional[str] = None,
+        connection_string_suffix: str = "",
+        cli_connection_string: Optional[str] = None,
     ) -> None:
         """Initialize Db2 vector store with connection parameters.
         
@@ -72,6 +77,12 @@ class Db2VectorStore:
             table_name: Table name for storing embeddings
             embedding_dimension: Dimension of embedding vectors
             use_langchain: Prefer LangChain implementation if available
+            security: Db2 CLI Security= value (e.g. SSL)
+            authentication: Db2 CLI Authentication= value (e.g. SERVER_ENCRYPT)
+            ssl_server_certificate: Path for SSLServerCertificate= when using TLS
+            connection_string_suffix: Additional KEY=VAL; pairs for the CLI driver
+            cli_connection_string: If set, used as the full Db2 CLI connect string
+                (DATABASE=...;HOSTNAME=...;...) instead of building from discrete fields.
         """
         self.database = database
         self.hostname = hostname
@@ -79,6 +90,11 @@ class Db2VectorStore:
         self.protocol = protocol
         self.uid = uid
         self.pwd = pwd
+        self._cli_connection_string = (cli_connection_string or "").strip() or None
+        self.security = (security or "").strip() or None
+        self.authentication = (authentication or "").strip() or None
+        self.ssl_server_certificate = (ssl_server_certificate or "").strip() or None
+        self.connection_string_suffix = connection_string_suffix.strip()
         self.schema = schema
         self.table_name = table_name
         self.embedding_dimension = embedding_dimension
@@ -111,8 +127,12 @@ class Db2VectorStore:
                 "protocol": self.protocol,
                 "uid": self.uid,
                 "pwd": self.pwd,
+                "security": self.security,
+                "authentication": self.authentication,
+                "ssl_server_certificate": self.ssl_server_certificate,
+                "connection_string_suffix": self.connection_string_suffix,
             }
-            
+
             # Note: Actual initialization will happen in the initialize() method
             # when we have embeddings function available
             self._langchain_connection_config = connection_config
@@ -122,28 +142,99 @@ class Db2VectorStore:
             logger.warning(f"Failed to initialize LangChain store, falling back to custom: {e}")
             self._use_langchain = False
 
-    def _get_connection_string(self) -> str:
-        """Build Db2 connection string."""
-        return (
-            f"DATABASE={self.database};"
-            f"HOSTNAME={self.hostname};"
-            f"PORT={self.port};"
-            f"PROTOCOL={self.protocol};"
-            f"UID={self.uid};"
-            f"PWD={self.pwd};"
-        )
+    def _get_connection_string(self, *, authentication_override: Optional[str] = None) -> str:
+        """Build Db2 CLI connection string for ibm_db.connect."""
+        auth_val = self.authentication if authentication_override is None else authentication_override
+        if self._cli_connection_string:
+            base = self._cli_connection_string.strip().rstrip(";")
+            if auth_val:
+                base = f"{base};Authentication={auth_val}"
+            conn = base + ";"
+            extra = self.connection_string_suffix.strip()
+            if extra:
+                conn = conn.rstrip(";")
+                if not extra.endswith(";"):
+                    extra += ";"
+                conn = f"{conn};{extra}"
+            return conn
+        parts = [
+            f"DATABASE={self.database}",
+            f"HOSTNAME={self.hostname}",
+            f"PORT={self.port}",
+            f"PROTOCOL={self.protocol}",
+            f"UID={self.uid}",
+            f"PWD={self.pwd}",
+        ]
+        if self.security:
+            parts.append(f"Security={self.security}")
+        if auth_val:
+            parts.append(f"Authentication={auth_val}")
+        if self.ssl_server_certificate:
+            parts.append(f"SSLServerCertificate={self.ssl_server_certificate}")
+        conn = ";".join(parts) + ";"
+        extra = self.connection_string_suffix.strip()
+        if extra:
+            conn = conn.rstrip(";")
+            if not extra.endswith(";"):
+                extra += ";"
+            conn = f"{conn};{extra}"
+        return conn
 
     def _connect(self) -> Any:
         """Establish connection to Db2 database."""
-        if self._conn is None:
+        if self._conn is not None:
+            return self._conn
+        if not IBM_DB_AVAILABLE or ibm_db is None:
+            raise ImportError("ibm_db is required for Db2 connectivity")
+
+        variants: List[str] = [self._get_connection_string()]
+        if self.authentication is None:
+            if self._cli_connection_string:
+                if "AUTHENTICATION=" not in self._cli_connection_string.upper():
+                    alt = self._get_connection_string(authentication_override="SERVER_ENCRYPT")
+                    if alt not in variants:
+                        variants.append(alt)
+            else:
+                alt = self._get_connection_string(authentication_override="SERVER_ENCRYPT")
+                if alt not in variants:
+                    variants.append(alt)
+
+        last_exc: Optional[Exception] = None
+        for i, conn_str in enumerate(variants):
             try:
-                conn_str = self._get_connection_string()
                 self._conn = ibm_db.connect(conn_str, "", "")
-                logger.info("Successfully connected to Db2 database")
+                if i > 0:
+                    logger.info("Connected to Db2 after retry with Authentication=SERVER_ENCRYPT")
+                else:
+                    logger.info("Successfully connected to Db2 database")
+                return self._conn
             except Exception as e:
-                logger.error(f"Failed to connect to Db2: {e}")
-                raise
-        return self._conn
+                last_exc = e
+        logger.error("Failed to connect to Db2: %s", last_exc)
+        raise last_exc
+
+    def verify_connectivity(self) -> tuple[bool, Optional[str]]:
+        """Run a lightweight query to confirm the session works (for health checks)."""
+        if not IBM_DB_AVAILABLE or ibm_db is None:
+            return False, "ibm_db is not installed"
+        try:
+            conn = self._connect()
+            stmt = ibm_db.exec_immediate(conn, "SELECT 1 AS C FROM SYSIBM.SYSDUMMY1")
+            if stmt is False:
+                err = (ibm_db.conn_errormsg(conn) or "").strip()
+                return False, err or "probe query failed"
+            row = ibm_db.fetch_assoc(stmt)
+            if not row:
+                return False, "probe returned no row"
+            val = row.get("C")
+            if val is None:
+                val = row.get("c")
+            if int(val) != 1:
+                return False, f"unexpected probe value: {val!r}"
+            return True, None
+        except Exception as e:
+            self._close()
+            return False, str(e)
 
     def _close(self) -> None:
         """Close Db2 connection."""
@@ -168,16 +259,6 @@ class Db2VectorStore:
             )
         
         try:
-            # Create connection configuration
-            connection_config = {
-                "database": self.database,
-                "hostname": self.hostname,
-                "port": self.port,
-                "protocol": self.protocol,
-                "uid": self.uid,
-                "pwd": self.pwd,
-            }
-            
             # Initialize db2vs component
             # This will automatically create the necessary tables and indexes
             db2vs = Db2VS(

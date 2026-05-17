@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Type
 from enum import Enum
 
 from app.core.config import get_settings
+from app.core.runtime_config import get_runtime_config
 from app.services.llm_service import (
     BaseLLMProvider,
     OllamaProvider,
@@ -87,9 +88,10 @@ class LLMFactory:
                 
                 # Add provider-specific details
                 if provider_type == LLMProviderType.OLLAMA:
+                    rc = get_runtime_config()
                     provider_info["details"] = {
-                        "base_url": settings.ollama_base_url,
-                        "model": settings.ollama_model,
+                        "base_url": rc.ollama_base_url(),
+                        "model": rc.ollama_model(),
                     }
                 elif provider_type == LLMProviderType.WATSONX:
                     provider_info["details"] = {
@@ -224,9 +226,10 @@ class LLMFactory:
         }
         
         if provider_type == LLMProviderType.OLLAMA:
+            rc = get_runtime_config()
             config.update({
-                "base_url": settings.ollama_base_url,
-                "model": settings.ollama_model,
+                "base_url": rc.ollama_base_url(),
+                "model": rc.ollama_model(),
             })
         elif provider_type == LLMProviderType.WATSONX:
             config.update({

@@ -85,24 +85,16 @@ class VectorStoreFactory:
 
         if db_type == "db2":
             try:
-                from app.rag.db2_vector_store import Db2VectorStore
+                from app.core.runtime_config import get_runtime_config
+                from app.services.db2_runtime_settings import create_db2_vector_store, kb_vector_table_name
             except ImportError as exc:
                 raise ImportError(
                     "IBM Db2 dependencies not installed. "
                     "Install with: pip install langchain-db2 ibm-db ibm-db-sa"
                 ) from exc
 
-            return Db2VectorStore(
-                database=settings.db2_database,
-                hostname=settings.db2_hostname,
-                port=settings.db2_port,
-                protocol=settings.db2_protocol,
-                uid=settings.db2_uid,
-                pwd=settings.db2_pwd,
-                schema=settings.db2_schema,
-                table_name=settings.db2_table_prefix,
-                embedding_dimension=settings.embedding_dimension,
-            )
+            rc = get_runtime_config()
+            return create_db2_vector_store(table_name=kb_vector_table_name(rc))
 
         raise ValueError(
             f"Unsupported vector database type: {db_type}. "

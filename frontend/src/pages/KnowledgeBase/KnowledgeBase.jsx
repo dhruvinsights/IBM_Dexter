@@ -20,12 +20,12 @@ import {
 import {
   DocumentBlank,
   Upload,
-  Search as SearchIcon,
   CheckmarkFilled,
   Time,
   TrashCan,
   Db2Database,
   Add,
+  View,
 } from '@carbon/icons-react';
 import { knowledgeBaseService } from '../../services/platformService';
 import './KnowledgeBase.scss';
@@ -48,25 +48,79 @@ const KnowledgeBase = () => {
   const [textForm, setTextForm] = useState({ title: '', content: '', tags: '' });
   const [toast, setToast] = useState(null);
   const [uploadError, setUploadError] = useState(null);
+  const [viewDocId, setViewDocId] = useState(null);
 
   const { data: status, isLoading: statusLoading } = useQuery({
     queryKey: ['kb-status'],
     queryFn: knowledgeBaseService.getStatus,
-    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+    refetchInterval: (q) => {
+      const st = q.state.data;
+      const docs = queryClient.getQueryData(['kb-documents']);
+      if (!st || !Array.isArray(docs)) return 6000;
+      if (st.document_count !== docs.length) return 1500;
+      const sumChunks = docs.reduce((acc, d) => acc + (d.chunk_count || 0), 0);
+      if (st.chunk_count !== sumChunks) return 1500;
+      return 12000;
+    },
   });
 
   const { data: documents = [], isLoading: docsLoading } = useQuery({
     queryKey: ['kb-documents'],
     queryFn: knowledgeBaseService.listDocuments,
+    refetchOnWindowFocus: true,
+    refetchInterval: (q) => {
+      const st = queryClient.getQueryData(['kb-status']);
+      const docs = q.state.data;
+      if (!Array.isArray(docs)) return 6000;
+      if (!st) return 6000;
+      if (st.document_count !== docs.length) return 1500;
+      const sumChunks = docs.reduce((acc, d) => acc + (d.chunk_count || 0), 0);
+      if (st.chunk_count !== sumChunks) return 1500;
+      return 12000;
+    },
   });
+
+  const {
+    data: docDetail,
+    isFetching: detailLoading,
+    isError: detailIsError,
+    error: detailError,
+  } = useQuery({
+    queryKey: ['kb-document', viewDocId],
+    queryFn: () => knowledgeBaseService.getDocument(viewDocId),
+    enabled: Boolean(viewDocId),
+  });
+
+  const syncListAfterIngest = async (docId) => {
+    for (let i = 0; i < 15; i += 1) {
+      await queryClient.refetchQueries({ queryKey: ['kb-documents'] });
+      await queryClient.refetchQueries({ queryKey: ['kb-status'] });
+      const list = queryClient.getQueryData(['kb-documents']);
+      const st = queryClient.getQueryData(['kb-status']);
+      if (
+        Array.isArray(list) &&
+        list.some((d) => d.id === docId) &&
+        st &&
+        st.document_count === list.length
+      ) {
+        const sumChunks = list.reduce((acc, d) => acc + (d.chunk_count || 0), 0);
+        if (st.chunk_count === sumChunks) {
+          return;
+        }
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  };
 
   const uploadFileMutation = useMutation({
     mutationFn: ({ file, title, tags }) =>
       knowledgeBaseService.uploadFile(file, title, tags),
-    onSuccess: (doc) => {
+    onSuccess: async (doc) => {
       setToast({ kind: 'success', title: 'Ingested', subtitle: `${doc.title} (${doc.chunk_count} chunks)` });
       queryClient.invalidateQueries({ queryKey: ['kb-documents'] });
       queryClient.invalidateQueries({ queryKey: ['kb-status'] });
+      await syncListAfterIngest(doc.id);
       setIsUploadOpen(false);
       setUploadError(null);
     },
@@ -77,10 +131,11 @@ const KnowledgeBase = () => {
 
   const ingestTextMutation = useMutation({
     mutationFn: (payload) => knowledgeBaseService.ingestText(payload),
-    onSuccess: (doc) => {
+    onSuccess: async (doc) => {
       setToast({ kind: 'success', title: 'Ingested', subtitle: `${doc.title} (${doc.chunk_count} chunks)` });
       queryClient.invalidateQueries({ queryKey: ['kb-documents'] });
       queryClient.invalidateQueries({ queryKey: ['kb-status'] });
+      await syncListAfterIngest(doc.id);
       setIsTextIngestOpen(false);
       setTextForm({ title: '', content: '', tags: '' });
     },
@@ -95,10 +150,14 @@ const KnowledgeBase = () => {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => knowledgeBaseService.deleteDocument(id),
-    onSuccess: () => {
+    onSuccess: (_, docId) => {
+      if (viewDocId === docId) {
+        setViewDocId(null);
+      }
       setToast({ kind: 'success', title: 'Deleted', subtitle: 'Document removed from knowledge base' });
       queryClient.invalidateQueries({ queryKey: ['kb-documents'] });
       queryClient.invalidateQueries({ queryKey: ['kb-status'] });
+      queryClient.removeQueries({ queryKey: ['kb-document', docId] });
     },
     onError: (err) => {
       setToast({
@@ -136,13 +195,16 @@ const KnowledgeBase = () => {
 
   const backendHealthy = !!status?.embeddings_healthy;
   const backendLabel = status?.backend === 'db2' ? 'IBM Db2 Vector' : 'In-memory';
+  const vectorDbConcern =
+    status?.vector_db_type === 'db2' && status?.vector_db_reachable === false;
+  const vectorDbIconColor = vectorDbConcern ? '#da1e28' : '#42be65';
 
   return (
     <div className="knowledge-base-page">
       <input
         ref={fileInputRef}
         type="file"
-        accept=".md,.markdown,.txt,.json,.yaml,.yml,.js,.jsx,.ts,.tsx,.py,.java,.go,.rs,.rb,.c,.cpp,.h,.hpp,.sh,.html,.css,.scss"
+        accept=".md,.markdown,.txt,.pdf,.docx,.json,.yaml,.yml,.js,.jsx,.ts,.tsx,.py,.java,.go,.rs,.rb,.c,.cpp,.h,.hpp,.sh,.html,.css,.scss"
         style={{ display: 'none' }}
         onChange={handleFileSelected}
       />
@@ -180,7 +242,7 @@ const KnowledgeBase = () => {
 
         <Column lg={4} md={2} sm={2}>
           <Tile className="stat-tile">
-            <div className="stat-tile__icon"><Db2Database size={24} /></div>
+            <div className="stat-tile__icon"><Db2Database size={24} style={{ color: vectorDbIconColor }} /></div>
             <div className="stat-tile__content">
               <span className="stat-tile__value">{backendLabel}</span>
               <span className="stat-tile__label">Vector Backend</span>
@@ -199,6 +261,33 @@ const KnowledgeBase = () => {
             </div>
           </Tile>
         </Column>
+
+        {vectorDbConcern && (
+          <Column lg={16} md={8} sm={4}>
+            <InlineNotification
+              kind="error"
+              title="Vector database unreachable"
+              subtitle={status?.vector_db_error || status?.vector_db_detail || 'Dexter will keep documents in local SQLite + memory only until Db2 accepts connections.'}
+              lowContrast
+              hideCloseButton
+            />
+          </Column>
+        )}
+
+        {Array.isArray(documents) && status && (
+          status.document_count !== documents.length ||
+          status.chunk_count !== documents.reduce((acc, d) => acc + (d.chunk_count || 0), 0)
+        ) && (
+          <Column lg={16} md={8} sm={4}>
+            <InlineNotification
+              kind="warning"
+              title="Syncing knowledge base"
+              subtitle="Document or chunk counts don’t match the cached list yet. Refreshing automatically…"
+              lowContrast
+              hideCloseButton
+            />
+          </Column>
+        )}
 
         <Column lg={16} md={8} sm={4}>
           <Tile className="search-tile">
@@ -286,15 +375,25 @@ const KnowledgeBase = () => {
                         <Time size={16} /> {new Date(doc.created_at).toLocaleString()}
                       </span>
                       <span className="meta-item">{formatBytes(doc.size_bytes)}</span>
-                      <Button
-                        kind="danger--ghost"
-                        size="sm"
-                        renderIcon={TrashCan}
-                        onClick={() => deleteMutation.mutate(doc.id)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        Delete
-                      </Button>
+                      <div className="document-card__actions">
+                        <Button
+                          kind="secondary"
+                          size="sm"
+                          renderIcon={View}
+                          onClick={() => setViewDocId(doc.id)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          kind="danger--ghost"
+                          size="sm"
+                          renderIcon={TrashCan}
+                          onClick={() => deleteMutation.mutate(doc.id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -303,6 +402,68 @@ const KnowledgeBase = () => {
           </Tile>
         </Column>
       </Grid>
+
+      <Modal
+        open={Boolean(viewDocId)}
+        onRequestClose={() => setViewDocId(null)}
+        modalHeading={docDetail?.title || 'Document'}
+        size="lg"
+        passiveModal
+        aria-label="View knowledge base document"
+      >
+        {detailLoading && <InlineLoading description="Loading document…" />}
+        {detailIsError && (
+          <InlineNotification
+            kind="error"
+            title="Could not load document"
+            subtitle={
+              detailError?.response?.data?.detail ||
+              detailError?.message ||
+              'Request failed'
+            }
+            lowContrast
+            hideCloseButton
+          />
+        )}
+        {docDetail && !detailLoading && (
+          <div className="document-preview">
+            <div className="document-preview__meta">
+              <Tag type="purple" size="sm">{docDetail.chunk_count} chunks</Tag>
+              <Tag type="cool-gray" size="sm">{docDetail.content_type}</Tag>
+              <span className="document-preview__source">{docDetail.source}</span>
+            </div>
+            {docDetail.tags?.length > 0 && (
+              <div className="document-preview__tags">
+                <h4>Tags</h4>
+                <div className="tag-list">
+                  {docDetail.tags.map((tag) => (
+                    <Tag key={tag} type="cool-gray" size="sm">{tag}</Tag>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="document-preview__content">
+              <h4>Chunks (stored text)</h4>
+              <p className="cds--helper-text" style={{ marginBottom: '1rem' }}>
+                Embeddings are stored for search/RAG; below is the raw chunk text ingested into the knowledge base.
+              </p>
+              {(docDetail.chunks || []).map((ch) => (
+                <div key={ch.id} className="kb-chunk-block">
+                  <div className="kb-chunk-block__header">
+                    <Tag type="blue" size="sm">chunk {ch.chunk_index}</Tag>
+                    {ch.metadata?.source && (
+                      <Tag type="gray" size="sm">{ch.metadata.source}</Tag>
+                    )}
+                  </div>
+                  <CodeSnippet type="multi" wrapText hideCopyButton>
+                    {ch.content}
+                  </CodeSnippet>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <Modal
         open={isTextIngestOpen}

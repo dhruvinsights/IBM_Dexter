@@ -3,6 +3,9 @@ export const APP_SUBTITLE = 'AI Code Reviewer';
 export const DEFAULT_ORGANIZATION = 'IBM Engineering';
 export const DEFAULT_THEME = 'g100';
 
+/** Browser path prefix for the main Carbon shell (landing stays at `/`). */
+export const APP_SHELL_BASE = '/app';
+
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -20,16 +23,16 @@ export const DEMO_FLAGS = {
 };
 
 export const NAVIGATION_ITEMS = [
-  { key: 'dashboard', label: 'Dashboard', href: '/' },
-  { key: 'pullRequests', label: 'Pull Requests', href: '/pull-requests' },
-  { key: 'reviews', label: 'Reviews', href: '/reviews' },
-  { key: 'repositories', label: 'Repositories', href: '/repositories' },
-  { key: 'knowledgeBase', label: 'Knowledge Base', href: '/knowledge-base' },
-  { key: 'aiAgents', label: 'AI Agents', href: '/ai-agents' },
-  { key: 'architecture', label: 'Architecture', href: '/architecture' },
-  { key: 'security', label: 'Security', href: '/security' },
-  { key: 'analytics', label: 'Analytics', href: '/analytics' },
-  { key: 'settings', label: 'Settings', href: '/settings' },
+  { key: 'dashboard', label: 'Dashboard', href: '/app/dashboard' },
+  { key: 'pullRequests', label: 'Pull Requests', href: '/app/pull-requests' },
+  { key: 'reviews', label: 'Reviews', href: '/app/reviews' },
+  { key: 'repositories', label: 'Repositories', href: '/app/repositories' },
+  { key: 'knowledgeBase', label: 'Knowledge Base', href: '/app/knowledge-base' },
+  { key: 'aiAgents', label: 'AI Agents', href: '/app/ai-agents' },
+  { key: 'architecture', label: 'Architecture', href: '/app/architecture' },
+  { key: 'security', label: 'Security', href: '/app/security' },
+  { key: 'analytics', label: 'Analytics', href: '/app/analytics' },
+  { key: 'settings', label: 'Settings', href: '/app/settings' },
 ];
 
 export const REVIEW_SEVERITIES = ['critical', 'high', 'medium', 'low'];

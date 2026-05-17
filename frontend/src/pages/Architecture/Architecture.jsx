@@ -32,9 +32,11 @@ import {
 import { GaugeChart } from '@carbon/charts-react';
 import '@carbon/charts-react/styles.css';
 import { architectureService } from '../../services/platformService';
+import { useCarbonChartTheme } from '../../hooks/useCarbonChartTheme';
 import './Architecture.scss';
 
 const Architecture = () => {
+  const chartTheme = useCarbonChartTheme();
   const { data: architectureData, isLoading } = useQuery({
     queryKey: ['architecture'],
     queryFn: architectureService.getSummary,
@@ -122,6 +124,7 @@ const Architecture = () => {
         value: complianceScore >= 90 ? '#24a148' : complianceScore >= 70 ? '#f1c21b' : '#da1e28',
       },
     },
+    theme: chartTheme,
   };
 
   return (

@@ -7,13 +7,12 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import httpx
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, HttpUrl
 
 from app.services.ai_service import AIReviewService
-from app.services.github_service import GitHubService
-from app.services.knowledge_base_service import get_knowledge_base_service
+from app.services.app_state_persistence import load_pull_request_state, save_pull_request_state
+from app.services.pr_review_runner import run_github_pr_review
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -37,20 +36,37 @@ def _parse_github_pr_url(url: str) -> Dict[str, Any]:
         "number": int(match["number"]),
     }
 
-_PULL_REQUESTS: Dict[int, Dict[str, Any]] = {
-    1: {
-        "id": 1,
-        "number": 101,
-        "title": "Initial backend foundation",
-        "description": "Bootstrap IBM Dexter backend",
-        "repository_id": 1,
-        "author": "dexter-dev",
-        "state": "open",
-        "created_at": datetime.now(timezone.utc),
-        "updated_at": datetime.now(timezone.utc),
+def _default_pull_requests() -> Dict[int, Dict[str, Any]]:
+    return {
+        1: {
+            "id": 1,
+            "number": 101,
+            "title": "Initial backend foundation",
+            "description": "Bootstrap IBM Dexter backend",
+            "repository_id": 1,
+            "author": "dexter-dev",
+            "state": "open",
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc),
+        }
     }
-}
-_REVIEWS: List[Dict[str, Any]] = []
+
+
+_LOADED_PR, _LOADED_REV = load_pull_request_state()
+_PULL_REQUESTS: Dict[int, Dict[str, Any]] = _LOADED_PR if _LOADED_PR else _default_pull_requests()
+_REVIEWS: List[Dict[str, Any]] = list(_LOADED_REV)
+
+
+def _persist_pr_state() -> None:
+    save_pull_request_state(_PULL_REQUESTS, _REVIEWS)
+
+
+def save_pr_analysis_record(review_record: Dict[str, Any]) -> None:
+    """Append a completed GitHub PR analysis to persisted review history."""
+    pr = review_record.get("pull_request") or {}
+    num = pr.get("number")
+    _REVIEWS.append({"pull_request_id": num, **review_record})
+    _persist_pr_state()
 
 
 class PullRequestResponse(BaseModel):
@@ -81,6 +97,18 @@ class AnalyzeUrlRequest(BaseModel):
     use_rag: bool = True
     rag_query: Optional[str] = None
     rag_limit: int = Field(default=4, ge=1, le=10)
+    post_review_to_github: bool = Field(
+        default=False,
+        description="Submit a PR review comment (token needs pull_requests: write).",
+    )
+    request_self_as_reviewer: bool = Field(
+        default=False,
+        description="Request the authenticated GitHub user as a reviewer on the PR.",
+    )
+    inline_review_comments: bool = Field(
+        default=True,
+        description="When posting a GitHub review, add inline line comments (and suggestion blocks when available).",
+    )
 
 
 @router.get("/pull-requests", response_model=List[PullRequestResponse])
@@ -118,6 +146,7 @@ async def review_pull_request(pull_request_id: int, payload: ReviewRequest) -> D
         "result": result,
     }
     _REVIEWS.append(review_record)
+    _persist_pr_state()
     return review_record
 
 
@@ -132,84 +161,34 @@ async def analyze_pull_request_url(payload: AnalyzeUrlRequest) -> Dict[str, Any]
       4. Run all configured review agents and return findings
     """
     pr_ref = _parse_github_pr_url(str(payload.url))
-    github = GitHubService()
-
-    try:
-        pr_meta = await github.fetch_pr_details(pr_ref["owner"], pr_ref["repo"], pr_ref["number"])
-        files = await github.get_file_diffs(pr_ref["owner"], pr_ref["repo"], pr_ref["number"])
-    except httpx.HTTPStatusError as exc:
-        status_code = exc.response.status_code
-        detail = exc.response.text[:200] if exc.response is not None else str(exc)
-        if status_code in (401, 403):
-            detail = (
-                "GitHub returned 401/403. Set DEXTER_GITHUB_TOKEN with a token that has "
-                "read access to this repository, or use a public PR."
-            )
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
-    except httpx.RequestError as exc:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Network error: {exc}")
-
-    diffs: List[Dict[str, Any]] = [
-        {
-            "filename": f.get("filename"),
-            "status": f.get("status"),
-            "additions": f.get("additions"),
-            "deletions": f.get("deletions"),
-            "patch": f.get("patch") or "",
-        }
-        for f in files
-    ]
-
-    pull_request: Dict[str, Any] = {
-        "id": pr_meta.get("id"),
-        "number": pr_meta.get("number"),
-        "title": pr_meta.get("title"),
-        "description": (pr_meta.get("body") or "")[:2000],
-        "author": (pr_meta.get("user") or {}).get("login"),
-        "state": pr_meta.get("state"),
-        "html_url": pr_meta.get("html_url"),
-        "base": (pr_meta.get("base") or {}).get("ref"),
-        "head": (pr_meta.get("head") or {}).get("ref"),
-        "repository": f"{pr_ref['owner']}/{pr_ref['repo']}",
-    }
-
-    rag_context: List[str] = []
-    rag_meta: Dict[str, Any] = {"enabled": payload.use_rag, "retrieved": 0}
-    if payload.use_rag:
-        try:
-            kb = get_knowledge_base_service()
-            query = payload.rag_query or (pull_request.get("title") or "") + " " + (pull_request.get("description") or "")
-            query = query.strip() or "code review best practices"
-            rag_context = await kb.context_for(query, limit=payload.rag_limit)
-            rag_meta["retrieved"] = len(rag_context)
-            rag_meta["backend"] = kb.get_backend_info()
-        except Exception as exc:
-            logger.warning("RAG retrieval skipped: %s", exc)
-            rag_meta["error"] = str(exc)
-
-    review_service = AIReviewService()
-    result = await review_service.review_code(
-        pull_request=pull_request,
-        diffs=diffs,
-        context=rag_context,
+    record = await run_github_pr_review(
+        pr_ref["owner"],
+        pr_ref["repo"],
+        pr_ref["number"],
+        use_rag=payload.use_rag,
+        rag_query=payload.rag_query,
+        rag_limit=payload.rag_limit,
+        post_review_to_github=payload.post_review_to_github,
+        request_self_as_reviewer=payload.request_self_as_reviewer,
+        inline_review_comments=payload.inline_review_comments,
     )
+    if not record.get("ok"):
+        err = str(record.get("error") or "unknown")
+        detail = str(record.get("detail") or err)
+        if err == "github_http_error":
+            code = int(record.get("status_code") or 502)
+            if code in (401, 403):
+                detail = (
+                    "GitHub returned 401/403. Set DEXTER_GITHUB_TOKEN with a token that has "
+                    "read access to this repository, or use a public PR."
+                )
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+        if err == "github_network":
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
 
-    review_record = {
-        "pull_request": pull_request,
-        "rag": rag_meta,
-        "stats": {
-            "file_count": len(diffs),
-            "additions": sum(d.get("additions") or 0 for d in diffs),
-            "deletions": sum(d.get("deletions") or 0 for d in diffs),
-        },
-        "status": result["status"],
-        "completed_at": datetime.now(timezone.utc).isoformat(),
-        "result": result,
-    }
-    _REVIEWS.append({
-        "pull_request_id": pr_meta.get("number"),
-        **review_record,
-    })
-    return review_record
+    save_pr_analysis_record(record)
+    return record
+
 
 # Made with Bob
