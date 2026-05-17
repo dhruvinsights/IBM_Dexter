@@ -1,15 +1,16 @@
-<p align="center">
+<p align="left">
   <img src="frontend/public/Dexter_logo.svg" alt="IBM Dexter logo" width="100" />
+</p>
+<p align="right">
+  <strong>AI-POWERED · KNOWLEDGE-AWARE · ENTERPRISE-GRADE</strong><br />
+  <em>Enterprise AI Assistant for Engineering Excellence</em>
 </p>
 
 <p align="center">
   <img src="docs/assets/dexter-hero-banner.png" alt="IBM DEXTER — Enterprise AI Assistant for Engineering Excellence. AI-powered, knowledge-aware, enterprise-grade." width="920" />
 </p>
 
-<p align="center">
-  <strong>AI-POWERED · KNOWLEDGE-AWARE · ENTERPRISE-GRADE</strong><br />
-  <em>Enterprise AI Assistant for Engineering Excellence</em>
-</p>
+
 
 ---
 
