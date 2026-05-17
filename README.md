@@ -1,7 +1,7 @@
 <p align="left">
   <img src="frontend/public/Dexter_logo.svg" alt="IBM Dexter logo" width="100" />
 </p>
-<p align="right">
+<p align="center">
   <strong>AI-POWERED · KNOWLEDGE-AWARE · ENTERPRISE-GRADE</strong><br />
   <em>Enterprise AI Assistant for Engineering Excellence</em>
 </p>
