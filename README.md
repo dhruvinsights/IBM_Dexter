@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/Dexter_logo.svg" alt="IBM Dexter logo" width="100" />
+  <img src="frontend/public/Dexter_logo.png" alt="IBM Dexter logo" width="100" />
 </p>
 <p align="center">
   <strong>AI-POWERED · KNOWLEDGE-AWARE · ENTERPRISE-GRADE</strong><br />
@@ -9,8 +9,6 @@
 <p align="center">
   <img src="docs/assets/dexter-hero-banner.png" alt="IBM DEXTER — Enterprise AI Assistant for Engineering Excellence. AI-powered, knowledge-aware, enterprise-grade." width="920" />
 </p>
-
-
 
 ---
 
@@ -145,7 +143,7 @@ IBM_Dexter/
 │       └── dexter-hero-banner.png   # Marketing banner (also used in this README)
 ├── frontend/
 │   ├── public/
-│   │   └── Dexter_logo.svg          # Product logo
+│   │   └── Dexter_logo.png           # Product logo (PNG; served at /Dexter_logo.png)
 │   └── src/
 ├── backend/
 │   ├── app/
