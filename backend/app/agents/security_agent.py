@@ -8,6 +8,7 @@ import re
 from typing import Any, List
 
 from app.agents.base_agent import BaseAgent
+from app.services.diff_comment_map import iter_added_lines_in_patch
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,9 @@ Schema:
     {
       "severity": "critical|high|medium|low",
       "file": "<path>",
+      "line": <optional int: line number in the NEW file for the finding>,
       "line_hint": "<optional snippet, max ~80 chars>",
+      "suggestion": "<optional concrete replacement code for a GitHub suggestion block>",
       "category": "<short tag, e.g. 'hardcoded-secret', 'sql-injection'>",
       "message": "<one sentence describing the issue>",
       "recommendation": "<one sentence describing the fix>",
@@ -147,11 +150,20 @@ class SecurityAgent(BaseAgent):
             patch = str(diff.get("patch") or diff.get("content") or "")
             if not patch:
                 continue
+            seen_line_hits: set[tuple[str, int]] = set()
             for category, pattern, label in _SECRET_PATTERNS:
-                if re.search(pattern, patch):
+                for ln, content in iter_added_lines_in_patch(patch):
+                    if not re.search(pattern, content):
+                        continue
+                    key = (category, ln)
+                    if key in seen_line_hits:
+                        continue
+                    seen_line_hits.add(key)
                     findings.append({
                         "severity": "critical",
                         "file": filename,
+                        "line": ln,
+                        "line_hint": content.strip()[:80],
                         "category": f"hardcoded-secret/{category}",
                         "message": f"{label} detected in diff",
                         "recommendation": "Move the value to a secret manager / env var and rotate the leaked credential.",
@@ -172,6 +184,14 @@ class SecurityAgent(BaseAgent):
                 for raw in parsed.get("findings") or []:
                     if not isinstance(raw, dict):
                         continue
+                    ln_raw = raw.get("line")
+                    line_val = None
+                    if isinstance(ln_raw, int) and ln_raw > 0:
+                        line_val = ln_raw
+                    elif isinstance(ln_raw, float) and ln_raw > 0:
+                        line_val = int(ln_raw)
+                    elif isinstance(ln_raw, str) and ln_raw.strip().isdigit():
+                        line_val = int(ln_raw.strip())
                     findings.append({
                         "severity": str(raw.get("severity", "medium")).lower(),
                         "file": raw.get("file") or "unknown",
@@ -179,6 +199,8 @@ class SecurityAgent(BaseAgent):
                         "message": raw.get("message") or "Security concern reported by LLM.",
                         "recommendation": raw.get("recommendation") or "Review the highlighted code.",
                         "line_hint": raw.get("line_hint"),
+                        "line": line_val,
+                        "suggestion": raw.get("suggestion"),
                         "confidence": float(raw.get("confidence") or 0.7),
                         "source": "llm",
                     })

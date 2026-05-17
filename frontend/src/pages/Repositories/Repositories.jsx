@@ -13,10 +13,15 @@ import {
   SelectItem,
   ToastNotification,
   InlineNotification,
+  CodeSnippet,
+  Toggle,
 } from '@carbon/react';
 import { Add, LogoGithub, LogoGitlab, TrashCan } from '@carbon/icons-react';
 import { repositoryService } from '../../services/platformService';
+import { API_BASE_URL } from '../../constants/appConstants';
 import './Repositories.scss';
+
+const WEBHOOK_URL = `${API_BASE_URL}/webhooks/github`;
 
 const Repositories = () => {
   const queryClient = useQueryClient();
@@ -28,6 +33,16 @@ const Repositories = () => {
     url: '',
     owner_id: 1,
     platform: 'github',
+    auto_review_enabled: true,
+  });
+
+  const defaultForm = () => ({
+    name: '',
+    full_name: '',
+    url: '',
+    owner_id: 1,
+    platform: 'github',
+    auto_review_enabled: true,
   });
 
   const { data: repos = [], isLoading, error } = useQuery({
@@ -37,16 +52,37 @@ const Repositories = () => {
 
   const createMutation = useMutation({
     mutationFn: (payload) => repositoryService.create(payload),
-    onSuccess: () => {
-      setToast({ kind: 'success', title: 'Repository registered', subtitle: form.full_name });
+    onSuccess: (data) => {
+      const hint = data?.webhook_setup?.webhook_url;
+      setToast({
+        kind: 'success',
+        title: 'Repository registered',
+        subtitle: hint
+          ? `${data.full_name} — webhook: ${hint}`
+          : `${data.full_name}. Point GitHub to ${WEBHOOK_URL} (see Repositories page).`,
+      });
       queryClient.invalidateQueries({ queryKey: ['repositories-list'] });
       setIsAddOpen(false);
-      setForm({ name: '', full_name: '', url: '', owner_id: 1, platform: 'github' });
+      setForm(defaultForm());
     },
     onError: (err) => {
       setToast({
         kind: 'error',
         title: 'Failed to create repository',
+        subtitle: err?.response?.data?.detail?.toString?.() || err.message,
+      });
+    },
+  });
+
+  const toggleAutoMutation = useMutation({
+    mutationFn: ({ id, auto_review_enabled }) => repositoryService.update(id, { auto_review_enabled }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['repositories-list'] });
+    },
+    onError: (err) => {
+      setToast({
+        kind: 'error',
+        title: 'Could not update auto-review',
         subtitle: err?.response?.data?.detail?.toString?.() || err.message,
       });
     },
@@ -89,6 +125,8 @@ const Repositories = () => {
           <h1>Repositories</h1>
           <p className="page-subtitle">
             Register source repositories so Dexter can run reviews against their pull requests.
+            With <strong>auto-review</strong> enabled (GitHub), configure a repository webhook to{' '}
+            <code>{WEBHOOK_URL}</code> using the same secret as <code>DEXTER_GITHUB_WEBHOOK_SECRET</code>.
           </p>
         </div>
         <Button kind="primary" renderIcon={Add} onClick={() => setIsAddOpen(true)}>
@@ -142,7 +180,32 @@ const Repositories = () => {
                   {repo.is_active ? 'Active' : 'Paused'}
                 </Tag>
                 <Tag type="blue" size="sm">{repo.platform}</Tag>
+                {repo.platform === 'github' && (
+                  <Tag type={repo.auto_review_enabled !== false ? 'teal' : 'cool-gray'} size="sm">
+                    {repo.auto_review_enabled !== false ? 'Auto-review on' : 'Auto-review off'}
+                  </Tag>
+                )}
               </div>
+              {repo.platform === 'github' && (
+                <>
+                  <Toggle
+                    id={`auto-${repo.id}`}
+                    size="sm"
+                    labelText="Auto-review new/updated PRs via webhook"
+                    toggled={repo.auto_review_enabled !== false}
+                    disabled={toggleAutoMutation.isPending}
+                    onToggle={() => {
+                      const on = repo.auto_review_enabled !== false;
+                      toggleAutoMutation.mutate({ id: repo.id, auto_review_enabled: !on });
+                    }}
+                    style={{ marginTop: '0.75rem' }}
+                  />
+                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--cds-text-secondary)' }}>
+                    Webhook URL (Payload URL in GitHub):
+                  </p>
+                  <CodeSnippet type="single">{WEBHOOK_URL}</CodeSnippet>
+                </>
+              )}
             </Tile>
           </Column>
         ))}
@@ -192,6 +255,15 @@ const Repositories = () => {
           <SelectItem value="github" text="GitHub" />
           <SelectItem value="gitlab" text="GitLab" />
         </Select>
+        {form.platform === 'github' && (
+          <Toggle
+            id="repo-auto"
+            labelText="Enable automatic PR review when GitHub sends pull_request webhooks"
+            toggled={form.auto_review_enabled}
+            onToggle={() => setForm((prev) => ({ ...prev, auto_review_enabled: !prev.auto_review_enabled }))}
+            style={{ marginTop: '1rem' }}
+          />
+        )}
       </Modal>
 
       {toast && (

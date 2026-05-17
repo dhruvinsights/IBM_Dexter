@@ -5,6 +5,7 @@ import {
   SideNavLink,
   SideNavDivider,
 } from '@carbon/react';
+import { APP_SHELL_BASE } from '../../constants/appConstants';
 import {
   Dashboard,
   DocumentTasks,
@@ -24,7 +25,7 @@ const SideNav = ({ isOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname === `${path}/`;
 
   const handleNavigation = (e, path) => {
     e.preventDefault();
@@ -43,36 +44,36 @@ const SideNav = ({ isOpen }) => {
         {/* Core Navigation */}
         <SideNavLink
           renderIcon={Dashboard}
-          href="/"
-          isActive={isActive('/')}
-          onClick={(e) => handleNavigation(e, '/')}
+          href={`${APP_SHELL_BASE}/dashboard`}
+          isActive={isActive(`${APP_SHELL_BASE}/dashboard`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/dashboard`)}
         >
           Dashboard
         </SideNavLink>
         
         <SideNavLink
           renderIcon={PullRequest}
-          href="/pull-requests"
-          isActive={isActive('/pull-requests')}
-          onClick={(e) => handleNavigation(e, '/pull-requests')}
+          href={`${APP_SHELL_BASE}/pull-requests`}
+          isActive={isActive(`${APP_SHELL_BASE}/pull-requests`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/pull-requests`)}
         >
           Pull Requests
         </SideNavLink>
         
         <SideNavLink
           renderIcon={DocumentTasks}
-          href="/reviews"
-          isActive={isActive('/reviews')}
-          onClick={(e) => handleNavigation(e, '/reviews')}
+          href={`${APP_SHELL_BASE}/reviews`}
+          isActive={isActive(`${APP_SHELL_BASE}/reviews`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/reviews`)}
         >
           Reviews
         </SideNavLink>
         
         <SideNavLink
           renderIcon={Catalog}
-          href="/repositories"
-          isActive={isActive('/repositories')}
-          onClick={(e) => handleNavigation(e, '/repositories')}
+          href={`${APP_SHELL_BASE}/repositories`}
+          isActive={isActive(`${APP_SHELL_BASE}/repositories`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/repositories`)}
         >
           Repositories
         </SideNavLink>
@@ -82,27 +83,27 @@ const SideNav = ({ isOpen }) => {
         {/* Analysis & Insights */}
         <SideNavLink
           renderIcon={ReferenceArchitecture}
-          href="/architecture"
-          isActive={isActive('/architecture')}
-          onClick={(e) => handleNavigation(e, '/architecture')}
+          href={`${APP_SHELL_BASE}/architecture`}
+          isActive={isActive(`${APP_SHELL_BASE}/architecture`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/architecture`)}
         >
           Architecture
         </SideNavLink>
         
         <SideNavLink
           renderIcon={Security}
-          href="/security"
-          isActive={isActive('/security')}
-          onClick={(e) => handleNavigation(e, '/security')}
+          href={`${APP_SHELL_BASE}/security`}
+          isActive={isActive(`${APP_SHELL_BASE}/security`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/security`)}
         >
           Security
         </SideNavLink>
         
         <SideNavLink
           renderIcon={Book}
-          href="/knowledge-base"
-          isActive={isActive('/knowledge-base')}
-          onClick={(e) => handleNavigation(e, '/knowledge-base')}
+          href={`${APP_SHELL_BASE}/knowledge-base`}
+          isActive={isActive(`${APP_SHELL_BASE}/knowledge-base`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/knowledge-base`)}
         >
           Knowledge Base
         </SideNavLink>
@@ -112,27 +113,27 @@ const SideNav = ({ isOpen }) => {
         {/* Analytics & Team */}
         <SideNavLink
           renderIcon={Analytics}
-          href="/analytics"
-          isActive={isActive('/analytics')}
-          onClick={(e) => handleNavigation(e, '/analytics')}
+          href={`${APP_SHELL_BASE}/analytics`}
+          isActive={isActive(`${APP_SHELL_BASE}/analytics`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/analytics`)}
         >
           Analytics
         </SideNavLink>
 
         <SideNavLink
           renderIcon={UserMultiple}
-          href="/team-insights"
-          isActive={isActive('/team-insights')}
-          onClick={(e) => handleNavigation(e, '/team-insights')}
+          href={`${APP_SHELL_BASE}/team-insights`}
+          isActive={isActive(`${APP_SHELL_BASE}/team-insights`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/team-insights`)}
         >
           Team Insights
         </SideNavLink>
 
         <SideNavLink
           renderIcon={Bot}
-          href="/ai-agents"
-          isActive={isActive('/ai-agents')}
-          onClick={(e) => handleNavigation(e, '/ai-agents')}
+          href={`${APP_SHELL_BASE}/ai-agents`}
+          isActive={isActive(`${APP_SHELL_BASE}/ai-agents`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/ai-agents`)}
         >
           AI Agents
         </SideNavLink>
@@ -142,9 +143,9 @@ const SideNav = ({ isOpen }) => {
         {/* Settings */}
         <SideNavLink
           renderIcon={Settings}
-          href="/settings"
-          isActive={isActive('/settings')}
-          onClick={(e) => handleNavigation(e, '/settings')}
+          href={`${APP_SHELL_BASE}/settings`}
+          isActive={isActive(`${APP_SHELL_BASE}/settings`)}
+          onClick={(e) => handleNavigation(e, `${APP_SHELL_BASE}/settings`)}
         >
           Settings
         </SideNavLink>

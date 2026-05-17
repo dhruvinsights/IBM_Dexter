@@ -6,6 +6,23 @@
   z-index: 8001;
   background-color: var(--cds-layer-01);
   border-bottom: 1px solid var(--cds-border-subtle-01);
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  &__logo-link {
+    display: flex;
+    align-items: center;
+    margin-right: 0.15rem;
+    line-height: 0;
+  }
+
+  &__logo-link img {
+    display: block;
+  }
   
   .dexter-header__context {
     display: flex;

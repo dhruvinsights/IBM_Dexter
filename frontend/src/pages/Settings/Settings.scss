@@ -30,6 +30,21 @@
       color: var(--cds-text-secondary);
       margin: 0;
     }
+
+    &__presentation {
+      margin-top: $spacing-05;
+      max-width: 42rem;
+
+      .cds--toggle__label {
+        margin-bottom: 0;
+      }
+    }
+
+    &__presentation-hint {
+      margin-top: $spacing-03;
+      margin-bottom: 0;
+      max-width: 40rem;
+    }
   }
 
   .settings-grid {
@@ -138,6 +153,14 @@
       td {
         vertical-align: middle;
       }
+    }
+  }
+
+  &.settings-page--mask-secrets {
+    .settings-mask-sensitive textarea,
+    .settings-mask-sensitive input[type='text'],
+    .settings-mask-sensitive input[type='password'] {
+      -webkit-text-security: disc;
     }
   }
 }

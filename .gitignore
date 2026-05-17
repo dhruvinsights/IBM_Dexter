@@ -88,6 +88,19 @@ yarn-debug.log*
 *.log
 
 # ============================================
+# Local Dexter persistence (KB SQLite, reviews JSON, runtime overrides)
+backend/data/*
+!backend/data/.gitkeep
+
+# Backend app data directory (runtime data, SQLite DBs, state files)
+backend/app/data/*
+backend/app/data/*.sqlite
+backend/app/data/*.sqlite-shm
+backend/app/data/*.sqlite-wal
+backend/app/data/*.json
+!backend/app/data/.gitkeep
+
+# ============================================
 # Database Files
 # ============================================
 *.db

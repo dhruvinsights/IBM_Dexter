@@ -106,7 +106,13 @@ class Settings(BaseSettings):
     
     # Ollama Configuration (Primary for testing)
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3"  # Default model
+    # Default: strong code model ~10–15GB VRAM at Q4 (run: ollama pull qwen2.5-coder:14b).
+    # Larger: qwen2.5-coder:32b / llama3.1:70b (needs much more RAM/VRAM).
+    ollama_model: str = "qwen2.5-coder:14b"
+    # Context window passed to Ollama (KV cache); lower if you hit OOM (e.g. 8192).
+    ollama_num_ctx: int = 32768
+    # Keep model loaded between requests (large models: avoid cold reload latency).
+    ollama_keep_alive: str = "15m"
     
     # IBM Watsonx Configuration (Secondary)
     watsonx_api_key: Optional[str] = None
@@ -124,8 +130,8 @@ class Settings(BaseSettings):
     
     # LLM Settings
     llm_temperature: float = 0.7
-    llm_max_tokens: int = 2000
-    llm_timeout: int = 60
+    llm_max_tokens: int = 8192
+    llm_timeout: int = 300
 
     # Vector Database Configuration
     vector_db_type: str = "db2"  # Options: inmemory, db2 (IBM Db2 via langchain-db2)
@@ -138,6 +144,11 @@ class Settings(BaseSettings):
     db2_protocol: str = "TCPIP"
     db2_uid: str = "Geetika"
     db2_pwd: str = ""
+    # Db2 CLI / ibm_db connection tuning (SQL30082N reason 17 = mechanism mismatch)
+    db2_security: Optional[str] = None  # e.g. SSL for Db2 on Cloud
+    db2_authentication: Optional[str] = None  # e.g. SERVER_ENCRYPT; if unset, connector retries with SERVER_ENCRYPT
+    db2_ssl_server_certificate: Optional[str] = None  # path to .arm for TLS (when Security=SSL)
+    db2_cli_connection_extra: str = ""  # extra KEY=VAL; fragment appended to the CLI connect string
     db2_schema: str = "DEXTER"
     db2_table_prefix: str = "DEXTER"  # Table prefix for collections (e.g., DEXTER_CODE_EMBEDDINGS)
     embedding_dimension: int = 384  # Embedding dimension (default: 384 for nomic-embed-text)
@@ -145,6 +156,15 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,http://localhost:8000"
 
     log_level: str = "INFO"
+
+    # Public URL of the Dexter web UI — used to build a logo link in GitHub PR comments.
+    # For the image to render on GitHub, this must be reachable from the internet (not localhost).
+    dexter_public_app_url: str = "http://localhost:3000"
+    # Optional: full HTTPS URL to Dexter logo for PR comments (overrides dexter_public_app_url/Dexter_logo.png).
+    dexter_logo_public_url: str = ""
+
+    # Public base URL of this Dexter API (no path), e.g. https://dexter-api.example.com — used in webhook setup hints.
+    dexter_api_public_url: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -13,9 +13,18 @@ except ImportError:  # pragma: no cover - legacy fallback
     from langchain_community.llms import Ollama  # type: ignore
 
 from app.core.config import get_settings
+from app.core.runtime_config import get_runtime_config
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+
+def _ollama_base_url() -> str:
+    return get_runtime_config().ollama_base_url()
+
+
+def _ollama_model() -> str:
+    return get_runtime_config().ollama_model()
 
 
 class BaseLLMProvider(ABC):
@@ -46,14 +55,21 @@ class OllamaProvider(BaseLLMProvider):
     """Ollama LLM provider for local models."""
     
     def initialize(self) -> LLM:
-        """Initialize Ollama with Llama 3."""
+        """Initialize Ollama (see DEXTER_OLLAMA_MODEL / DEXTER_OLLAMA_NUM_CTX)."""
         try:
-            logger.info(f"Initializing Ollama with model: {settings.ollama_model}")
+            logger.info(
+                "Initializing Ollama model=%s num_ctx=%s base_url=%s",
+                _ollama_model(),
+                settings.ollama_num_ctx,
+                _ollama_base_url(),
+            )
             return Ollama(
-                base_url=settings.ollama_base_url,
-                model=settings.ollama_model,
+                base_url=_ollama_base_url(),
+                model=_ollama_model(),
                 temperature=settings.llm_temperature,
                 num_predict=settings.llm_max_tokens,
+                num_ctx=settings.ollama_num_ctx,
+                keep_alive=settings.ollama_keep_alive,
             )
         except Exception as e:
             logger.error(f"Failed to initialize Ollama: {e}")
@@ -63,7 +79,7 @@ class OllamaProvider(BaseLLMProvider):
         """Check if Ollama is available."""
         try:
             import httpx
-            response = httpx.get(f"{settings.ollama_base_url}/api/tags", timeout=5)
+            response = httpx.get(f"{_ollama_base_url()}/api/tags", timeout=5)
             return response.status_code == 200
         except Exception as e:
             logger.warning(f"Ollama not available: {e}")
@@ -343,6 +359,20 @@ class LLMService:
         self.provider_name = provider_name
         self.llm = provider.get_llm()
         logger.info(f"Switched to provider: {provider_name}")
+
+    def refresh_ollama_configuration(self) -> None:
+        """Drop cached Ollama client and re-bind if Ollama is the active provider."""
+        ollama_provider = self.providers.get("ollama")
+        if ollama_provider is not None:
+            ollama_provider.llm = None
+        if self.provider_name != "ollama" or ollama_provider is None:
+            return
+        try:
+            self.llm = ollama_provider.get_llm()
+            logger.info("Reloaded Ollama LLM after settings change")
+        except Exception as exc:
+            logger.error("Failed to reload Ollama after settings change: %s", exc)
+            self._try_fallback()
 
 
 # Singleton instance

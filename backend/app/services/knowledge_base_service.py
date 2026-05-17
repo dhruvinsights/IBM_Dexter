@@ -10,16 +10,29 @@ from __future__ import annotations
 import asyncio
 import logging
 import math
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.core.config import get_settings
+from app.core.data_dir import get_data_dir
+from app.core.runtime_config import get_runtime_config
 from app.services.embeddings_service import EmbeddingsService, get_embeddings_service
+from app.services.kb_store_sqlite import delete_document as kb_sqlite_delete_document
+from app.services.kb_store_sqlite import load_all as kb_sqlite_load_all
+from app.services.kb_store_sqlite import replace_document as kb_sqlite_replace_document
+from app.services.db2_runtime_settings import (
+    create_db2_vector_store,
+    db2_kb_storage_target,
+    kb_vector_table_name,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+_VECTOR_DB_PROBE_TTL_SEC = 15.0
 
 
 # --------------------------------------------------------------------------- #
@@ -99,6 +112,11 @@ def _cosine(a: List[float], b: List[float]) -> float:
     return dot / (na * nb)
 
 
+def _parse_created_at(raw: str) -> datetime:
+    normalized = raw.replace("Z", "+00:00") if raw.endswith("Z") else raw
+    return datetime.fromisoformat(normalized)
+
+
 # --------------------------------------------------------------------------- #
 # Service
 # --------------------------------------------------------------------------- #
@@ -117,7 +135,58 @@ class KnowledgeBaseService:
         self._lock = asyncio.Lock()
         self._db2_store: Any = None
         self._backend: str = "inmemory"
+        self._sqlite_path = get_data_dir() / "knowledge_base.sqlite"
+        self._vector_db_probe_lock = asyncio.Lock()
+        self._vector_db_probe_cache: Optional[Dict[str, Any]] = None
+        self._vector_db_probe_monotonic: float = 0.0
+        self._hydrate_from_sqlite()
         self._try_init_db2()
+
+    def _hydrate_from_sqlite(self) -> None:
+        docs_payload, chunks_map = kb_sqlite_load_all(self._sqlite_path)
+        for d in docs_payload:
+            created_at = _parse_created_at(d["created_at"]) if isinstance(d["created_at"], str) else d["created_at"]
+            self._documents[d["id"]] = DocumentRecord(
+                id=d["id"],
+                title=d["title"],
+                source=d["source"],
+                content_type=d["content_type"],
+                chunk_count=int(d["chunk_count"]),
+                created_at=created_at,
+                size_bytes=int(d["size_bytes"]),
+                tags=list(d.get("tags") or []),
+            )
+        for did, rows in chunks_map.items():
+            chunk_recs: List[ChunkRecord] = []
+            for c in rows:
+                chunk_recs.append(
+                    ChunkRecord(
+                        id=c["id"],
+                        document_id=c["document_id"],
+                        chunk_index=int(c["chunk_index"]),
+                        content=c["content"],
+                        embedding=list(c["embedding"]),
+                        metadata=dict(c["metadata"]),
+                    )
+                )
+            self._chunks[did] = chunk_recs
+        if self._documents:
+            logger.info("Restored %d knowledge-base document(s) from SQLite", len(self._documents))
+
+    def _persist_sqlite(self, doc: DocumentRecord, chunk_records: List[ChunkRecord]) -> None:
+        payload = self._serialize_document(doc)
+        chunk_dicts = [
+            {
+                "id": ch.id,
+                "document_id": ch.document_id,
+                "chunk_index": ch.chunk_index,
+                "content": ch.content,
+                "embedding": ch.embedding,
+                "metadata": ch.metadata,
+            }
+            for ch in chunk_records
+        ]
+        kb_sqlite_replace_document(self._sqlite_path, payload, chunk_dicts)
 
     # ------------------------------------------------------------------ #
     # Backend selection
@@ -134,35 +203,91 @@ class KnowledgeBaseService:
             logger.info("Knowledge base running with in-memory backend (vector_db_type=%s)", settings.vector_db_type)
             return
         try:
-            from app.rag.db2_vector_store import Db2VectorStore  # noqa: WPS433
-        except ImportError as exc:
-            logger.warning("langchain-db2 not importable, falling back to in-memory KB: %s", exc)
-            return
-
-        try:
-            self._db2_store = Db2VectorStore(
-                database=settings.db2_database,
-                hostname=settings.db2_hostname,
-                port=settings.db2_port,
-                protocol=settings.db2_protocol,
-                uid=settings.db2_uid,
-                pwd=settings.db2_pwd,
-                schema=settings.db2_schema,
-                table_name=f"{settings.db2_table_prefix}_KB",
-                embedding_dimension=settings.embedding_dimension,
-            )
+            rc = get_runtime_config()
+            table = kb_vector_table_name(rc)
+            self._db2_store = create_db2_vector_store(table_name=table)
             self._backend = "db2"
-            logger.info("Knowledge base using IBM Db2 vector store")
+            target = db2_kb_storage_target(rc)
+            logger.info(
+                "Knowledge base using IBM Db2 vector store (%s)",
+                target.get("db2_kb_qualified_table"),
+            )
         except Exception as exc:  # broad, intentionally
             logger.warning("Db2 vector store unavailable, using in-memory KB: %s", exc)
             self._db2_store = None
+
+    def _probe_vector_db_sync(self) -> Dict[str, Any]:
+        """Synchronous vector DB connectivity probe (run in a thread pool)."""
+        vtype = (settings.vector_db_type or "inmemory").lower()
+        rc = get_runtime_config()
+        out: Dict[str, Any] = {
+            "configured_type": vtype,
+            "kb_store_backend": self._backend,
+            "reachable": True,
+            "error": None,
+            "detail": "",
+        }
+        if vtype == "db2":
+            out.update(db2_kb_storage_target(rc))
+        if vtype == "inmemory":
+            out["detail"] = "DEXTER_VECTOR_DB_TYPE=inmemory — no remote vector database."
+            return out
+        if vtype != "db2":
+            out["detail"] = f"Vector DB type '{vtype}' — no TCP probe implemented."
+            return out
+        if self._db2_store is None:
+            out["reachable"] = False
+            out["error"] = (
+                "Db2 client not initialized (missing dependency, import error, or constructor failure)."
+            )
+            out["detail"] = out["error"]
+            return out
+        ok, err = self._db2_store.verify_connectivity()
+        out["reachable"] = ok
+        out["error"] = err
+        cat = out.get("db2_database_catalog") or settings.db2_database
+        qual = out.get("db2_kb_qualified_table") or ""
+        out["detail"] = (
+            f"Db2 OK — catalog {cat}, KB {qual} ({settings.db2_hostname}:{settings.db2_port})."
+            if ok
+            else (err or "Db2 unreachable")
+        )
+        return out
+
+    async def get_vector_db_status(self, *, force_refresh: bool = False) -> Dict[str, Any]:
+        """Cached status for the configured Db2 / vector backend (for APIs and UI)."""
+        async with self._vector_db_probe_lock:
+            now = time.monotonic()
+            if (
+                not force_refresh
+                and self._vector_db_probe_cache is not None
+                and (now - self._vector_db_probe_monotonic) < _VECTOR_DB_PROBE_TTL_SEC
+            ):
+                return dict(self._vector_db_probe_cache)
+            try:
+                result = await asyncio.to_thread(self._probe_vector_db_sync)
+            except Exception as exc:
+                result = {
+                    "configured_type": (settings.vector_db_type or "unknown").lower(),
+                    "kb_store_backend": self._backend,
+                    "reachable": False,
+                    "error": str(exc),
+                    "detail": f"Vector DB probe failed: {exc}",
+                }
+            self._vector_db_probe_cache = result
+            self._vector_db_probe_monotonic = now
+            return dict(result)
+
+    def invalidate_vector_db_probe_cache(self) -> None:
+        """Drop cached probe so the next status call re-checks connectivity."""
+        self._vector_db_probe_cache = None
 
     def get_backend_info(self) -> Dict[str, Any]:
         """Expose KB backend metadata for the UI / status endpoint."""
         return {
             "backend": self._backend,
             "vector_db_type": settings.vector_db_type,
-            "ollama_base_url": settings.ollama_base_url,
+            "ollama_base_url": get_runtime_config().ollama_base_url(),
             "embedding_model": self.embeddings.model,
         }
 
@@ -234,6 +359,13 @@ class KnowledgeBaseService:
                     )
             except Exception as exc:
                 logger.warning("Db2 add failed, kept in-memory copy: %s", exc)
+            finally:
+                self.invalidate_vector_db_probe_cache()
+
+        try:
+            self._persist_sqlite(self._documents[document_id], chunk_records)
+        except Exception as exc:
+            logger.warning("SQLite KB persist failed: %s", exc)
 
         return self._serialize_document(self._documents[document_id])
 
@@ -249,6 +381,12 @@ class KnowledgeBaseService:
                     await self._db2_store.delete(chunk.id)
                 except Exception as exc:
                     logger.warning("Db2 delete failed for %s: %s", chunk.id, exc)
+            self.invalidate_vector_db_probe_cache()
+        if existed:
+            try:
+                kb_sqlite_delete_document(self._sqlite_path, document_id)
+            except Exception as exc:
+                logger.warning("SQLite KB delete failed: %s", exc)
         return existed
 
     async def list_documents(self) -> List[Dict[str, Any]]:
@@ -258,6 +396,25 @@ class KnowledgeBaseService:
                 key=lambda d: d.created_at,
                 reverse=True,
             )]
+
+    async def get_document_detail(self, document_id: str) -> Optional[Dict[str, Any]]:
+        """Serialized document plus chunk text/metadata (no embedding vectors)."""
+        async with self._lock:
+            doc = self._documents.get(document_id)
+            if doc is None:
+                return None
+            out = self._serialize_document(doc)
+            chunks = self._chunks.get(document_id, [])
+            out["chunks"] = [
+                {
+                    "id": ch.id,
+                    "chunk_index": ch.chunk_index,
+                    "content": ch.content,
+                    "metadata": dict(ch.metadata),
+                }
+                for ch in sorted(chunks, key=lambda c: c.chunk_index)
+            ]
+            return out
 
     # ------------------------------------------------------------------ #
     # Retrieval
@@ -311,6 +468,12 @@ class KnowledgeBaseService:
 
 
 _knowledge_base_service: Optional[KnowledgeBaseService] = None
+
+
+def reset_knowledge_base_service() -> None:
+    """Drop the singleton so the next access picks up new Db2 / env configuration."""
+    global _knowledge_base_service
+    _knowledge_base_service = None
 
 
 def get_knowledge_base_service() -> KnowledgeBaseService:

@@ -2,10 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="IBM Dexter AI Code Reviewer - Enterprise-grade AI-powered code review platform" />
     <title>IBM Dexter AI Code Reviewer</title>
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('dexter-theme');
+          if (!raw) return;
+          var parsed = JSON.parse(raw);
+          var theme = parsed && parsed.state && parsed.state.theme;
+          if (theme) document.documentElement.setAttribute('data-carbon-theme', theme);
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

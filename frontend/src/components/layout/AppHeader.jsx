@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Header,
   HeaderName,
@@ -21,27 +22,68 @@ import {
   WarningAltFilled,
 } from '@carbon/icons-react';
 import useThemeStore from '../../store/useThemeStore';
+import { APP_SHELL_BASE } from '../../constants/appConstants';
+import { knowledgeBaseService, runtimeSettingsService } from '../../services/platformService';
 import './AppHeader.scss';
 
 const AppHeader = () => {
   const { theme, toggleTheme } = useThemeStore();
   const [isUserPanelExpanded, setIsUserPanelExpanded] = useState(false);
   const [isNotificationPanelExpanded, setIsNotificationPanelExpanded] = useState(false);
-  
-  // Mock data for demo
-  const aiStatus = 'active'; // active, warning, error
+
+  const { data: runtimeSettings } = useQuery({
+    queryKey: ['runtime-settings'],
+    queryFn: runtimeSettingsService.get,
+    staleTime: 30_000,
+  });
+
+  const { data: ollamaHealth } = useQuery({
+    queryKey: ['ollama-health'],
+    queryFn: () => runtimeSettingsService.ollamaHealth(),
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  const { data: kbStatus } = useQuery({
+    queryKey: ['kb-status'],
+    queryFn: knowledgeBaseService.getStatus,
+    refetchOnWindowFocus: true,
+    refetchInterval: 12_000,
+  });
+
+  const kbBackend = kbStatus?.backend;
+  const kbVdbReachable = kbStatus?.vector_db_reachable;
+  const db2Configured = kbBackend === 'db2';
+  let db2TagType = 'purple';
+  let db2Label = kbBackend || 'In-memory';
+  if (db2Configured) {
+    if (kbVdbReachable === false) {
+      db2TagType = 'red';
+      db2Label = 'Unreachable';
+    } else {
+      db2TagType = 'green';
+      db2Label = 'Active';
+    }
+  }
+
   const integrationStatus = {
-    github: true,
-    ollama: true,
-    db2: true,
+    github: Boolean(runtimeSettings?.github?.configured),
+    ollama: Boolean(ollamaHealth?.ok),
   };
-  const notificationCount = 3;
+
+  const aiStatus = ollamaHealth?.ok ? 'active' : 'warning';
+  const notificationCount = 0;
 
   return (
     <Header aria-label="IBM Dexter" className="dexter-header">
-      <HeaderName href="/" prefix="IBM">
-        Dexter
-      </HeaderName>
+      <div className="dexter-header__brand">
+        <a href="/" className="dexter-header__logo-link" aria-label="Dexter home">
+          <img src="/Dexter_logo.png" alt="" width={28} height={28} />
+        </a>
+        <HeaderName href={`${APP_SHELL_BASE}/dashboard`} prefix="IBM">
+          Dexter
+        </HeaderName>
+      </div>
       
       {/* Organization/Context Indicator */}
       <div className="dexter-header__context">
@@ -117,37 +159,8 @@ const AppHeader = () => {
       >
         <Switcher aria-label="Notifications">
           <div className="notification-panel">
-            <h4 className="notification-panel__title">Recent Notifications</h4>
-            <SwitcherItem
-              aria-label="New security findings for pull request 123"
-              href="/reviews/123"
-            >
-              <div className="notification-item">
-                <strong>New security findings</strong>
-                <p>3 critical vulnerabilities detected in PR #123</p>
-                <span className="notification-time">5 minutes ago</span>
-              </div>
-            </SwitcherItem>
-            <SwitcherItem
-              aria-label="Review completed for authentication service"
-              href="/reviews/122"
-            >
-              <div className="notification-item">
-                <strong>Review completed</strong>
-                <p>AI review finished for authentication-service</p>
-                <span className="notification-time">1 hour ago</span>
-              </div>
-            </SwitcherItem>
-            <SwitcherItem
-              aria-label="New pull request 124 ready for review"
-              href="/pull-requests"
-            >
-              <div className="notification-item">
-                <strong>New pull request</strong>
-                <p>PR #124 ready for review</p>
-                <span className="notification-time">2 hours ago</span>
-              </div>
-            </SwitcherItem>
+            <h4 className="notification-panel__title">Notifications</h4>
+            <p className="cds--helper-text">No notifications yet.</p>
             <SwitcherDivider />
             <SwitcherItem aria-label="View all notifications" href="/notifications">
               View all notifications
@@ -164,9 +177,8 @@ const AppHeader = () => {
         <Switcher aria-label="User menu">
           <div className="user-panel">
             <div className="user-panel__info">
-              <strong>John Doe</strong>
-              <p>john.doe@ibm.com</p>
-              <p className="user-role">Engineering Lead</p>
+              <strong>Dexter user</strong>
+              <p className="cds--helper-text">Local session</p>
             </div>
             <SwitcherDivider />
             <div className="integration-status">
@@ -185,8 +197,8 @@ const AppHeader = () => {
               </div>
               <div className="integration-item">
                 <span>Db2 Vector</span>
-                <Tag type={integrationStatus.db2 ? 'green' : 'red'} size="sm">
-                  {integrationStatus.db2 ? 'Connected' : 'Disconnected'}
+                <Tag type={db2TagType} size="sm">
+                  {db2Label}
                 </Tag>
               </div>
             </div>
@@ -194,7 +206,7 @@ const AppHeader = () => {
             <SwitcherItem aria-label="Profile" href="/profile">
               Profile
             </SwitcherItem>
-            <SwitcherItem aria-label="Settings" href="/settings">
+            <SwitcherItem aria-label="Settings" href={`${APP_SHELL_BASE}/settings`}>
               Settings
             </SwitcherItem>
             <SwitcherDivider />

@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter
 
 from app.core.config import get_settings
+from app.core.runtime_config import get_runtime_config
 from app.services.ai_service import AIReviewService
 
 router = APIRouter()
@@ -58,9 +59,11 @@ async def list_agents() -> List[Dict[str, Any]]:
 async def agents_status() -> Dict[str, Any]:
     """Return aggregate status info for the AI Agents dashboard."""
     review_service = AIReviewService()
+    rc = get_runtime_config()
     return {
         "llm_provider": settings.llm_provider,
-        "llm_model": settings.ollama_model,
+        "llm_model": rc.ollama_model(),
+        "llm_base_url": rc.ollama_base_url(),
         "agent_count": len(review_service.agents),
         "agents": [agent.agent_name for agent in review_service.agents],
     }

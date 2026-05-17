@@ -44,6 +44,7 @@ import {
   LogoGithub,
 } from '@carbon/icons-react';
 import { liveReviewService, platformService } from '../../services/platformService';
+import { APP_SHELL_BASE } from '../../constants/appConstants';
 import './PullRequests.scss';
 
 const SAMPLE_PR_URLS = [
@@ -106,10 +107,26 @@ const PullRequests = () => {
   const [isLiveModalOpen, setIsLiveModalOpen] = useState(false);
   const [liveUrl, setLiveUrl] = useState(SAMPLE_PR_URLS[0]);
   const [useRag, setUseRag] = useState(true);
+  const [postReviewToGithub, setPostReviewToGithub] = useState(false);
+  const [requestSelfAsReviewer, setRequestSelfAsReviewer] = useState(false);
+  const [inlineReviewComments, setInlineReviewComments] = useState(true);
 
   const liveAnalysis = useMutation({
-    mutationFn: ({ url, useRag }) =>
-      liveReviewService.analyzePullRequestUrl({ url, useRag, ragLimit: 4 }),
+    mutationFn: ({
+      url,
+      useRag: ur,
+      postReviewToGithub: postG,
+      requestSelfAsReviewer: reqRev,
+      inlineReviewComments: inln,
+    }) =>
+      liveReviewService.analyzePullRequestUrl({
+        url,
+        useRag: ur,
+        ragLimit: 4,
+        postReviewToGithub: postG,
+        requestSelfAsReviewer: reqRev,
+        inlineReviewComments: inln,
+      }),
   });
 
   const { data: pullRequests, isLoading, isError, error } = useQuery({
@@ -232,7 +249,7 @@ const PullRequests = () => {
 
   const handleViewReview = (prId) => {
     const id = typeof prId === 'string' ? prId : String(prId);
-    navigate(`/reviews/${id.replace(/^pr-/, '').replace(/^review-/, '')}`);
+    navigate(`${APP_SHELL_BASE}/reviews/${id.replace(/^pr-/, '').replace(/^review-/, '')}`);
   };
 
   return (
@@ -442,13 +459,33 @@ const PullRequests = () => {
         onUrlChange={setLiveUrl}
         useRag={useRag}
         onUseRagChange={setUseRag}
+        postReviewToGithub={postReviewToGithub}
+        onPostReviewChange={setPostReviewToGithub}
+        requestSelfAsReviewer={requestSelfAsReviewer}
+        onRequestReviewerChange={setRequestSelfAsReviewer}
+        inlineReviewComments={inlineReviewComments}
+        onInlineReviewCommentsChange={setInlineReviewComments}
         analysis={liveAnalysis}
       />
     </div>
   );
 };
 
-const LiveAnalyzeModal = ({ open, onClose, url, onUrlChange, useRag, onUseRagChange, analysis }) => {
+const LiveAnalyzeModal = ({
+  open,
+  onClose,
+  url,
+  onUrlChange,
+  useRag,
+  onUseRagChange,
+  postReviewToGithub,
+  onPostReviewChange,
+  requestSelfAsReviewer,
+  onRequestReviewerChange,
+  inlineReviewComments,
+  onInlineReviewCommentsChange,
+  analysis,
+}) => {
   const result = analysis.data;
   const isRunning = analysis.isPending;
 
@@ -461,11 +498,20 @@ const LiveAnalyzeModal = ({ open, onClose, url, onUrlChange, useRag, onUseRagCha
       primaryButtonText={isRunning ? 'Analyzing...' : 'Run Analysis'}
       secondaryButtonText="Close"
       primaryButtonDisabled={isRunning || !url}
-      onRequestSubmit={() => analysis.mutate({ url, useRag })}
+      onRequestSubmit={() =>
+        analysis.mutate({
+          url,
+          useRag,
+          postReviewToGithub,
+          requestSelfAsReviewer,
+          inlineReviewComments,
+        })}
       size="lg"
     >
       <p style={{ marginBottom: '1rem' }}>
-        Paste a public GitHub PR URL. The backend fetches the diff, retrieves matching context from the Db2 knowledge base, then runs the Security, Architecture, and Compliance agents in parallel.
+        Paste a GitHub PR URL. Use a token in Settings with <strong>repo</strong> scope if the PR is private.
+        Enable the options below to post a Dexter-branded review on the PR, add inline code comments
+        (including suggestion blocks when agents provide them), and add yourself as a requested reviewer.
       </p>
 
       <TextInput
@@ -498,6 +544,34 @@ const LiveAnalyzeModal = ({ open, onClose, url, onUrlChange, useRag, onUseRagCha
         size="sm"
       />
 
+      <Toggle
+        id="post-github"
+        labelText="Post review comment to GitHub (requires token with pull request write access)"
+        toggled={postReviewToGithub}
+        onToggle={() => onPostReviewChange(!postReviewToGithub)}
+        size="sm"
+        style={{ marginTop: '0.75rem' }}
+      />
+
+      <Toggle
+        id="inline-github"
+        labelText="Inline comments on changed lines (requires posting a review)"
+        toggled={inlineReviewComments}
+        onToggle={() => onInlineReviewCommentsChange(!inlineReviewComments)}
+        disabled={!postReviewToGithub}
+        size="sm"
+        style={{ marginTop: '0.75rem' }}
+      />
+
+      <Toggle
+        id="request-reviewer"
+        labelText="Request my GitHub user as a reviewer on this PR"
+        toggled={requestSelfAsReviewer}
+        onToggle={() => onRequestReviewerChange(!requestSelfAsReviewer)}
+        size="sm"
+        style={{ marginTop: '0.75rem' }}
+      />
+
       {isRunning && (
         <div style={{ marginTop: '1rem' }}>
           <InlineLoading description="Fetching PR, retrieving RAG context, running 3 agents... (typically 20–60s)" />
@@ -522,6 +596,7 @@ const LiveAnalyzeModal = ({ open, onClose, url, onUrlChange, useRag, onUseRagCha
 const LiveAnalysisResult = ({ result }) => {
   const pr = result.pull_request || {};
   const rag = result.rag || {};
+  const gh = result.github || {};
   const stats = result.stats || {};
   const agentResults = result.result?.agent_results || {};
   const totalFindings = result.result?.findings_count || 0;
@@ -546,8 +621,27 @@ const LiveAnalysisResult = ({ result }) => {
               RAG: {rag.retrieved} chunk{rag.retrieved === 1 ? '' : 's'} from {rag.backend?.backend || 'kb'}
             </Tag>
           )}
+          {gh.posted_review && (
+            <Tag type="green" size="sm">Posted to GitHub</Tag>
+          )}
+          {gh.inline_comments > 0 && (
+            <Tag type="teal" size="sm">{gh.inline_comments} inline comment{gh.inline_comments === 1 ? '' : 's'}</Tag>
+          )}
+          {gh.requested_reviewer && (
+            <Tag type="purple" size="sm">Reviewer: {gh.requested_reviewer}</Tag>
+          )}
         </div>
       </div>
+
+      {(gh.post_error || gh.error || gh.reviewer_error) && (
+        <InlineNotification
+          kind="warning"
+          title="GitHub action note"
+          subtitle={gh.post_error || gh.error || gh.reviewer_error}
+          lowContrast
+          hideCloseButton
+        />
+      )}
 
       <Accordion>
         {Object.entries(agentResults).map(([agentName, agent]) => (

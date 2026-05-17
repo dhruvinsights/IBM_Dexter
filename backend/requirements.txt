@@ -36,6 +36,7 @@ httpx==0.25.2
 aiohttp==3.9.1
 
 # Utilities
+pypdf>=4.0.0
 pydantic==2.5.2
 pydantic-settings==2.1.0
 email-validator>=2.0.0
@@ -63,6 +64,9 @@ ibm-db-sa>=0.4.0
 # pytest==7.4.3
 # pytest-asyncio==0.21.1
 # pytest-cov==4.1.0
+
+# Ollama integration (recommended; avoids fragile community-only stack):
+# langchain-ollama>=0.3.10,<1
 
 # Code Quality (uncomment for development)
 # black==23.11.0

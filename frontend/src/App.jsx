@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MainLayout from './components/layout/MainLayout';
+import Landing from './pages/Landing/Landing';
 import Dashboard from './pages/Dashboard/Dashboard';
 import PullRequests from './pages/PullRequests/PullRequests';
 import Reviews from './pages/Reviews/Reviews';
@@ -12,6 +13,7 @@ import KnowledgeBase from './pages/KnowledgeBase/KnowledgeBase';
 import TeamAnalytics from './pages/TeamAnalytics/TeamAnalytics';
 import AIAgents from './pages/AIAgents/AIAgents';
 import Settings from './pages/Settings/Settings';
+import { APP_SHELL_BASE } from './constants/appConstants';
 import './styles/App.scss';
 
 const queryClient = new QueryClient({
@@ -29,8 +31,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Dashboard />} />
+          <Route path="/" element={<Landing />} />
+          <Route path={APP_SHELL_BASE} element={<MainLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="pull-requests" element={<PullRequests />} />
             <Route path="reviews" element={<Reviews />} />
             <Route path="reviews/:id" element={<ReviewDetail />} />
@@ -42,11 +46,11 @@ function App() {
             <Route path="team-insights" element={<TeamAnalytics />} />
             <Route path="ai-agents" element={<AIAgents />} />
             <Route path="settings" element={<Settings />} />
-            {/* Redirects for legacy nav items */}
-            <Route path="productivity" element={<Navigate to="/analytics" replace />} />
-            <Route path="integrations" element={<Navigate to="/settings" replace />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="productivity" element={<Navigate to="analytics" replace />} />
+            <Route path="integrations" element={<Navigate to="settings" replace />} />
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
@@ -54,5 +58,3 @@ function App() {
 }
 
 export default App;
-
-// Made with Bob

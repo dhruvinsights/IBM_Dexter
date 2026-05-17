@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.agents.base_agent import BaseAgent
+from app.services.diff_comment_map import first_added_line_number
 
 
 class ComplianceAgent(BaseAgent):
@@ -26,10 +27,12 @@ class ComplianceAgent(BaseAgent):
             patch = str(diff.get("patch", ""))
             filename = str(diff.get("filename", "unknown"))
             if "delete" in patch.lower() and "audit" not in patch.lower():
+                ln = first_added_line_number(patch)
                 findings.append(
                     {
                         "severity": "medium",
                         "file": filename,
+                        "line": ln,
                         "message": "Destructive logic detected without obvious audit trail handling.",
                     }
                 )
