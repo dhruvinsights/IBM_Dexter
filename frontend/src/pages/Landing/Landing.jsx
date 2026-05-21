@@ -14,6 +14,12 @@ import {
   HeaderGlobalBar,
   HeaderGlobalAction,
   SkipToContent,
+  Tag,
+  StructuredListWrapper,
+  StructuredListHead,
+  StructuredListRow,
+  StructuredListCell,
+  StructuredListBody,
 } from '@carbon/react';
 import {
   ArrowRight,
@@ -27,6 +33,12 @@ import {
   Light,
   Flash,
   UserSpeaker,
+  Rocket,
+  Code,
+  Collaborate,
+  DataVis_1,
+  Chip,
+  CloudApp,
 } from '@carbon/icons-react';
 import { GroupedBarChart } from '@carbon/charts-react';
 import '@carbon/charts-react/styles.css';
@@ -115,10 +127,10 @@ const Landing = () => {
             Dexter
           </HeaderName>
           <HeaderNavigation aria-label="Product">
+            <HeaderMenuItem href="#bob-showcase">Built with Bob AI</HeaderMenuItem>
             <HeaderMenuItem href="#enterprise-intelligence">Enterprise intelligence</HeaderMenuItem>
             <HeaderMenuItem href="#before-after">Before & after</HeaderMenuItem>
             <HeaderMenuItem href="#platform">Platform</HeaderMenuItem>
-            <HeaderMenuItem href="#senior-review">Senior review</HeaderMenuItem>
           </HeaderNavigation>
           <HeaderGlobalBar>
             <HeaderGlobalAction
@@ -188,6 +200,174 @@ const Landing = () => {
             </div>
           </motion.div>
         </header>
+
+        <section className="dexter-landing__section dexter-landing__section--bob-showcase" id="bob-showcase">
+          <motion.div {...sectionFade}>
+            <Grid narrow className="dexter-landing__grid">
+              <Column lg={16} md={8} sm={4}>
+                <div className="dexter-landing__bob-header">
+                  <Rocket size={32} className="dexter-landing__bob-icon" />
+                  <h2>Built with Bob AI in 2.5 Days</h2>
+                  <p className="dexter-landing__bob-subtitle">
+                    May 15-17, 2026 · From concept to enterprise-grade platform using AI-powered development
+                  </p>
+                </div>
+              </Column>
+
+              <Column lg={8} md={4} sm={4}>
+                <Tile className="dexter-landing__bob-tile">
+                  <h3 className="dexter-landing__bob-tile-title">
+                    <Code size={24} />
+                    Development Timeline
+                  </h3>
+                  <div className="dexter-landing__timeline">
+                    <div className="dexter-landing__timeline-item">
+                      <Tag type="blue" size="sm">Day 1</Tag>
+                      <div className="dexter-landing__timeline-content">
+                        <strong>Architecture & Planning</strong>
+                        <p>Bob Plan mode designed multi-agent system, RAG architecture, and IBM Carbon integration strategy</p>
+                      </div>
+                    </div>
+                    <div className="dexter-landing__timeline-item">
+                      <Tag type="purple" size="sm">Day 2</Tag>
+                      <div className="dexter-landing__timeline-content">
+                        <strong>Core Implementation</strong>
+                        <p>Bob Code mode built FastAPI backend, React frontend, and specialized AI agents with GitHub/GitLab integration</p>
+                      </div>
+                    </div>
+                    <div className="dexter-landing__timeline-item">
+                      <Tag type="green" size="sm">Day 3</Tag>
+                      <div className="dexter-landing__timeline-content">
+                        <strong>UI & Polish</strong>
+                        <p>Bob Carbon Design mode implemented enterprise UI components, dashboards, and responsive layouts</p>
+                      </div>
+                    </div>
+                  </div>
+                </Tile>
+              </Column>
+
+              <Column lg={8} md={4} sm={4}>
+                <Tile className="dexter-landing__bob-tile">
+                  <h3 className="dexter-landing__bob-tile-title">
+                    <Collaborate size={24} />
+                    Bob Modes Utilized
+                  </h3>
+                  <StructuredListWrapper className="dexter-landing__bob-modes">
+                    <StructuredListBody>
+                      <StructuredListRow>
+                        <StructuredListCell>
+                          <DataVis_1 size={20} className="dexter-landing__mode-icon" />
+                          <strong>Plan Mode</strong>
+                        </StructuredListCell>
+                        <StructuredListCell>
+                          System architecture, agent design, technology selection
+                        </StructuredListCell>
+                      </StructuredListRow>
+                      <StructuredListRow>
+                        <StructuredListCell>
+                          <Code size={20} className="dexter-landing__mode-icon" />
+                          <strong>Code Mode</strong>
+                        </StructuredListCell>
+                        <StructuredListCell>
+                          Full-stack implementation, API development, agent logic
+                        </StructuredListCell>
+                      </StructuredListRow>
+                      <StructuredListRow>
+                        <StructuredListCell>
+                          <Chip size={20} className="dexter-landing__mode-icon" />
+                          <strong>Carbon Design</strong>
+                        </StructuredListCell>
+                        <StructuredListCell>
+                          IBM Design System integration, UI components, theming
+                        </StructuredListCell>
+                      </StructuredListRow>
+                      <StructuredListRow>
+                        <StructuredListCell>
+                          <CloudApp size={20} className="dexter-landing__mode-icon" />
+                          <strong>Orchestrator</strong>
+                        </StructuredListCell>
+                        <StructuredListCell>
+                          Complex workflow coordination, MCP integrations
+                        </StructuredListCell>
+                      </StructuredListRow>
+                    </StructuredListBody>
+                  </StructuredListWrapper>
+                </Tile>
+              </Column>
+
+              <Column lg={16} md={8} sm={4}>
+                <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                  <div className="dexter-landing__bob-achievements">
+                    <h3>Key Achievements in 2.5 Days</h3>
+                    <Grid narrow>
+                      <Column lg={4} md={4} sm={4}>
+                        <motion.div variants={itemFade}>
+                          <div className="dexter-landing__achievement-card">
+                            <Bot size={28} />
+                            <h4>Multi-Agent AI System</h4>
+                            <p>7 specialized agents: Security, Architecture, Compliance, Governance, Infrastructure, Memory, Modernization</p>
+                          </div>
+                        </motion.div>
+                      </Column>
+                      <Column lg={4} md={4} sm={4}>
+                        <motion.div variants={itemFade}>
+                          <div className="dexter-landing__achievement-card">
+                            <Book size={28} />
+                            <h4>RAG Knowledge Base</h4>
+                            <p>Vector store integration, document ingestion, context-aware retrieval with IBM Db2 support</p>
+                          </div>
+                        </motion.div>
+                      </Column>
+                      <Column lg={4} md={4} sm={4}>
+                        <motion.div variants={itemFade}>
+                          <div className="dexter-landing__achievement-card">
+                            <LogoGithub size={28} />
+                            <h4>Platform Integration</h4>
+                            <p>GitHub & GitLab APIs, webhook automation, PR review posting, inline suggestions</p>
+                          </div>
+                        </motion.div>
+                      </Column>
+                      <Column lg={4} md={4} sm={4}>
+                        <motion.div variants={itemFade}>
+                          <div className="dexter-landing__achievement-card">
+                            <ChartLine size={28} />
+                            <h4>Enterprise Analytics</h4>
+                            <p>Real-time dashboards, team metrics, governance tracking, Carbon Charts integration</p>
+                          </div>
+                        </motion.div>
+                      </Column>
+                    </Grid>
+                  </div>
+                </motion.div>
+              </Column>
+
+              <Column lg={16} md={8} sm={4}>
+                <Tile className="dexter-landing__bob-tech-tile">
+                  <h3>Technologies & Tools Leveraged</h3>
+                  <div className="dexter-landing__tech-tags">
+                    <Tag type="cool-gray">MCP (Model Context Protocol)</Tag>
+                    <Tag type="cool-gray">GitHub MCP</Tag>
+                    <Tag type="blue">React + Vite</Tag>
+                    <Tag type="blue">FastAPI + Python</Tag>
+                    <Tag type="purple">IBM Carbon Design System</Tag>
+                    <Tag type="purple">Carbon Charts</Tag>
+                    <Tag type="green">LangChain</Tag>
+                    <Tag type="green">Vector Embeddings</Tag>
+                    <Tag type="magenta">Multi-Agent Architecture</Tag>
+                    <Tag type="cyan">Skills & Documentation</Tag>
+                    <Tag type="teal">GitHub/GitLab APIs</Tag>
+                    <Tag type="warm-gray">Framer Motion</Tag>
+                  </div>
+                  <p className="dexter-landing__tech-note">
+                    <Flash size={16} />
+                    Bob AI orchestrated the entire development process, from initial planning through implementation to UI polish,
+                    demonstrating the power of AI-assisted development for complex enterprise applications.
+                  </p>
+                </Tile>
+              </Column>
+            </Grid>
+          </motion.div>
+        </section>
 
         <section className="dexter-landing__section dexter-landing__section--intel" id="enterprise-intelligence">
           <motion.div {...sectionFade}>
