@@ -31,6 +31,8 @@ import {
   InlineLoading,
   InlineNotification,
   ToastNotification,
+  RadioButtonGroup,
+  RadioButton,
 } from '@carbon/react';
 import {
   Settings as SettingsIcon,
@@ -41,9 +43,76 @@ import {
   TrashCan,
 } from '@carbon/icons-react';
 import { runtimeSettingsService, settingsService } from '../../services/platformService';
+import useLLMStore from '../../store/useLLMStore';
+import { LLM_PROVIDERS, PROVIDER_INFO } from '../../services/llmService';
+import OllamaSettings from '../../components/settings/OllamaSettings';
+import CloudProviderSettings from '../../components/settings/CloudProviderSettings';
 import './Settings.scss';
 
 const MASK_SECRETS_STORAGE_KEY = 'dexter-settings-mask-secrets-demo';
+
+/**
+ * LLM Provider Selection Component
+ * Allows users to choose between free Ollama and paid cloud providers
+ */
+const LLMProviderSection = () => {
+  const { provider, setProvider, initialize } = useLLMStore();
+
+  useEffect(() => {
+    // Initialize LLM store on mount
+    initialize();
+  }, [initialize]);
+
+  const handleProviderChange = (newProvider) => {
+    setProvider(newProvider);
+  };
+
+  return (
+    <div style={{ marginBottom: '2rem' }}>
+      <h3>LLM Provider Selection</h3>
+      <p className="cds--helper-text" style={{ marginBottom: '1rem', maxWidth: '52rem' }}>
+        Choose your AI model provider. Ollama runs locally on your machine (free), while cloud providers
+        require API keys and charge per usage.
+      </p>
+      
+      <RadioButtonGroup
+        name="llm-provider"
+        valueSelected={provider}
+        onChange={handleProviderChange}
+        orientation="vertical"
+      >
+        <RadioButton
+          value={LLM_PROVIDERS.OLLAMA}
+          labelText={`${PROVIDER_INFO[LLM_PROVIDERS.OLLAMA].icon} ${PROVIDER_INFO[LLM_PROVIDERS.OLLAMA].name} (Free - Local)`}
+          id="provider-ollama"
+        />
+        <RadioButton
+          value={LLM_PROVIDERS.OPENAI}
+          labelText={`${PROVIDER_INFO[LLM_PROVIDERS.OPENAI].icon} ${PROVIDER_INFO[LLM_PROVIDERS.OPENAI].name} (Paid)`}
+          id="provider-openai"
+        />
+        <RadioButton
+          value={LLM_PROVIDERS.WATSONX}
+          labelText={`${PROVIDER_INFO[LLM_PROVIDERS.WATSONX].icon} ${PROVIDER_INFO[LLM_PROVIDERS.WATSONX].name} (Paid)`}
+          id="provider-watsonx"
+        />
+        <RadioButton
+          value={LLM_PROVIDERS.ANTHROPIC}
+          labelText={`${PROVIDER_INFO[LLM_PROVIDERS.ANTHROPIC].icon} ${PROVIDER_INFO[LLM_PROVIDERS.ANTHROPIC].name} (Paid)`}
+          id="provider-anthropic"
+        />
+      </RadioButtonGroup>
+
+      {/* Provider-specific settings */}
+      <div style={{ marginTop: '1.5rem' }}>
+        {provider === LLM_PROVIDERS.OLLAMA && <OllamaSettings />}
+        {provider === LLM_PROVIDERS.OPENAI && <CloudProviderSettings provider={LLM_PROVIDERS.OPENAI} />}
+        {provider === LLM_PROVIDERS.WATSONX && <CloudProviderSettings provider={LLM_PROVIDERS.WATSONX} />}
+        {provider === LLM_PROVIDERS.ANTHROPIC && <CloudProviderSettings provider={LLM_PROVIDERS.ANTHROPIC} />}
+      </div>
+    </div>
+  );
+};
 
 const Settings = () => {
   const queryClient = useQueryClient();
@@ -545,10 +614,13 @@ const Settings = () => {
                 {/* AI Configuration Tab */}
                 <TabPanel>
                   <div className="tab-content">
+                    {/* LLM Provider Selection - New Hybrid System */}
+                    <LLMProviderSection />
+
                     {runtimeSettings?.deployment?.hosted_ollama_notice_visible && (
                       <InlineNotification
                         kind="warning"
-                        title="Hosted Dexter cannot use your laptop’s Ollama at localhost"
+                        title="Hosted Dexter cannot use your laptop's Ollama at localhost"
                         subtitle={runtimeSettings.deployment.hosted_ollama_notice}
                         lowContrast
                         hideCloseButton
@@ -566,7 +638,7 @@ const Settings = () => {
                       />
                     )}
 
-                    <h3>Chat model (LLM)</h3>
+                    <h3>Legacy Backend Configuration</h3>
                     <p className="cds--helper-text" style={{ marginBottom: '1rem', maxWidth: '52rem' }}>
                       Primary provider and model are set in the backend environment (<code>DEXTER_LLM_PROVIDER</code> and
                       provider-specific variables). Runtime overrides below apply only to <strong>Ollama</strong> URL/model.

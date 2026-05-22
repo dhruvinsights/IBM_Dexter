@@ -1,0 +1,210 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.ollama-setup-page {
+  padding: $spacing-06;
+  min-height: 100vh;
+
+  .page-header {
+    margin-bottom: $spacing-07;
+
+    &__title {
+      display: flex;
+      align-items: center;
+      gap: $spacing-04;
+      margin-bottom: $spacing-03;
+
+      h1 {
+        @include type-style('heading-05');
+        margin: 0;
+      }
+
+      svg {
+        fill: $icon-primary;
+      }
+    }
+
+    &__description {
+      @include type-style('body-01');
+      color: $text-secondary;
+      margin: 0;
+    }
+  }
+
+  .setup-grid {
+    .cds--tile {
+      height: 100%;
+    }
+  }
+
+  .setup-tile {
+    padding: $spacing-06;
+    margin-bottom: $spacing-05;
+
+    h2 {
+      @include type-style('heading-04');
+      margin: 0 0 $spacing-05 0;
+    }
+
+    h4 {
+      @include type-style('heading-02');
+      margin: $spacing-05 0 $spacing-03 0;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    p {
+      @include type-style('body-01');
+      margin-bottom: $spacing-04;
+    }
+
+    .cds--accordion {
+      margin-top: $spacing-05;
+    }
+  }
+
+  .step-content {
+    padding: $spacing-04 0;
+
+    .download-buttons {
+      display: flex;
+      gap: $spacing-04;
+      margin: $spacing-05 0;
+      flex-wrap: wrap;
+    }
+
+    .step-note {
+      @include type-style('body-compact-01');
+      padding: $spacing-04;
+      background: $layer-accent-01;
+      border-left: 3px solid $border-interactive;
+      border-radius: 4px;
+      margin-top: $spacing-05;
+    }
+
+    .model-description {
+      @include type-style('body-compact-01');
+      color: $text-secondary;
+      margin: $spacing-03 0 $spacing-05 0;
+      display: flex;
+      align-items: center;
+      gap: $spacing-03;
+    }
+
+    .verify-connection {
+      margin-top: $spacing-05;
+      padding-top: $spacing-05;
+      border-top: 1px solid $border-subtle-01;
+    }
+
+    .cds--snippet {
+      margin: $spacing-04 0;
+    }
+
+    .cds--list--ordered,
+    .cds--list--unordered {
+      margin: $spacing-04 0;
+    }
+  }
+
+  .models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: $spacing-05;
+    margin-top: $spacing-05;
+
+    .model-card {
+      padding: $spacing-05;
+      background: $layer-02;
+      border-radius: 4px;
+      border: 1px solid $border-subtle-01;
+
+      h4 {
+        @include type-style('heading-02');
+        margin: 0 0 $spacing-03 0;
+      }
+
+      p {
+        @include type-style('body-compact-01');
+        color: $text-secondary;
+        margin: $spacing-03 0;
+      }
+
+      .cds--tag {
+        margin-bottom: $spacing-03;
+      }
+
+      .cds--snippet {
+        margin-top: $spacing-04;
+      }
+    }
+  }
+
+  .next-steps-actions {
+    display: flex;
+    gap: $spacing-04;
+    margin-top: $spacing-06;
+    padding-top: $spacing-06;
+    border-top: 1px solid $border-subtle-01;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 767px) {
+  .ollama-setup-page {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+
+      &__title {
+        gap: $spacing-03;
+
+        h1 {
+          @include type-style('heading-04');
+        }
+
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+
+    .setup-tile {
+      padding: $spacing-04;
+
+      h2 {
+        @include type-style('heading-03');
+        margin-bottom: $spacing-04;
+      }
+    }
+
+    .step-content {
+      .download-buttons {
+        flex-direction: column;
+
+        .cds--btn {
+          width: 100%;
+        }
+      }
+    }
+
+    .models-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .next-steps-actions {
+      flex-direction: column;
+
+      .cds--btn {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Made with Bob

@@ -1,0 +1,114 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.ollama-settings {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-05;
+  padding: $spacing-05;
+  background: $layer-01;
+  border-radius: 4px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-03;
+
+    h4 {
+      @include type-style('heading-03');
+      margin: 0;
+    }
+  }
+
+  &__status {
+    margin-bottom: $spacing-03;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-03;
+    margin-bottom: $spacing-05;
+  }
+
+  &__model-select {
+    margin-bottom: $spacing-05;
+
+    .model-loading-skeleton {
+      margin-top: $spacing-03;
+    }
+  }
+
+  &__model-info {
+    padding: $spacing-03;
+    background: $layer-02;
+    border-radius: 4px;
+    margin-bottom: $spacing-05;
+
+    .model-count {
+      @include type-style('body-compact-01');
+      margin: 0;
+      color: $text-secondary;
+    }
+  }
+
+  &__install-guide {
+    padding: $spacing-05;
+    background: $layer-02;
+    border-radius: 4px;
+    margin-bottom: $spacing-05;
+
+    h5 {
+      @include type-style('heading-02');
+      margin: 0 0 $spacing-04 0;
+    }
+
+    ol {
+      margin: 0 0 $spacing-05 0;
+      padding-left: $spacing-06;
+
+      li {
+        @include type-style('body-01');
+        margin-bottom: $spacing-03;
+
+        code {
+          padding: 2px 6px;
+          background: $layer-03;
+          border-radius: 2px;
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 0.875rem;
+        }
+      }
+    }
+  }
+
+  &__tips {
+    padding: $spacing-05;
+    background: $layer-accent-01;
+    border-radius: 4px;
+    border-left: 3px solid $border-interactive;
+
+    h5 {
+      @include type-style('heading-02');
+      margin: 0 0 $spacing-04 0;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: $spacing-06;
+
+      li {
+        @include type-style('body-compact-01');
+        margin-bottom: $spacing-03;
+        color: $text-secondary;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// Made with Bob

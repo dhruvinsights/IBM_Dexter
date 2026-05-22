@@ -1,0 +1,84 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.ollama-status {
+  display: flex;
+  align-items: center;
+  gap: $spacing-02;
+  padding: $spacing-02 $spacing-03;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &__label {
+    @include type-style('label-01');
+    display: none;
+
+    @media (min-width: 768px) {
+      display: inline;
+    }
+  }
+
+  // Connected state
+  &--connected {
+    svg {
+      fill: $support-success;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    &:hover {
+      background: rgba($support-success, 0.1);
+    }
+  }
+
+  // Disconnected state
+  &--disconnected {
+    svg {
+      fill: $support-error;
+    }
+
+    &:hover {
+      background: rgba($support-error, 0.1);
+    }
+  }
+
+  // Checking state
+  &--checking {
+    svg {
+      fill: $support-info;
+      animation: spin 1s linear infinite;
+    }
+
+    &:hover {
+      background: rgba($support-info, 0.1);
+    }
+  }
+}
+
+// Pulse animation for connected state
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// Spin animation for checking state
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ollama-status-tooltip {
+  .cds--tooltip-content {
+    @include type-style('body-compact-01');
+  }
+}
+
+// Made with Bob

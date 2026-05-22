@@ -101,9 +101,13 @@ class Settings(BaseSettings):
     # Legacy AI provider settings (deprecated, use LLM_PROVIDER instead)
     ai_provider: Literal["openai", "watsonx", "anthropic", "mock"] = "mock"
     
-    # LLM Configuration (default: watsonx for hosted / enterprise; override for local + Electron)
-    llm_provider: str = "watsonx"
-
+    # LLM Configuration (default: ollama for free tier; watsonx for hosted / enterprise)
+    llm_provider: str = "ollama"  # Default to free tier
+    
+    # Hybrid LLM Mode Configuration
+    default_llm_provider: str = "ollama"  # Default provider for new users (free tier)
+    allow_client_ollama: bool = True  # Allow frontend to directly call Ollama (bypass backend)
+    
     # Ollama Configuration (local LLM + optional remote Ollama URL)
     ollama_base_url: str = "http://localhost:11434"
     # Default: strong code model ~10–15GB VRAM at Q4 (run: ollama pull qwen2.5-coder:14b).

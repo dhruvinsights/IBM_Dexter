@@ -1,0 +1,155 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/type' as *;
+
+.cloud-provider-settings {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-05;
+  padding: $spacing-05;
+  background: $layer-01;
+  border-radius: 4px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: $spacing-03;
+
+    .provider-info {
+      h4 {
+        @include type-style('heading-03');
+        margin: 0 0 $spacing-02 0;
+      }
+
+      .provider-description {
+        @include type-style('body-compact-01');
+        margin: 0;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  &__api-key {
+    padding: $spacing-05;
+    background: $layer-02;
+    border-radius: 4px;
+    margin-bottom: $spacing-05;
+
+    h5 {
+      @include type-style('heading-02');
+      margin: 0 0 $spacing-04 0;
+    }
+
+    .save-status {
+      margin-bottom: $spacing-04;
+    }
+
+    .api-key-status {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-04;
+
+      .api-key-actions {
+        display: flex;
+        gap: $spacing-03;
+      }
+    }
+
+    .api-key-input {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-04;
+    }
+  }
+
+  .api-key-instructions {
+    ol {
+      margin: 0 0 $spacing-05 0;
+      padding-left: $spacing-06;
+
+      li {
+        @include type-style('body-01');
+        margin-bottom: $spacing-03;
+      }
+    }
+  }
+
+  &__model-select {
+    margin-bottom: $spacing-05;
+  }
+
+  &__usage {
+    padding: $spacing-05;
+    background: $layer-02;
+    border-radius: 4px;
+    margin-bottom: $spacing-05;
+
+    h5 {
+      @include type-style('heading-02');
+      margin: 0 0 $spacing-04 0;
+    }
+
+    .usage-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: $spacing-05;
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-02;
+
+        .stat-label {
+          @include type-style('label-01');
+          color: $text-secondary;
+        }
+
+        .stat-value {
+          @include type-style('heading-03');
+          color: $text-primary;
+        }
+      }
+    }
+  }
+
+  &__notes {
+    padding: $spacing-05;
+    background: $layer-accent-01;
+    border-radius: 4px;
+    border-left: 3px solid $border-interactive;
+
+    .note-header {
+      display: flex;
+      align-items: center;
+      gap: $spacing-03;
+      margin-bottom: $spacing-04;
+
+      h5 {
+        @include type-style('heading-02');
+        margin: 0;
+      }
+
+      svg {
+        fill: $icon-primary;
+      }
+    }
+
+    ul {
+      margin: 0;
+      padding-left: $spacing-06;
+
+      li {
+        @include type-style('body-compact-01');
+        margin-bottom: $spacing-03;
+        color: $text-secondary;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// Made with Bob

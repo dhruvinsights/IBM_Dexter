@@ -396,6 +396,65 @@ class LLMService:
         self.provider_name = provider_name
         self.llm = provider.get_llm()
         logger.info(f"Switched to provider: {provider_name}")
+    
+    def is_server_side_provider(self, provider: str) -> bool:
+        """
+        Check if provider requires backend/server-side processing.
+        
+        Args:
+            provider: Provider name (ollama, openai, watsonx, anthropic)
+        
+        Returns:
+            True if provider requires backend API calls, False if client-side (Ollama)
+        """
+        # Ollama can be called directly from frontend (client-side)
+        # All other providers require backend API calls (server-side)
+        return provider.lower() != "ollama"
+    
+    def validate_provider_access(self, provider: str, user_tier: str = "free") -> bool:
+        """
+        Validate if user has access to the specified provider.
+        
+        Args:
+            provider: Provider name
+            user_tier: User's subscription tier (free, paid, enterprise)
+        
+        Returns:
+            True if user can access the provider
+        """
+        provider = provider.lower()
+        
+        # Ollama is always allowed (free tier)
+        if provider == "ollama":
+            return True
+        
+        # Cloud providers require paid tier
+        if provider in ["openai", "watsonx", "anthropic", "cohere"]:
+            return user_tier in ["paid", "enterprise"]
+        
+        # Unknown provider
+        return False
+    
+    def get_provider_tier(self, provider: str) -> str:
+        """
+        Get the tier requirement for a provider.
+        
+        Args:
+            provider: Provider name
+        
+        Returns:
+            Tier requirement (free, paid, enterprise)
+        """
+        provider = provider.lower()
+        
+        if provider == "ollama":
+            return "free"
+        elif provider in ["openai", "anthropic", "cohere"]:
+            return "paid"
+        elif provider == "watsonx":
+            return "enterprise"
+        else:
+            return "unknown"
 
     def refresh_ollama_configuration(self) -> None:
         """Drop cached Ollama client and re-bind if Ollama is the active provider."""
