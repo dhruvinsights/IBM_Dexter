@@ -4,6 +4,50 @@ This guide will help you deploy the IBM Dexter backend to Railway with PostgreSQ
 
 ---
 
+## 🚨 MOST IMPORTANT STEP - Set Root Directory FIRST!
+
+**⚠️ CRITICAL: You MUST configure the Root Directory in Railway Dashboard BEFORE deployment!**
+
+Without this setting, Railway will fail with "pip: command not found" because it won't find your Python application.
+
+### Step-by-Step Instructions:
+
+1. **Go to Railway Dashboard**: https://railway.app/dashboard
+2. **Click your service** (the backend service, NOT the database)
+3. **Go to Settings tab**
+4. **Scroll down to find "Root Directory" field**
+5. **Enter exactly**: `backend`
+6. **Click "Save"**
+7. **Redeploy** (Railway will automatically redeploy after saving)
+
+### Why This is Critical:
+
+- ✅ Railway needs to know your app is in `/backend`, not the root directory
+- ✅ Without this, Railway can't find `nixpacks.toml`, `requirements.txt`, or `main.py`
+- ✅ This setting tells Nixpacks where to start looking for your application
+- ✅ Prevents "pip: command not found" errors during build
+
+### What Happens After Setting Root Directory:
+
+Railway will automatically:
+- ✅ Detect Python 3.10 from `nixpacks.toml`
+- ✅ Find and read `requirements.txt`
+- ✅ Install dependencies with pip
+- ✅ Start uvicorn server with your FastAPI app
+
+### Verification:
+
+After setting Root Directory and redeploying, check the build logs. You should see:
+```
+✓ Detected Python 3.10
+✓ Installing dependencies from requirements.txt
+✓ Starting uvicorn server
+```
+
+If you see "pip: command not found", the Root Directory is NOT set correctly.
+
+---
+
 ## 📋 Table of Contents
 
 1. [Railway Project Setup](#1-railway-project-setup)
@@ -515,52 +559,50 @@ echo "DEXTER_JWT_SECRET=$(openssl rand -hex 32)"
 - ✅ **CI/CD Friendly**: Deployment pipelines don't need secret management
 
 ---
-### Issue: "Script start.sh not found" or "Railpack could not determine how to build the app"
 
-**Problem:** Railway is analyzing the root directory instead of the `/backend` directory, so it can't find your application files.
+### Issue: "pip: command not found" Error
 
-**Solution 1: Configure Root Directory in Railway Dashboard (RECOMMENDED)**
-1. Go to your Railway project
-2. Click on your service
-3. Go to **Settings** tab
-4. Find **Root Directory** setting
-5. Set it to: `backend`
-6. Click **Save**
-7. Redeploy your service
+**Problem:** Railway is trying to run `pip install` before Python is installed, or it's looking in the wrong directory.
 
-**Solution 2: Use railway.toml Configuration File**
-The project includes a `railway.toml` file in the root directory that tells Railway to use the backend directory. Make sure it's committed to your repository:
+**Root Cause:** This happens when:
+1. Root Directory is NOT set to `backend` in Railway Dashboard
+2. Railway can't find `backend/nixpacks.toml` which tells it to install Python first
 
-```toml
-[build]
-builder = "NIXPACKS"
-buildCommand = "cd backend && pip install -r requirements.txt"
+**Solution (REQUIRED):**
+1. Go to Railway Dashboard → Your Service → Settings
+2. Set **Root Directory** to: `backend`
+3. Click **Save**
+4. Redeploy
 
-[deploy]
-startCommand = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
-```
-
-**Solution 3: Manual Build Configuration**
-If the above don't work, manually configure in Railway Dashboard:
-- **Root Directory**: `backend`
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+**Why This Fixes It:**
+- ✅ Railway now looks in `/backend` directory
+- ✅ Finds `nixpacks.toml` which installs Python 3.10 first
+- ✅ Then runs `pip install -r requirements.txt`
+- ✅ No more "pip: command not found" error
 
 **Verify Your Setup:**
-After configuration, Railway should detect:
-- ✅ Python 3.10+
-- ✅ requirements.txt
-- ✅ FastAPI application (main.py)
-- ✅ PostgreSQL database connection
+After setting Root Directory and redeploying, Railway should:
+- ✅ Detect Python 3.10 from nixpacks.toml
+- ✅ Install pip automatically
+- ✅ Find requirements.txt
+- ✅ Install all dependencies
+- ✅ Start FastAPI application
 
-**Additional Configuration Files:**
-The project includes these Railway-specific files:
-- `/railway.toml` - Root configuration (tells Railway to use /backend)
-- `/backend/railway.toml` - Backend-specific settings
-- `/backend/nixpacks.toml` - Nixpacks build configuration
-- `/backend/Procfile` - Process configuration
+**Configuration Files:**
+The project uses:
+- `/backend/nixpacks.toml` - Tells Nixpacks to install Python 3.10 and PostgreSQL
+- `/backend/requirements.txt` - Python dependencies
+- `/backend/main.py` - FastAPI application entry point
+
+**Note:** The root `railway.toml` has been removed because it was interfering with Nixpacks' automatic Python detection.
+
+---
+
+### Issue: "Script start.sh not found" or "Could not determine how to build the app"
+
+**Problem:** Railway is analyzing the root directory instead of the `/backend` directory.
+
+**Solution:** Set Root Directory to `backend` in Railway Dashboard (see instructions at the top of this guide).
 
 
 ## 10. Troubleshooting

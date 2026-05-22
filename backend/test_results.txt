@@ -1,0 +1,75 @@
+2026-05-23 00:42:59,105 - __main__ - INFO - 
+================================================================================
+2026-05-23 00:42:59,105 - __main__ - INFO - IBM DEXTER PR REVIEW ENHANCEMENT VERIFICATION
+2026-05-23 00:42:59,106 - __main__ - INFO - ================================================================================
+
+2026-05-23 00:42:59,106 - __main__ - INFO - ================================================================================
+2026-05-23 00:42:59,106 - __main__ - INFO - TEST 1: GitHub Full File Content Fetching
+2026-05-23 00:42:59,106 - __main__ - INFO - ================================================================================
+/Users/dhruv_insights/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+2026-05-23 00:43:02,096 - app.services.github_service - INFO - GitHub client configured with auth token
+2026-05-23 00:43:02,096 - __main__ - INFO - Fetching README from octocat/Hello-World at master
+2026-05-23 00:43:02,751 - httpx - INFO - HTTP Request: GET https://api.github.com/repos/octocat/Hello-World/contents/README?ref=master "HTTP/1.1 200 OK"
+2026-05-23 00:43:02,752 - __main__ - INFO - ✅ SUCCESS: Fetched 13 characters
+2026-05-23 00:43:02,752 - __main__ - INFO - First 200 chars: Hello World!
+
+2026-05-23 00:43:02,752 - __main__ - INFO - 
+================================================================================
+2026-05-23 00:43:02,752 - __main__ - INFO - TEST 2: RAG/Knowledge Base Integration
+2026-05-23 00:43:02,752 - __main__ - INFO - ================================================================================
+2026-05-23 00:43:02,759 - app.services.knowledge_base_service - INFO - Restored 1 knowledge-base document(s) from SQLite
+2026-05-23 00:43:02,762 - app.rag.db2_vector_store - INFO - Using custom ibm_db implementation
+2026-05-23 00:43:02,762 - app.services.knowledge_base_service - INFO - Knowledge base using IBM Db2 vector store (DEXTER.DEXTER_KB)
+2026-05-23 00:43:02,762 - __main__ - INFO - Testing RAG retrieval with query: 'code review best practices'
+2026-05-23 00:43:02,762 - __main__ - ERROR - ❌ FAILED: DEXTER_EMBEDDING_PROVIDER=openai requires DEXTER_OPENAI_API_KEY. Use embedding_provider=ollama for local Ollama-only setups.
+2026-05-23 00:43:02,762 - __main__ - INFO - 
+================================================================================
+2026-05-23 00:43:02,762 - __main__ - INFO - TEST 3: Memory Agent in Pipeline
+2026-05-23 00:43:02,762 - __main__ - INFO - ================================================================================
+2026-05-23 00:43:02,772 - httpx - INFO - HTTP Request: GET http://localhost:11434/api/tags "HTTP/1.1 200 OK"
+2026-05-23 00:43:02,772 - app.services.llm_service - INFO - Initializing Ollama model=mistral:latest num_ctx=32768 base_url=http://localhost:11434
+/Users/dhruv_insights/Documents/IBM Dexter_AI_Code_Reviewer/backend/app/services/llm_service.py:66: LangChainDeprecationWarning: The class `Ollama` was deprecated in LangChain 0.3.1 and will be removed in 1.0.0. An updated version of the class exists in the :class:`~langchain-ollama package and should be used instead. To use it run `pip install -U :class:`~langchain-ollama` and import as `from :class:`~langchain_ollama import OllamaLLM``.
+  return Ollama(
+2026-05-23 00:43:02,774 - app.services.llm_service - INFO - Successfully initialized LLM provider: ollama
+2026-05-23 00:43:02,774 - app.agents.base_agent - INFO - Initialized security-agent with LLM provider: ollama
+2026-05-23 00:43:02,774 - app.agents.base_agent - INFO - Initialized architecture-agent with LLM provider: ollama
+2026-05-23 00:43:02,774 - app.agents.base_agent - INFO - Initialized compliance-agent with LLM provider: ollama
+2026-05-23 00:43:02,774 - app.agents.base_agent - INFO - Initialized memory-agent with LLM provider: ollama
+2026-05-23 00:43:02,774 - __main__ - INFO - Active agents: ['security-agent', 'architecture-agent', 'compliance-agent', 'memory-agent']
+2026-05-23 00:43:02,774 - __main__ - INFO - ✅ SUCCESS: Memory Agent is active in pipeline
+2026-05-23 00:43:02,774 - __main__ - INFO - 
+================================================================================
+2026-05-23 00:43:02,774 - __main__ - INFO - TEST 4: Full Content Enrichment in Diffs
+2026-05-23 00:43:02,774 - __main__ - INFO - ================================================================================
+2026-05-23 00:43:02,774 - __main__ - INFO - Mock diff structure created
+2026-05-23 00:43:02,774 - __main__ - INFO - Diff has 'full_content' field: True
+2026-05-23 00:43:02,774 - __main__ - INFO - ✅ SUCCESS: Full content fetching code found in pr_review_runner.py
+2026-05-23 00:43:02,774 - __main__ - INFO - 
+================================================================================
+2026-05-23 00:43:02,774 - __main__ - INFO - TEST 5: Agent Full Content Usage
+2026-05-23 00:43:02,774 - __main__ - INFO - ================================================================================
+2026-05-23 00:43:02,774 - app.agents.base_agent - INFO - Initialized security-agent with LLM provider: ollama
+2026-05-23 00:43:02,774 - __main__ - INFO - Testing Security Agent with full content...
+2026-05-23 00:43:02,780 - app.services.llm_service - ERROR - Generation failed with ollama: Ollama call failed with status code 404.
+2026-05-23 00:43:02,780 - app.services.llm_service - ERROR - Fallback generation also failed: No available LLM providers found
+2026-05-23 00:43:02,780 - app.agents.base_agent - ERROR - LLM generation failed in security-agent: No available LLM providers found
+2026-05-23 00:43:02,780 - app.agents.security_agent - WARNING - Security LLM call failed: No available LLM providers found
+2026-05-23 00:43:02,780 - __main__ - INFO - Security Agent returned 0 findings
+2026-05-23 00:43:02,780 - app.agents.base_agent - INFO - Initialized memory-agent with LLM provider: ollama
+2026-05-23 00:43:02,780 - __main__ - INFO - Testing Memory Agent with full content...
+2026-05-23 00:43:02,780 - __main__ - INFO - Memory Agent returned 0 findings
+2026-05-23 00:43:02,780 - __main__ - INFO - ✅ SUCCESS: Agents can process diffs with full content
+2026-05-23 00:43:02,780 - __main__ - INFO - 
+================================================================================
+2026-05-23 00:43:02,780 - __main__ - INFO - TEST SUMMARY
+2026-05-23 00:43:02,780 - __main__ - INFO - ================================================================================
+2026-05-23 00:43:02,780 - __main__ - INFO - ✅ PASS: GitHub Full Content Fetch
+2026-05-23 00:43:02,780 - __main__ - INFO - ❌ FAIL: RAG Integration
+2026-05-23 00:43:02,780 - __main__ - INFO - ✅ PASS: Memory Agent in Pipeline
+2026-05-23 00:43:02,781 - __main__ - INFO - ✅ PASS: Full Content in Diffs
+2026-05-23 00:43:02,781 - __main__ - INFO - ✅ PASS: Agent Full Content Usage
+2026-05-23 00:43:02,781 - __main__ - INFO - 
+Total: 4/5 tests passed
+2026-05-23 00:43:02,781 - __main__ - ERROR - 
+⚠️  1 test(s) failed
