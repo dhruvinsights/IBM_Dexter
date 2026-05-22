@@ -7,6 +7,7 @@ from typing import Any
 
 from app.agents.architecture_agent import ArchitectureAgent
 from app.agents.compliance_agent import ComplianceAgent
+from app.agents.memory_agent import MemoryAgent
 from app.agents.security_agent import SecurityAgent
 
 logger = logging.getLogger(__name__)
@@ -16,11 +17,16 @@ class AIReviewService:
     """Coordinate multiple agents to generate a consolidated review."""
 
     def __init__(self) -> None:
-        """Initialize all built-in review agents."""
+        """Initialize all built-in review agents.
+        
+        ENHANCEMENT: Added MemoryAgent to leverage organizational learning,
+        detect rejected patterns, and provide historical context from past reviews.
+        """
         self.agents = [
             SecurityAgent(),
             ArchitectureAgent(),
             ComplianceAgent(),
+            MemoryAgent(),  # Organizational learning and historical context
         ]
 
     async def review_code(

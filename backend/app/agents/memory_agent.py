@@ -24,6 +24,7 @@ class MemoryAgent(BaseAgent):
 
     def __init__(self) -> None:
         """Initialize the memory agent."""
+        super().__init__()
         # In production, this would connect to MemoryService
         self.pattern_cache: dict[str, Any] = {}
 
@@ -105,8 +106,9 @@ class MemoryAgent(BaseAgent):
         }
         
         for diff in diffs:
-            file_path = diff.get("path", "")
-            content = diff.get("content", "")
+            file_path = diff.get("filename") or diff.get("path", "")
+            # ENHANCEMENT: Use full_content if available, otherwise fall back to patch
+            content = diff.get("full_content") or diff.get("patch") or diff.get("content", "")
             
             for pattern_name, pattern_info in rejected_patterns.items():
                 # Simplified pattern matching (in production, use regex)
@@ -152,8 +154,9 @@ class MemoryAgent(BaseAgent):
         }
         
         for diff in diffs:
-            file_path = diff.get("path", "")
-            content = diff.get("content", "")
+            file_path = diff.get("filename") or diff.get("path", "")
+            # ENHANCEMENT: Use full_content if available for better pattern detection
+            content = diff.get("full_content") or diff.get("patch") or diff.get("content", "")
             
             for pattern_name, pattern_info in approved_patterns.items():
                 if all(indicator in content.lower() for indicator in pattern_info["indicators"]):
@@ -194,7 +197,7 @@ class MemoryAgent(BaseAgent):
         }
         
         for diff in diffs:
-            file_path = diff.get("path", "")
+            file_path = diff.get("filename") or diff.get("path", "")
             
             for exception_name, exception_info in exceptions.items():
                 if exception_info["component"] in file_path:
@@ -263,7 +266,7 @@ class MemoryAgent(BaseAgent):
         
         # Check for repeated issues in same files
         for diff in diffs:
-            file_path = diff.get("path", "")
+            file_path = diff.get("filename") or diff.get("path", "")
             
             # Simulated file history
             if "auth" in file_path.lower():
@@ -308,8 +311,9 @@ class MemoryAgent(BaseAgent):
         }
         
         for diff in diffs:
-            file_path = diff.get("path", "")
-            content = diff.get("content", "")
+            file_path = diff.get("filename") or diff.get("path", "")
+            # ENHANCEMENT: Use full_content for better convention checking
+            content = diff.get("full_content") or diff.get("patch") or diff.get("content", "")
             
             # Check naming convention
             if file_path.endswith(".py"):

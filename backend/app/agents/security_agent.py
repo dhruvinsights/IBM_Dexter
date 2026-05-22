@@ -65,7 +65,11 @@ def _build_user_prompt(
     diffs: list[dict[str, Any]],
     context: list[str],
 ) -> str:
-    """Render the diff + RAG context into the user message."""
+    """Render the diff + RAG context + full file content into the user message.
+    
+    ENHANCEMENT: Now includes full file content when available, allowing the agent
+    to understand complete context around changes, not just the diff.
+    """
     pr_title = pull_request.get("title") or pull_request.get("name") or "(untitled)"
     pr_desc = pull_request.get("description") or pull_request.get("body") or ""
 
@@ -85,10 +89,15 @@ def _build_user_prompt(
 
     lines.append("\n## Changed Files")
     diff_budget = 14000  # rough char budget to keep prompt small for llama3
+    full_content_budget = 8000  # budget for full file content snippets
     used = 0
+    full_content_used = 0
+    
     for diff in diffs:
         filename = str(diff.get("filename") or diff.get("path") or "unknown")
         patch = str(diff.get("patch") or diff.get("content") or "")
+        full_content = diff.get("full_content")
+        
         if not patch:
             continue
         if used + len(patch) > diff_budget:
@@ -96,7 +105,20 @@ def _build_user_prompt(
         if not patch:
             break
         used += len(patch)
+        
+        # Include the diff
         lines.append(f"\n### {filename}\n```diff\n{patch}\n```")
+        
+        # ENHANCEMENT: Include relevant portions of full file content for context
+        if full_content and full_content_used < full_content_budget:
+            # Include a snippet of the full file (first 1000 chars for context)
+            snippet_size = min(1000, full_content_budget - full_content_used)
+            if snippet_size > 0:
+                content_snippet = full_content[:snippet_size]
+                lines.append(f"\n**Full File Context (first {snippet_size} chars):**")
+                lines.append(f"```python\n{content_snippet}\n```")
+                full_content_used += snippet_size
+        
         if used >= diff_budget:
             break
 

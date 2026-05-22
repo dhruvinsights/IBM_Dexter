@@ -102,6 +102,48 @@ class GitHubService:
             response.raise_for_status()
             return response.json()
 
+    async def get_file_content_at_commit(
+        self, owner: str, repo: str, path: str, sha: str
+    ) -> Optional[str]:
+        """Fetch complete file content at a specific commit.
+        
+        This method retrieves the full file content (not just diffs) which is
+        essential for AI agents to understand the complete context around changes.
+        
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            path: File path within the repository
+            sha: Commit SHA to fetch the file at
+            
+        Returns:
+            Complete file content as string, or None if file doesn't exist
+        """
+        import base64
+        
+        url = f"{self.base_url}/repos/{owner}/{repo}/contents/{path}"
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            try:
+                response = await client.get(
+                    url,
+                    headers=self.headers,
+                    params={'ref': sha}
+                )
+                if response.status_code == 404:
+                    logger.debug(f"File not found: {path} at {sha}")
+                    return None
+                response.raise_for_status()
+                data = response.json()
+                
+                # GitHub returns file content as base64-encoded
+                if 'content' in data:
+                    content_b64 = data['content'].replace('\n', '')
+                    return base64.b64decode(content_b64).decode('utf-8', errors='replace')
+                return None
+            except Exception as exc:
+                logger.warning(f"Failed to fetch content for {path}: {exc}")
+                return None
+
     async def post_review_comments(
         self,
         owner: str,

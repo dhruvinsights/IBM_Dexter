@@ -74,6 +74,34 @@ async def run_github_pr_review(
         for f in files
     ]
 
+    # ENHANCEMENT: Fetch full file content for complete context analysis
+    # This allows AI agents to understand the entire file, not just changed lines
+    logger.info(f"Fetching full content for {len(diffs)} files to enable complete code traversal")
+    for diff in diffs:
+        filename = diff.get("filename")
+        status = diff.get("status")
+        
+        # Skip deleted files and files without names
+        if not filename or status == "removed":
+            diff["full_content"] = None
+            continue
+            
+        try:
+            # Fetch complete file content at the HEAD commit
+            full_content = await github.get_file_content_at_commit(
+                owner, repo, filename, head_sha
+            )
+            diff["full_content"] = full_content
+            
+            if full_content:
+                logger.debug(f"Fetched {len(full_content)} chars for {filename}")
+            else:
+                logger.debug(f"No content available for {filename}")
+                
+        except Exception as exc:
+            logger.warning(f"Could not fetch full content for {filename}: {exc}")
+            diff["full_content"] = None
+
     pull_request: Dict[str, Any] = {
         "id": pr_meta.get("id"),
         "number": pr_meta.get("number"),
