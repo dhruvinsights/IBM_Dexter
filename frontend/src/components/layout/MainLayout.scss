@@ -3,26 +3,34 @@
   flex-direction: column;
   height: 100vh;
   width: 100%;
-  overflow: hidden;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .dexter-content {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   margin-top: 3rem; // Account for fixed header
   transition: margin-left 0.3s ease-in-out;
+  max-width: 100vw;
 }
 
 .dexter-content-inner {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 2rem;
   background-color: var(--cds-background);
+  max-width: 100%;
   
   // Mobile: reduce padding
   @media (max-width: 767px) {
     padding: 1rem;
+    width: 100%;
+    max-width: 100%;
   }
   
   // Tablet: moderate padding

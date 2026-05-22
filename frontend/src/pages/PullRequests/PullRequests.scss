@@ -3,8 +3,12 @@
 @use '@carbon/react/scss/type' as *;
 
 .pull-requests-page {
+  max-width: 100%;
+  overflow-x: hidden;
+  
   .page-header {
     margin-bottom: $spacing-07;
+    max-width: 100%;
     
     h1 {
       @include type-style('heading-05');
@@ -133,9 +137,12 @@
   // Responsive adjustments
   @media (max-width: 767px) {
     padding: $spacing-04;
+    width: 100%;
+    max-width: 100%;
 
     .page-header {
       margin-bottom: $spacing-05;
+      max-width: 100%;
 
       h1 {
         @include type-style('heading-04');

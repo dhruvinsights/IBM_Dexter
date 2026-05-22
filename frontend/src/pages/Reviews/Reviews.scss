@@ -4,8 +4,11 @@
 
 .reviews-page {
   padding: $spacing-06;
+  max-width: 100%;
+  overflow-x: hidden;
 
   .page-header {
+    max-width: 100%;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -111,10 +114,13 @@
   // Responsive adjustments
   @media (max-width: 767px) {
     padding: $spacing-04;
+    width: 100%;
+    max-width: 100%;
 
     .page-header {
       margin-bottom: $spacing-05;
       gap: $spacing-04;
+      max-width: 100%;
 
       h1 {
         @include type-style('heading-04');

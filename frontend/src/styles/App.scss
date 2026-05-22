@@ -7,18 +7,24 @@
 
 html {
   background-color: var(--cds-background);
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
   margin: 0;
   background-color: var(--cds-background);
   color: var(--cds-text-primary);
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 #root {
   min-height: 100vh;
   background-color: var(--cds-background);
   color: var(--cds-text-primary);
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 // IBM Gradient Definitions
@@ -230,6 +236,38 @@ body {
   transition: background-color $duration-moderate-01 motion(standard, productive),
               color $duration-moderate-01 motion(standard, productive),
               border-color $duration-moderate-01 motion(standard, productive);
+}
+
+// Mobile container utility class
+.mobile-container {
+  @media (max-width: 767px) {
+    width: 90%;
+    max-width: 90%;
+    margin: 0 auto;
+    overflow-x: hidden;
+  }
+}
+
+// Prevent images and text from causing overflow
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Word wrapping for long text/URLs
+p, span, div {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+// Ensure tables don't cause page-level horizontal scroll
+.cds--data-table-container {
+  overflow-x: auto;
+  max-width: 100%;
+  
+  @media (max-width: 767px) {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 // Made with Bob

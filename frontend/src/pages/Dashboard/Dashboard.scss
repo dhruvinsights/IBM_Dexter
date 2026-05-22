@@ -3,6 +3,9 @@
 @use '@carbon/react/scss/type' as *;
 
 .dashboard {
+  max-width: 100%;
+  overflow-x: hidden;
+  
   .dashboard-header {
     margin-bottom: $spacing-07;
     padding: $spacing-07 $spacing-06;
@@ -11,6 +14,7 @@
     border-radius: 0 0 8px 8px;
     position: relative;
     overflow: hidden;
+    max-width: calc(100% + 2rem);
 
     &--hero {
       background: linear-gradient(
@@ -406,12 +410,15 @@
   // Responsive adjustments
   @media (max-width: 767px) {
     padding: $spacing-05;
+    width: 100%;
+    max-width: 100%;
 
     .dashboard-header {
       margin-left: 0;
       margin-right: 0;
       padding: $spacing-05 $spacing-04;
       margin-bottom: $spacing-05;
+      max-width: 100%;
 
       h1 {
         @include type-style('heading-04');
