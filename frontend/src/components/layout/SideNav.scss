@@ -6,6 +6,16 @@
   z-index: 8000;
   background-color: var(--cds-layer-01);
   border-right: 1px solid var(--cds-border-subtle-01);
+  transition: transform 0.3s ease-in-out;
+  
+  // Mobile: hide by default, slide in when expanded
+  @media (max-width: 1055px) {
+    transform: translateX(-100%);
+    
+    &.cds--side-nav--expanded {
+      transform: translateX(0);
+    }
+  }
   
   .cds--side-nav__items {
     padding-top: 1rem;
@@ -26,6 +36,31 @@
   .cds--side-nav__divider {
     margin: 0.5rem 0;
     background-color: var(--cds-border-subtle-01);
+  }
+}
+
+// Mobile overlay backdrop
+.dexter-sidenav-overlay {
+  position: fixed;
+  top: 3rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 7999;
+  animation: fadeIn 0.3s ease-in-out;
+  
+  @media (min-width: 1056px) {
+    display: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

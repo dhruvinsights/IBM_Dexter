@@ -6,6 +6,7 @@ import {
   HeaderGlobalBar,
   HeaderGlobalAction,
   HeaderPanel,
+  HeaderMenuButton,
   Switcher,
   SwitcherItem,
   SwitcherDivider,
@@ -26,7 +27,7 @@ import { APP_SHELL_BASE } from '../../constants/appConstants';
 import { knowledgeBaseService, runtimeSettingsService } from '../../services/platformService';
 import './AppHeader.scss';
 
-const AppHeader = () => {
+const AppHeader = ({ onMenuClick, isSideNavExpanded }) => {
   const { theme, toggleTheme } = useThemeStore();
   const [isUserPanelExpanded, setIsUserPanelExpanded] = useState(false);
   const [isNotificationPanelExpanded, setIsNotificationPanelExpanded] = useState(false);
@@ -76,6 +77,12 @@ const AppHeader = () => {
 
   return (
     <Header aria-label="IBM Dexter" className="dexter-header">
+      <HeaderMenuButton
+        aria-label={isSideNavExpanded ? 'Close menu' : 'Open menu'}
+        onClick={onMenuClick}
+        isActive={isSideNavExpanded}
+        className="dexter-header__menu-button"
+      />
       <div className="dexter-header__brand">
         <a href="/" className="dexter-header__logo-link" aria-label="Dexter home">
           <img src="/Dexter_logo.png" alt="" width={28} height={28} />

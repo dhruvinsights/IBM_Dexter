@@ -7,10 +7,20 @@
   background-color: var(--cds-layer-01);
   border-bottom: 1px solid var(--cds-border-subtle-01);
 
+  &__menu-button {
+    @media (min-width: 1056px) {
+      display: none;
+    }
+  }
+
   &__brand {
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    
+    @media (max-width: 767px) {
+      gap: 0.25rem;
+    }
   }
 
   &__logo-link {
@@ -18,10 +28,31 @@
     align-items: center;
     margin-right: 0.15rem;
     line-height: 0;
+    
+    @media (max-width: 767px) {
+      margin-right: 0.1rem;
+    }
   }
 
   &__logo-link img {
     display: block;
+    
+    // Responsive logo sizing
+    @media (max-width: 767px) {
+      width: 24px;
+      height: 24px;
+    }
+    
+    @media (min-width: 768px) and (max-width: 1055px) {
+      width: 26px;
+      height: 26px;
+    }
+  }
+  
+  .cds--header__name {
+    @media (max-width: 480px) {
+      font-size: 0.875rem;
+    }
   }
   
   .dexter-header__context {

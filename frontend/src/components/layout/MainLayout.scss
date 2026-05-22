@@ -11,6 +11,7 @@
   flex: 1;
   overflow: hidden;
   margin-top: 3rem; // Account for fixed header
+  transition: margin-left 0.3s ease-in-out;
 }
 
 .dexter-content-inner {
@@ -19,8 +20,14 @@
   padding: 2rem;
   background-color: var(--cds-background);
   
-  @media (max-width: 672px) {
+  // Mobile: reduce padding
+  @media (max-width: 767px) {
     padding: 1rem;
+  }
+  
+  // Tablet: moderate padding
+  @media (min-width: 768px) and (max-width: 1055px) {
+    padding: 1.5rem;
   }
 }
 
@@ -32,10 +39,14 @@
   z-index: 8000;
 }
 
+// Desktop: push content when sidebar is expanded
 .cds--side-nav--expanded ~ .dexter-content {
-  margin-left: 16rem;
+  @media (min-width: 1056px) {
+    margin-left: 16rem;
+  }
   
-  @media (max-width: 1056px) {
+  // Mobile/Tablet: no margin (sidebar overlays)
+  @media (max-width: 1055px) {
     margin-left: 0;
   }
 }

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Content, Theme } from '@carbon/react';
 import AppHeader from './AppHeader';
@@ -7,7 +7,10 @@ import useThemeStore from '../../store/useThemeStore';
 import './MainLayout.scss';
 
 const MainLayout = () => {
-  const [isSideNavExpanded, setIsSideNavExpanded] = useState(true);
+  // Initialize sidebar state based on screen size
+  const [isSideNavExpanded, setIsSideNavExpanded] = useState(() => {
+    return window.innerWidth >= 1056;
+  });
   const { theme } = useThemeStore();
 
   // Carbon tokens and portaled UI (toasts, modals) resolve from the document root.
@@ -17,6 +20,20 @@ const MainLayout = () => {
     document.documentElement.setAttribute('data-carbon-theme', theme);
   }, [theme]);
 
+  // Handle window resize to auto-close/open sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1056) {
+        setIsSideNavExpanded(true);
+      } else {
+        setIsSideNavExpanded(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const toggleSideNav = () => {
     setIsSideNavExpanded(!isSideNavExpanded);
   };
@@ -24,7 +41,10 @@ const MainLayout = () => {
   return (
     <Theme theme={theme}>
       <div className="dexter-shell" data-carbon-theme={theme}>
-        <AppHeader />
+        <AppHeader
+          onMenuClick={toggleSideNav}
+          isSideNavExpanded={isSideNavExpanded}
+        />
         <SideNav
           isOpen={isSideNavExpanded}
           onToggle={toggleSideNav}

@@ -21,7 +21,7 @@ import {
 } from '@carbon/icons-react';
 import './SideNav.scss';
 
-const SideNav = ({ isOpen }) => {
+const SideNav = ({ isOpen, onToggle }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -30,16 +30,35 @@ const SideNav = ({ isOpen }) => {
   const handleNavigation = (e, path) => {
     e.preventDefault();
     navigate(path);
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth < 1056 && onToggle) {
+      onToggle();
+    }
+  };
+
+  const handleOverlayClick = () => {
+    if (onToggle) {
+      onToggle();
+    }
   };
 
   return (
-    <CarbonSideNav
-      aria-label="IBM Dexter Navigation"
-      expanded={isOpen}
-      isPersistent={true}
-      isFixedNav
-      className="dexter-sidenav"
-    >
+    <>
+      {/* Mobile overlay backdrop */}
+      {isOpen && (
+        <div
+          className="dexter-sidenav-overlay"
+          onClick={handleOverlayClick}
+          aria-hidden="true"
+        />
+      )}
+      <CarbonSideNav
+        aria-label="IBM Dexter Navigation"
+        expanded={isOpen}
+        isPersistent={false}
+        isFixedNav
+        className="dexter-sidenav"
+      >
       <SideNavItems>
         {/* Core Navigation */}
         <SideNavLink
@@ -151,6 +170,7 @@ const SideNav = ({ isOpen }) => {
         </SideNavLink>
       </SideNavItems>
     </CarbonSideNav>
+    </>
   );
 };
 
