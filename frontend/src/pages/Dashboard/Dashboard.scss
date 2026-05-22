@@ -409,7 +409,7 @@
 
   // Responsive adjustments
   @media (max-width: 767px) {
-    padding: $spacing-05;
+    padding: $spacing-03;
     width: 100%;
     max-width: 100%;
 
@@ -598,7 +598,7 @@
 
   // Extra small mobile devices
   @media (max-width: 480px) {
-    padding: $spacing-04;
+    padding: $spacing-02;
 
     .dashboard-header {
       padding: $spacing-04 $spacing-03;

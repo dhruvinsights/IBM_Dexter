@@ -43,7 +43,7 @@
     
     // Mobile: reduce padding
     @media (max-width: 767px) {
-      padding: $spacing-07 $spacing-05 $spacing-09;
+      padding: $spacing-07 $spacing-03 $spacing-09;
     }
     
     // Tablet: moderate padding
@@ -76,20 +76,20 @@
     display: block;
     margin: 0 auto $spacing-06;
     
-    // Responsive logo sizing
+    // Responsive logo sizing - increased sizes
     @media (max-width: 480px) {
-      width: 80px;
-      height: 80px;
+      width: 120px;
+      height: 120px;
     }
     
     @media (min-width: 481px) and (max-width: 767px) {
-      width: 100px;
-      height: 100px;
+      width: 140px;
+      height: 140px;
     }
     
     @media (min-width: 768px) and (max-width: 1055px) {
-      width: 110px;
-      height: 110px;
+      width: 150px;
+      height: 150px;
     }
   }
 
@@ -117,6 +117,7 @@
 
     @media (max-width: 672px) {
       @include type-style('heading-05');
+      padding: 0 $spacing-02;
     }
   }
 
@@ -130,7 +131,8 @@
     @media (max-width: 767px) {
       @include type-style('body-02');
       font-weight: 400;
-      padding: 0 $spacing-03;
+      padding: 0 $spacing-02;
+      line-height: 1.5;
     }
   }
 
@@ -139,6 +141,7 @@
     
     @media (max-width: 767px) {
       max-width: 100%;
+      padding: 0 $spacing-02;
     }
   }
 
@@ -187,12 +190,13 @@
     @media (max-width: 767px) {
       flex-direction: column;
       align-items: stretch;
-      padding: 0 $spacing-03;
+      padding: 0 $spacing-02;
       gap: $spacing-04;
       
       .cds--btn {
         width: 100%;
         max-width: 100%;
+        justify-content: center;
       }
     }
   }
@@ -233,7 +237,7 @@
     
     // Mobile: reduce section padding
     @media (max-width: 767px) {
-      padding: $spacing-07 $spacing-05;
+      padding: $spacing-07 $spacing-03;
       
       &--intel {
         padding-top: $spacing-09;

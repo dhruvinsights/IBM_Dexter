@@ -1,5 +1,5 @@
 .dexter-sidenav {
-  position: fixed;
+  position: fixed !important;
   top: 3rem;
   bottom: 0;
   left: 0;
@@ -8,8 +8,10 @@
   border-right: 1px solid var(--cds-border-subtle-01);
   transition: transform 0.3s ease-in-out;
   
-  // Mobile: hide by default, slide in when expanded
+  // Mobile: hide by default, slide in when expanded (overlay, not push)
   @media (max-width: 1055px) {
+    position: fixed !important;
+    z-index: 8000 !important;
     transform: translateX(-100%);
     
     &.cds--side-nav--expanded {

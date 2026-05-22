@@ -26,9 +26,9 @@
   background-color: var(--cds-background);
   max-width: 100%;
   
-  // Mobile: reduce padding
+  // Mobile: reduce padding to 0.5rem (minimal)
   @media (max-width: 767px) {
-    padding: 1rem;
+    padding: 0.5rem;
     width: 100%;
     max-width: 100%;
   }
@@ -53,9 +53,10 @@
     margin-left: 16rem;
   }
   
-  // Mobile/Tablet: no margin (sidebar overlays)
+  // Mobile/Tablet: no margin, no shift (sidebar overlays)
   @media (max-width: 1055px) {
-    margin-left: 0;
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }
 

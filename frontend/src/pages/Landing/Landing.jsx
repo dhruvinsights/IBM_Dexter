@@ -162,8 +162,8 @@ const Landing = () => {
               className="dexter-landing__hero-logo"
               src="/Dexter_logo.png"
               alt="IBM Dexter"
-              width={120}
-              height={120}
+              width={160}
+              height={160}
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
             />

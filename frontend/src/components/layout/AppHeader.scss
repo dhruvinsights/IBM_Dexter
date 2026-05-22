@@ -126,6 +126,12 @@
   padding: 1rem;
   min-width: 320px;
   
+  // Mobile: wider panel for better text display
+  @media (max-width: 767px) {
+    min-width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
+  }
+  
   .notification-panel__title,
   h4, h5 {
     margin-bottom: 1rem;
@@ -142,12 +148,19 @@
       margin-bottom: 0.25rem;
       font-size: 0.875rem;
       color: var(--cds-text-primary);
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     
     p {
       margin-bottom: 0.25rem;
       font-size: 0.75rem;
       color: var(--cds-text-secondary);
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
     
     .notification-time {
