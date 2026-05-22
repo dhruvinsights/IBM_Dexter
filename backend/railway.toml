@@ -1,8 +1,8 @@
-# https://docs.railway.app/deploy/config-as-code
+# https://docs.railway.com/config-as-code/reference
 # In Railway: set Root Directory to `backend`, connect this repo, add env vars from DEPLOY.md
 
 [build]
-builder = "NIXPACKS"
+builder = "RAILPACK"
 
 [deploy]
 startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
