@@ -292,6 +292,11 @@
     padding: $spacing-05;
     border: 1px solid var(--cds-border-subtle-01);
     background: var(--cds-layer-02);
+    
+    @media (max-width: 767px) {
+      min-height: 300px;
+      padding: $spacing-04;
+    }
   }
 
   &__quote-tile {
@@ -302,6 +307,10 @@
       var(--cds-layer-02) 0%,
       var(--cds-layer-01) 100%
     );
+    
+    @media (max-width: 767px) {
+      padding: $spacing-06 $spacing-05;
+    }
   }
 
   &__quote-icon {
@@ -315,6 +324,10 @@
     font-weight: 400;
     margin: 0 0 $spacing-05;
     line-height: 1.45;
+    
+    @media (max-width: 767px) {
+      @include type-style('heading-02');
+    }
   }
 
   &__cite {
@@ -403,6 +416,18 @@
       margin-left: auto;
       margin-right: auto;
     }
+    
+    @media (max-width: 767px) {
+      padding: $spacing-07 $spacing-05;
+      
+      h2 {
+        @include type-style('heading-04');
+      }
+      
+      p {
+        @include type-style('body-01');
+      }
+    }
   }
 
   &__footer {
@@ -458,6 +483,16 @@
       justify-content: center;
       gap: $spacing-04;
     }
+    
+    @media (max-width: 767px) {
+      margin-bottom: $spacing-07;
+      
+      h2 {
+        @include type-style('heading-04');
+        flex-direction: column;
+        gap: $spacing-03;
+      }
+    }
   }
 
   &__bob-icon {
@@ -470,6 +505,11 @@
     color: var(--cds-text-secondary);
     max-width: 48rem;
     margin: 0 auto;
+    
+    @media (max-width: 767px) {
+      @include type-style('body-01');
+      padding: 0 $spacing-03;
+    }
   }
 
   &__bob-tile {
@@ -501,6 +541,15 @@
 
     svg {
       color: var(--cds-interactive-01);
+    }
+    
+    @media (max-width: 767px) {
+      @include type-style('heading-02');
+      
+      svg {
+        width: 20px;
+        height: 20px;
+      }
     }
   }
 
@@ -571,6 +620,22 @@
         color: var(--cds-text-secondary);
       }
     }
+    
+    @media (max-width: 767px) {
+      .cds--structured-list-row {
+        padding: $spacing-03 0;
+      }
+      
+      .cds--structured-list-td {
+        padding: $spacing-02 $spacing-02;
+        font-size: 13px;
+        
+        &:first-child {
+          min-width: 100px;
+          gap: $spacing-02;
+        }
+      }
+    }
   }
 
   &__mode-icon {
@@ -586,6 +651,15 @@
       text-align: center;
       margin-bottom: $spacing-06;
       color: var(--cds-text-primary);
+    }
+    
+    @media (max-width: 767px) {
+      margin-top: $spacing-06;
+      
+      h3 {
+        @include type-style('heading-03');
+        margin-bottom: $spacing-05;
+      }
     }
   }
 
@@ -648,6 +722,16 @@
       margin-bottom: $spacing-05;
       color: var(--cds-text-primary);
     }
+    
+    @media (max-width: 767px) {
+      padding: $spacing-05;
+      margin-top: $spacing-05;
+      
+      h3 {
+        @include type-style('heading-02');
+        margin-bottom: $spacing-04;
+      }
+    }
   }
 
   &__tech-tags {
@@ -673,6 +757,17 @@
       color: var(--cds-interactive-01);
       flex-shrink: 0;
       margin-top: 2px;
+    }
+    
+    @media (max-width: 767px) {
+      padding: $spacing-03;
+      font-size: 13px;
+      gap: $spacing-02;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+      }
     }
   }
 }

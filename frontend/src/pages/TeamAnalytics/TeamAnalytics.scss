@@ -310,6 +310,253 @@
   }
 }
 
+// Responsive adjustments
+@media (max-width: 767px) {
+  .team-analytics-page {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+
+      &__title {
+        gap: $spacing-03;
+
+        h1 {
+          @include type-style('heading-04');
+        }
+
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      &__description {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .selector-tile {
+      padding: $spacing-04;
+
+      .team-selector {
+        gap: $spacing-02;
+
+        &__label {
+          @include type-style('label-01');
+          font-size: 0.75rem;
+        }
+
+        .cds--dropdown {
+          max-width: 100%;
+        }
+      }
+    }
+
+    // Metric tiles
+    .metric-tile {
+      padding: $spacing-04;
+      min-height: 100px;
+      gap: $spacing-04;
+
+      &__icon {
+        width: 40px;
+        height: 40px;
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      &__content {
+        gap: $spacing-01;
+      }
+
+      &__value {
+        @include type-style('heading-04');
+      }
+
+      &__label {
+        @include type-style('label-01');
+        font-size: 0.75rem;
+      }
+    }
+
+    // Chart tiles
+    .chart-tile {
+      padding: $spacing-04;
+      min-height: 300px;
+    }
+
+    .section-tile {
+      padding: $spacing-04;
+
+      .section-header {
+        margin-bottom: $spacing-04;
+
+        &__title {
+          gap: $spacing-02;
+
+          h2 {
+            @include type-style('heading-compact-02');
+          }
+
+          svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+
+    // Leaderboard
+    .leaderboard {
+      gap: $spacing-03;
+    }
+
+    .leaderboard-item {
+      padding: $spacing-04;
+      gap: $spacing-03;
+      flex-direction: column;
+      align-items: flex-start;
+
+      &__rank {
+        .rank {
+          width: 36px;
+          height: 36px;
+          @include type-style('heading-compact-01');
+          font-size: 0.875rem;
+        }
+      }
+
+      &__info {
+        width: 100%;
+
+        .contributor-name {
+          @include type-style('heading-compact-01');
+          font-size: 1rem;
+
+          svg {
+            width: 16px;
+            height: 16px;
+          }
+        }
+
+        .contributor-team {
+          gap: $spacing-01;
+        }
+      }
+
+      &__stats {
+        width: 100%;
+        justify-content: space-around;
+        gap: $spacing-03;
+
+        .stat {
+          &__value {
+            @include type-style('heading-compact-01');
+            font-size: 1rem;
+          }
+
+          &__label {
+            @include type-style('label-01');
+            font-size: 0.6875rem;
+          }
+        }
+      }
+
+      &__badges {
+        width: 100%;
+        max-width: 100%;
+        gap: $spacing-01;
+
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+    }
+
+    // AI adoption stats
+    .ai-adoption-stats {
+      flex-direction: column;
+      gap: $spacing-04;
+      margin-top: $spacing-04;
+      padding-top: $spacing-04;
+
+      .ai-stat {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: $spacing-03;
+        background: var(--cds-layer-01);
+        border-radius: 4px;
+
+        &__label {
+          @include type-style('label-01');
+          font-size: 0.875rem;
+        }
+
+        &__value {
+          @include type-style('heading-03');
+        }
+      }
+    }
+  }
+}
+
+// Extra small mobile devices
+@media (max-width: 480px) {
+  .team-analytics-page {
+    padding: $spacing-03;
+
+    .selector-tile,
+    .metric-tile,
+    .chart-tile,
+    .section-tile {
+      padding: $spacing-03;
+    }
+
+    .metric-tile {
+      min-height: 90px;
+      gap: $spacing-03;
+
+      &__icon {
+        width: 36px;
+        height: 36px;
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .leaderboard-item {
+      padding: $spacing-03;
+
+      &__rank {
+        .rank {
+          width: 32px;
+          height: 32px;
+          font-size: 0.75rem;
+        }
+      }
+
+      &__stats {
+        gap: $spacing-02;
+      }
+    }
+
+    .ai-adoption-stats {
+      .ai-stat {
+        padding: $spacing-02;
+      }
+    }
+  }
+}
+
 // Dark theme adjustments
 [data-carbon-theme='g100'],
 [data-carbon-theme='g90'] {

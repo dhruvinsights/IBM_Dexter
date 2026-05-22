@@ -368,6 +368,229 @@
   }
 }
 
+// Responsive adjustments
+@media (max-width: 767px) {
+  .ai-agents-page {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+
+      &__title {
+        gap: $spacing-03;
+
+        h1 {
+          @include type-style('heading-04');
+        }
+
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      &__description {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+
+      .cds--tag {
+        font-size: 0.6875rem;
+      }
+    }
+
+    .section-tile {
+      padding: $spacing-04;
+
+      .section-header {
+        margin-bottom: $spacing-04;
+
+        &__title {
+          gap: $spacing-02;
+
+          h2 {
+            @include type-style('heading-compact-02');
+          }
+
+          svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+
+    // Agent grid - single column on mobile
+    .agent-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-04;
+      margin-top: $spacing-04;
+    }
+
+    .agent-card {
+      padding: $spacing-04;
+
+      &__header {
+        margin-bottom: $spacing-03;
+
+        .agent-card__icon {
+          width: 48px;
+          height: 48px;
+
+          svg {
+            width: 24px;
+            height: 24px;
+          }
+        }
+      }
+
+      &__name {
+        @include type-style('heading-compact-01');
+        font-size: 1rem;
+      }
+
+      &__description {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+        margin-bottom: $spacing-03;
+      }
+
+      &__metrics {
+        padding: $spacing-03;
+
+        .metric {
+          &__label {
+            @include type-style('label-01');
+            font-size: 0.6875rem;
+          }
+
+          &__value {
+            @include type-style('heading-compact-01');
+            font-size: 1rem;
+          }
+        }
+      }
+
+      &__footer {
+        padding-top: $spacing-03;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-02;
+
+        .confidence-score {
+          &__label {
+            @include type-style('label-01');
+            font-size: 0.75rem;
+          }
+
+          &__value {
+            @include type-style('heading-compact-01');
+            font-size: 0.875rem;
+          }
+        }
+
+        .last-activity {
+          @include type-style('label-01');
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    // Activity timeline
+    .activity-timeline {
+      max-height: 400px;
+      gap: $spacing-04;
+    }
+
+    .timeline-item {
+      padding: $spacing-03;
+      gap: $spacing-03;
+      flex-direction: column;
+
+      &__time {
+        @include type-style('label-01');
+        font-size: 0.75rem;
+        min-width: auto;
+      }
+
+      &__content {
+        gap: $spacing-02;
+      }
+
+      &__header {
+        gap: $spacing-02;
+      }
+
+      &__action {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+
+      &__result {
+        @include type-style('body-compact-01');
+        font-size: 0.8125rem;
+      }
+    }
+
+    // Configuration section
+    .config-section {
+      gap: $spacing-03;
+      padding: $spacing-03 0;
+
+      .config-help {
+        @include type-style('helper-text-01');
+        font-size: 0.75rem;
+      }
+
+      .frequency-options {
+        gap: $spacing-02;
+
+        .cds--tag {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    .cds--accordion {
+      .cds--accordion__title {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+
+      .cds--accordion__content {
+        padding: $spacing-03 $spacing-04;
+      }
+    }
+  }
+}
+
+// Extra small mobile devices
+@media (max-width: 480px) {
+  .ai-agents-page {
+    padding: $spacing-03;
+
+    .section-tile {
+      padding: $spacing-03;
+    }
+
+    .agent-card {
+      padding: $spacing-03;
+
+      &__metrics {
+        padding: $spacing-02;
+
+        .metric {
+          gap: $spacing-01;
+        }
+      }
+    }
+
+    .timeline-item {
+      padding: $spacing-02;
+    }
+  }
+}
+
 // Dark-theme polish: deeper layer for cards/timeline so the colored borders
 // pop against the background. All accent colors come from --dexter-* which
 // already adapt per theme.

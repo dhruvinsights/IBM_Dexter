@@ -412,6 +412,353 @@
   }
 }
 
+// Responsive adjustments
+@media (max-width: 767px) {
+  .knowledge-base-page {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+
+      &__title {
+        gap: $spacing-03;
+
+        h1 {
+          @include type-style('heading-04');
+        }
+
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      &__description {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    // Stat tiles
+    .stat-tile {
+      padding: $spacing-04;
+      min-height: 100px;
+      gap: $spacing-04;
+
+      &__icon {
+        width: 48px;
+        height: 48px;
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      &__content {
+        gap: $spacing-01;
+        min-width: 0;
+      }
+
+      &__value {
+        @include type-style('heading-04');
+        font-size: 1.25rem;
+      }
+
+      &__label {
+        @include type-style('label-01');
+        font-size: 0.75rem;
+      }
+    }
+
+    // Search tile
+    .search-tile {
+      padding: $spacing-04;
+
+      .search-section {
+        flex-direction: column;
+        gap: $spacing-03;
+        align-items: stretch;
+
+        .knowledge-search {
+          flex: 1 1 100%;
+          width: 100%;
+        }
+
+        .cds--btn {
+          width: 100%;
+        }
+      }
+
+      .kb-search-results {
+        margin-top: $spacing-04;
+        gap: $spacing-03;
+
+        h4 {
+          @include type-style('heading-compact-02');
+        }
+
+        .kb-search-result {
+          padding: $spacing-03;
+
+          &__header {
+            gap: $spacing-02;
+            margin-bottom: $spacing-02;
+
+            .cds--tag {
+              font-size: 0.6875rem;
+            }
+          }
+
+          .cds--snippet {
+            font-size: 0.75rem;
+          }
+        }
+      }
+    }
+
+    .kb-chunk-block {
+      margin-bottom: $spacing-04;
+
+      &__header {
+        gap: $spacing-02;
+        margin-bottom: $spacing-02;
+
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+
+      .cds--snippet {
+        font-size: 0.75rem;
+      }
+    }
+
+    // Documents tile
+    .documents-tile {
+      padding: $spacing-04;
+
+      .section-header {
+        margin-bottom: $spacing-03;
+
+        h2 {
+          @include type-style('heading-compact-02');
+          margin-bottom: $spacing-01;
+        }
+
+        .section-subtitle {
+          @include type-style('body-compact-01');
+          font-size: 0.875rem;
+        }
+      }
+    }
+
+    // Document grid - single column on mobile
+    .document-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-04;
+      margin-top: $spacing-04;
+    }
+
+    .document-card {
+      padding: $spacing-04;
+
+      &__header {
+        margin-bottom: $spacing-03;
+
+        .document-card__icon {
+          width: 36px;
+          height: 36px;
+
+          svg {
+            width: 18px;
+            height: 18px;
+          }
+        }
+
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+
+      &__body {
+        margin-bottom: $spacing-03;
+      }
+
+      &__title {
+        @include type-style('heading-compact-01');
+        font-size: 1rem;
+        margin-bottom: $spacing-02;
+      }
+
+      &__description {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+
+      &__footer {
+        padding-top: $spacing-03;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-02;
+
+        .document-card__actions {
+          width: 100%;
+          margin-left: 0;
+          justify-content: flex-start;
+
+          .cds--btn {
+            flex: 1;
+          }
+        }
+
+        .meta-item {
+          @include type-style('label-01');
+          font-size: 0.75rem;
+
+          svg {
+            width: 14px;
+            height: 14px;
+          }
+        }
+      }
+
+      .tag-list {
+        gap: $spacing-01;
+        margin-top: $spacing-02;
+
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+    }
+
+    // Empty state
+    .empty-state {
+      padding: $spacing-07 $spacing-04;
+
+      svg {
+        width: 40px;
+        height: 40px;
+      }
+
+      h3 {
+        @include type-style('heading-compact-02');
+      }
+
+      p {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    // Document preview modal
+    .document-preview {
+      gap: $spacing-04;
+
+      &__meta {
+        gap: $spacing-03;
+
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+
+      &__source,
+      &__size {
+        @include type-style('label-01');
+        font-size: 0.75rem;
+      }
+
+      &__description,
+      &__rag,
+      &__tags,
+      &__content {
+        h4 {
+          @include type-style('heading-compact-01');
+          font-size: 0.875rem;
+          margin-bottom: $spacing-02;
+        }
+
+        p {
+          @include type-style('body-compact-01');
+          font-size: 0.8125rem;
+        }
+      }
+
+      .tag-list {
+        gap: $spacing-01;
+
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+
+      .cds--snippet {
+        font-size: 0.75rem;
+      }
+    }
+
+    // Modals
+    .cds--modal-container {
+      .cds--modal-content {
+        padding: $spacing-04;
+      }
+
+      .cds--text-input,
+      .cds--text-area {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Extra small mobile devices
+@media (max-width: 480px) {
+  .knowledge-base-page {
+    padding: $spacing-03;
+
+    .stat-tile {
+      padding: $spacing-03;
+      min-height: 90px;
+      gap: $spacing-03;
+
+      &__icon {
+        width: 40px;
+        height: 40px;
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .search-tile,
+    .documents-tile {
+      padding: $spacing-03;
+    }
+
+    .document-card {
+      padding: $spacing-03;
+
+      &__footer {
+        .document-card__actions {
+          flex-direction: column;
+
+          .cds--btn {
+            width: 100%;
+          }
+        }
+      }
+    }
+
+    .empty-state {
+      padding: $spacing-05 $spacing-03;
+    }
+  }
+}
+
 // Dark-theme polish — accent colors come from --dexter-* tokens which already
 // adapt to the active Carbon theme.
 [data-carbon-theme='g100'],

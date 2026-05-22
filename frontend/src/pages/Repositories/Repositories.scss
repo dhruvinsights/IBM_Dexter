@@ -79,6 +79,137 @@
       flex-wrap: wrap;
     }
   }
+
+  // Responsive adjustments
+  @media (max-width: 767px) {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+      gap: $spacing-04;
+
+      h1 {
+        @include type-style('heading-04');
+        margin-bottom: $spacing-02;
+      }
+
+      .page-subtitle {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+
+        code {
+          font-size: 0.75rem;
+          word-break: break-all;
+        }
+      }
+    }
+
+    .repos-empty {
+      padding: $spacing-07 $spacing-04;
+
+      svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      h3 {
+        @include type-style('heading-compact-02');
+      }
+
+      p {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .repo-card {
+      padding: $spacing-04;
+
+      &__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-03;
+
+        h3 {
+          @include type-style('heading-compact-02');
+          margin-bottom: $spacing-01;
+        }
+
+        a {
+          @include type-style('label-01');
+          font-size: 0.75rem;
+        }
+
+        .cds--btn {
+          align-self: flex-end;
+          margin-top: $spacing-02;
+        }
+      }
+
+      &__icon {
+        width: 36px;
+        height: 36px;
+      }
+
+      &__tags {
+        gap: $spacing-02;
+        margin-top: $spacing-03;
+      }
+
+      .cds--toggle {
+        margin-top: $spacing-04;
+      }
+
+      p {
+        @include type-style('body-compact-01');
+        font-size: 0.75rem;
+      }
+
+      .cds--snippet {
+        margin-top: $spacing-02;
+
+        .cds--snippet-container {
+          font-size: 0.6875rem;
+        }
+      }
+    }
+
+    .cds--modal-container {
+      .cds--modal-content {
+        padding: $spacing-04;
+      }
+
+      .cds--text-input,
+      .cds--select {
+        margin-bottom: $spacing-04;
+      }
+    }
+  }
+
+  // Extra small mobile devices
+  @media (max-width: 480px) {
+    padding: $spacing-03;
+
+    .repo-card {
+      padding: $spacing-03;
+
+      &__icon {
+        width: 32px;
+        height: 32px;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      &__tags {
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+    }
+  }
 }
 
 // Made with Bob

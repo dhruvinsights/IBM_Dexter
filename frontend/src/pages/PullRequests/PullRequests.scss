@@ -131,15 +131,138 @@
   }
 
   // Responsive adjustments
-  @media (max-width: 672px) {
+  @media (max-width: 767px) {
+    padding: $spacing-04;
+
     .page-header {
+      margin-bottom: $spacing-05;
+
       h1 {
         @include type-style('heading-04');
+        margin-bottom: $spacing-02;
       }
+
+      .page-subtitle {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .pull-requests-header {
+      gap: $spacing-04;
     }
 
     .filters-section {
       padding: $spacing-04;
+      margin-bottom: $spacing-04;
+
+      .cds--dropdown {
+        min-width: 100%;
+      }
+    }
+
+    .table-section {
+      .cds--data-table-container {
+        overflow-x: auto;
+      }
+
+      .cds--data-table {
+        min-width: 800px;
+      }
+
+      .cds--table-toolbar {
+        flex-wrap: wrap;
+        padding: $spacing-03;
+      }
+
+      .cds--toolbar-content {
+        width: 100%;
+      }
+
+      .cds--search {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .cds--pagination {
+        .cds--pagination__left,
+        .cds--pagination__right {
+          flex-wrap: wrap;
+        }
+      }
+    }
+
+    .live-analysis-result {
+      margin-top: $spacing-04;
+
+      .live-summary {
+        margin-bottom: $spacing-04;
+
+        h3 {
+          @include type-style('heading-compact-02');
+          margin-bottom: $spacing-02;
+        }
+
+        &__meta {
+          gap: $spacing-02;
+        }
+      }
+
+      .finding-list {
+        gap: $spacing-03;
+      }
+
+      .finding {
+        padding: $spacing-03;
+
+        &__header {
+          gap: $spacing-02;
+          margin-bottom: $spacing-02;
+        }
+
+        &__message {
+          @include type-style('body-compact-01');
+          font-size: 0.875rem;
+        }
+
+        &__rec {
+          @include type-style('body-compact-01');
+          font-size: 0.875rem;
+        }
+      }
+    }
+
+    .cds--modal-container {
+      .cds--modal-content {
+        padding: $spacing-04;
+      }
+    }
+  }
+
+  // Extra small mobile devices
+  @media (max-width: 480px) {
+    padding: $spacing-03;
+
+    .filters-section {
+      padding: $spacing-03;
+    }
+
+    .table-section {
+      .cds--table-toolbar {
+        padding: $spacing-02;
+      }
+    }
+
+    .live-analysis-result {
+      .live-summary__meta {
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+
+      .finding {
+        padding: $spacing-02;
+      }
     }
   }
 }

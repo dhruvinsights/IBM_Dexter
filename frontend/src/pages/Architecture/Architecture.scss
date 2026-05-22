@@ -250,6 +250,245 @@
   }
 }
 
+// Responsive adjustments
+@media (max-width: 767px) {
+  .architecture-page {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+
+      &__title {
+        gap: $spacing-03;
+
+        h1 {
+          @include type-style('heading-04');
+        }
+
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      &__description {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .compliance-score-tile {
+      padding: $spacing-04;
+      gap: $spacing-04;
+
+      .compliance-score-details {
+        .compliance-score-label {
+          @include type-style('heading-compact-02');
+          margin-bottom: $spacing-04;
+        }
+
+        .compliance-metrics {
+          flex-direction: column;
+          gap: $spacing-04;
+
+          .metric {
+            width: 100%;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: $spacing-03;
+            background: var(--cds-layer-01);
+            border-radius: 4px;
+
+            &-value {
+              @include type-style('heading-04');
+            }
+
+            &-label {
+              @include type-style('label-01');
+              font-size: 0.875rem;
+            }
+          }
+        }
+      }
+    }
+
+    .section-tile {
+      padding: $spacing-04;
+
+      .section-header {
+        margin-bottom: $spacing-04;
+
+        &__title {
+          gap: $spacing-02;
+
+          h2 {
+            @include type-style('heading-compact-02');
+          }
+
+          svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+
+    // Service grid - single column on mobile
+    .service-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-04;
+      margin-top: $spacing-04;
+    }
+
+    .service-card {
+      padding: $spacing-04;
+
+      &__header {
+        margin-bottom: $spacing-03;
+
+        .service-card__title {
+          gap: $spacing-02;
+
+          h3 {
+            @include type-style('heading-compact-01');
+            font-size: 1rem;
+          }
+
+          svg {
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+
+      &__body {
+        gap: $spacing-03;
+
+        .service-metric {
+          &__label {
+            @include type-style('label-01');
+            font-size: 0.75rem;
+            margin-bottom: $spacing-01;
+          }
+        }
+
+        .service-dependencies {
+          &__label {
+            @include type-style('label-01');
+            font-size: 0.75rem;
+            margin-bottom: $spacing-01;
+          }
+
+          &__list {
+            gap: $spacing-01;
+
+            .cds--tag {
+              font-size: 0.6875rem;
+            }
+          }
+        }
+      }
+
+      &__footer {
+        margin-top: $spacing-03;
+        padding-top: $spacing-03;
+
+        .service-version {
+          @include type-style('label-01');
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    // Data table
+    .cds--data-table-container {
+      overflow-x: auto;
+
+      .cds--data-table {
+        min-width: 700px;
+      }
+
+      .cds--table-toolbar {
+        padding: $spacing-03;
+      }
+
+      .cds--search {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+
+    // Modernization content
+    .modernization-title {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $spacing-02;
+
+      span {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .modernization-content {
+      gap: $spacing-04;
+      padding: $spacing-04 0;
+
+      .modernization-section {
+        h4 {
+          @include type-style('heading-compact-01');
+          font-size: 0.875rem;
+          margin-bottom: $spacing-02;
+        }
+
+        p {
+          @include type-style('body-compact-01');
+          font-size: 0.8125rem;
+        }
+
+        .service-tags {
+          gap: $spacing-01;
+
+          .cds--tag {
+            font-size: 0.6875rem;
+          }
+        }
+      }
+    }
+
+    .cds--accordion {
+      .cds--accordion__title {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+
+      .cds--accordion__content {
+        padding: $spacing-03 $spacing-04;
+      }
+    }
+  }
+}
+
+// Extra small mobile devices
+@media (max-width: 480px) {
+  .architecture-page {
+    padding: $spacing-03;
+
+    .compliance-score-tile,
+    .section-tile {
+      padding: $spacing-03;
+    }
+
+    .service-card {
+      padding: $spacing-03;
+    }
+
+    .modernization-content {
+      padding: $spacing-03 0;
+    }
+  }
+}
+
 // Dark theme adjustments
 [data-carbon-theme='g100'],
 [data-carbon-theme='g90'] {

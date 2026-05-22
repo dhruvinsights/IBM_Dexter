@@ -107,6 +107,120 @@
 
     p { margin: 0; @include type-style('body-01'); }
   }
+
+  // Responsive adjustments
+  @media (max-width: 767px) {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+      gap: $spacing-04;
+
+      h1 {
+        @include type-style('heading-04');
+        margin-bottom: $spacing-02;
+      }
+
+      .page-subtitle {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .reviews-empty {
+      padding: $spacing-07 $spacing-04;
+
+      svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      h3 {
+        @include type-style('heading-compact-02');
+      }
+
+      p {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .review-card {
+      padding: $spacing-04;
+      margin-bottom: $spacing-04;
+
+      &__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-03;
+
+        h3 {
+          @include type-style('heading-compact-02');
+          margin-bottom: $spacing-02;
+        }
+      }
+
+      &__meta {
+        gap: $spacing-02;
+      }
+
+      &__time {
+        width: 100%;
+        justify-content: flex-start;
+        @include type-style('label-01');
+        font-size: 0.75rem;
+      }
+    }
+
+    .review-finding {
+      padding: $spacing-03;
+      margin-bottom: $spacing-02;
+
+      &__header {
+        gap: $spacing-02;
+        margin-bottom: $spacing-02;
+      }
+
+      &__rec {
+        margin-top: $spacing-02;
+      }
+
+      p {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    .cds--accordion {
+      .cds--accordion__title {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+
+      .cds--accordion__content {
+        padding: $spacing-03 $spacing-04;
+      }
+    }
+  }
+
+  // Extra small mobile devices
+  @media (max-width: 480px) {
+    padding: $spacing-03;
+
+    .review-card {
+      padding: $spacing-03;
+
+      &__meta {
+        .cds--tag {
+          font-size: 0.6875rem;
+        }
+      }
+    }
+
+    .review-finding {
+      padding: $spacing-02;
+    }
+  }
 }
 
 // Made with Bob

@@ -161,6 +161,163 @@
   }
 }
 
+// Responsive adjustments
+@media (max-width: 767px) {
+  .security-page {
+    padding: $spacing-04;
+
+    .page-header {
+      margin-bottom: $spacing-05;
+
+      &__title {
+        gap: $spacing-03;
+
+        h1 {
+          @include type-style('heading-04');
+        }
+
+        svg {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      &__description {
+        @include type-style('body-compact-01');
+        font-size: 0.875rem;
+      }
+    }
+
+    // Metric tiles - stack vertically
+    .metric-tile {
+      padding: $spacing-04;
+      min-height: 100px;
+      gap: $spacing-04;
+
+      &__icon {
+        width: 40px;
+        height: 40px;
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      &__content {
+        gap: $spacing-01;
+      }
+
+      &__value {
+        @include type-style('heading-04');
+      }
+
+      &__label {
+        @include type-style('label-01');
+        font-size: 0.75rem;
+      }
+    }
+
+    // Chart tiles
+    .chart-tile {
+      padding: $spacing-04;
+      min-height: 300px;
+    }
+
+    .section-tile {
+      padding: $spacing-04;
+
+      .cds--tabs {
+        .cds--tab-content {
+          padding: $spacing-04 0;
+        }
+
+        .cds--tabs__nav {
+          overflow-x: auto;
+        }
+
+        .cds--tabs__nav-item {
+          white-space: nowrap;
+        }
+      }
+    }
+
+    // Data tables
+    .cds--data-table-container {
+      overflow-x: auto;
+
+      .cds--data-table {
+        min-width: 700px;
+      }
+
+      .cds--table-toolbar {
+        padding: $spacing-03;
+        flex-wrap: wrap;
+      }
+
+      .cds--toolbar-content {
+        width: 100%;
+      }
+
+      .cds--search {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+
+    // Expanded row content
+    .expanded-row-content {
+      padding: $spacing-04;
+      gap: $spacing-04;
+
+      .expanded-row-section {
+        h4 {
+          @include type-style('heading-compact-01');
+          font-size: 0.875rem;
+          margin-bottom: $spacing-02;
+        }
+
+        p {
+          @include type-style('body-compact-01');
+          font-size: 0.8125rem;
+        }
+      }
+    }
+  }
+}
+
+// Extra small mobile devices
+@media (max-width: 480px) {
+  .security-page {
+    padding: $spacing-03;
+
+    .metric-tile {
+      padding: $spacing-03;
+      min-height: 90px;
+      gap: $spacing-03;
+
+      &__icon {
+        width: 36px;
+        height: 36px;
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .chart-tile,
+    .section-tile {
+      padding: $spacing-03;
+    }
+
+    .expanded-row-content {
+      padding: $spacing-03;
+    }
+  }
+}
+
 // Dark theme adjustments
 [data-carbon-theme='g100'],
 [data-carbon-theme='g90'] {

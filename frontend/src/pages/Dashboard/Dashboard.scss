@@ -404,27 +404,208 @@
   }
 
   // Responsive adjustments
-  @media (max-width: 672px) {
+  @media (max-width: 767px) {
+    padding: $spacing-05;
+
     .dashboard-header {
+      margin-left: 0;
+      margin-right: 0;
+      padding: $spacing-05 $spacing-04;
+      margin-bottom: $spacing-05;
+
       h1 {
         @include type-style('heading-04');
       }
-    }
 
-    .kpi-card {
-      min-height: 120px;
-
-      .kpi-value {
-        @include type-style('heading-04');
+      .dashboard-subtitle {
+        @include type-style('body-compact-01');
       }
     }
 
-    .chart-tile {
-      min-height: 300px;
+    .dashboard-section {
+      margin-top: $spacing-05;
     }
 
+    // KPI Cards - full width on mobile
+    .dashboard-kpis {
+      margin-bottom: $spacing-04;
+    }
+
+    .kpi-card {
+      min-height: 100px;
+      padding: $spacing-04;
+
+      .kpi-content {
+        gap: $spacing-02;
+      }
+
+      .kpi-value {
+        @include type-style('heading-04');
+        margin-bottom: $spacing-02;
+      }
+
+      .kpi-label {
+        @include type-style('label-01');
+        font-size: 0.75rem;
+      }
+
+      .kpi-delta {
+        @include type-style('helper-text-01');
+        font-size: 0.75rem;
+      }
+    }
+
+    // Chart tiles - reduce padding and min-height
+    .chart-tile {
+      padding: $spacing-04;
+      min-height: 280px;
+
+      &--line,
+      &--donut,
+      &--bar {
+        background: var(--cds-layer-01);
+      }
+    }
+
+    .dashboard-chart-empty {
+      padding: $spacing-05 $spacing-04;
+      min-height: 200px;
+      @include type-style('body-compact-01');
+    }
+
+    // Table tile
+    .table-tile {
+      padding: $spacing-04;
+
+      .tile-heading {
+        @include type-style('heading-compact-02');
+        margin-bottom: $spacing-04;
+      }
+
+      .cds--data-table-container {
+        overflow-x: auto;
+      }
+
+      .cds--data-table {
+        min-width: 600px;
+      }
+    }
+
+    .dashboard-table-empty {
+      padding: $spacing-04;
+      @include type-style('body-compact-01');
+    }
+
+    // Insight tiles - stack content vertically
     .insight-tile {
+      padding: $spacing-04;
       min-height: auto;
+
+      .tile-header {
+        margin-bottom: $spacing-04;
+
+        .tile-heading {
+          @include type-style('heading-compact-02');
+        }
+      }
+    }
+
+    // Security tile
+    .security-tile {
+      .security-score {
+        padding: $spacing-04;
+        margin-bottom: $spacing-05;
+
+        .score-value {
+          @include type-style('heading-05');
+        }
+      }
+
+      .security-breakdown {
+        gap: $spacing-04;
+      }
+
+      .security-item {
+        .security-item-header {
+          margin-bottom: $spacing-02;
+
+          .security-count {
+            @include type-style('heading-compact-02');
+          }
+        }
+      }
+    }
+
+    // Architecture tile
+    .architecture-tile {
+      .architecture-score {
+        margin-bottom: $spacing-04;
+
+        .score-gauge {
+          width: 160px;
+          height: 80px;
+          margin-bottom: $spacing-03;
+
+          .gauge-value {
+            @include type-style('heading-compact-03');
+          }
+        }
+      }
+
+      .architecture-metrics {
+        padding: $spacing-04;
+        margin-bottom: $spacing-04;
+
+        .metric-row {
+          padding: $spacing-02 0;
+
+          .metric-label {
+            @include type-style('body-compact-01');
+            font-size: 0.875rem;
+          }
+
+          .metric-value {
+            @include type-style('heading-compact-01');
+          }
+        }
+      }
+
+      .architecture-issues {
+        h4 {
+          @include type-style('heading-compact-01');
+          margin-bottom: $spacing-03;
+        }
+
+        .issue-item {
+          padding: $spacing-02 0;
+          flex-wrap: wrap;
+
+          .issue-title {
+            @include type-style('body-compact-01');
+            font-size: 0.875rem;
+          }
+        }
+      }
+    }
+  }
+
+  // Extra small mobile devices
+  @media (max-width: 480px) {
+    padding: $spacing-04;
+
+    .dashboard-header {
+      padding: $spacing-04 $spacing-03;
+    }
+
+    .kpi-card {
+      min-height: 90px;
+      padding: $spacing-03;
+    }
+
+    .chart-tile,
+    .table-tile,
+    .insight-tile {
+      padding: $spacing-03;
     }
   }
 }
