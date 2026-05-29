@@ -2,11 +2,19 @@
 
 FastAPI-based backend for AI-powered code review with multi-agent architecture.
 
+## 🚨 Production Deployment?
+
+**If deploying to Railway/Render/Cloud:** Ollama won't work in cloud environments. You need a cloud LLM provider.
+
+👉 **See:** [`../RAILWAY_QUICK_FIX.md`](../RAILWAY_QUICK_FIX.md) for 5-minute setup
+👉 **Full Guide:** [`../PRODUCTION_LLM_SETUP.md`](../PRODUCTION_LLM_SETUP.md)
+
 ## Quick Start
 
 ### Prerequisites
 - Python 3.9+
-- Ollama installed locally (for LLM support)
+- **Local Development:** Ollama installed locally (for LLM support)
+- **Production:** OpenAI/Watsonx/Anthropic API key (see guides above)
 - Git
 
 ### Installation Options

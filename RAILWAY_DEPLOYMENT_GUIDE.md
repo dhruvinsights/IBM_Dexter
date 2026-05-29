@@ -683,11 +683,93 @@ Look for:
 
 ---
 
+## 🔗 Connecting Frontend (Vercel) to Backend (Railway)
+
+After successful Railway deployment, you need to connect your Vercel frontend to the Railway backend.
+
+### Your Deployment URLs
+
+- **Backend (Railway):** `https://ibmdexter-production.up.railway.app`
+- **Frontend (Vercel):** `https://ibm-dexter.vercel.app`
+
+### Quick Connection Steps
+
+#### 1. Configure Vercel Environment Variable
+
+In Vercel Dashboard:
+1. Go to your project → **Settings** → **Environment Variables**
+2. Add variable:
+   - **Name:** `VITE_API_URL`
+   - **Value:** `https://ibmdexter-production.up.railway.app/api/v1`
+   - **Environments:** Production, Preview, Development (all)
+3. Click **Save**
+
+> ⚠️ **Important:** Include `/api/v1` at the end of the URL, no trailing slash
+
+#### 2. Redeploy Frontend
+
+After adding the environment variable:
+1. Go to **Deployments** tab in Vercel
+2. Click on the latest deployment
+3. Click **Redeploy** button
+4. Wait for deployment to complete
+
+#### 3. Update Railway CORS Configuration
+
+In Railway Dashboard:
+1. Go to your backend service → **Variables** tab
+2. Add or update these variables:
+   ```bash
+   DEXTER_CORS_ORIGINS=https://ibm-dexter.vercel.app
+   DEXTER_FRONTEND_URL=https://ibm-dexter.vercel.app
+   ```
+3. Railway will automatically redeploy
+
+#### 4. Test the Connection
+
+1. **Test Backend Health:**
+   ```
+   https://ibmdexter-production.up.railway.app/health
+   ```
+   Should return: `{"status":"ok"}`
+
+2. **Test Frontend:**
+   - Visit: `https://ibm-dexter.vercel.app`
+   - Open browser DevTools (F12) → Console
+   - Check for API calls to Railway backend
+   - Verify no CORS errors
+
+### Detailed Setup Guide
+
+For complete step-by-step instructions, troubleshooting, and verification:
+
+📖 **See:** [`VERCEL_FRONTEND_SETUP.md`](./VERCEL_FRONTEND_SETUP.md)
+
+This guide includes:
+- ✅ Detailed configuration steps
+- ✅ Common troubleshooting solutions
+- ✅ Testing and verification procedures
+- ✅ Copy-paste configuration values
+- ✅ Debugging tips and best practices
+
+### Connection Verification Checklist
+
+- [ ] Vercel environment variable `VITE_API_URL` is set
+- [ ] Frontend redeployed after adding variable
+- [ ] Railway CORS variables configured
+- [ ] Backend health check returns OK
+- [ ] Frontend loads without errors
+- [ ] No CORS errors in browser console
+- [ ] API calls reaching Railway backend successfully
+
+---
+
 ## 📚 Additional Resources
 
 - **Railway Documentation:** https://docs.railway.app/
 - **FastAPI Documentation:** https://fastapi.tiangolo.com/
 - **PostgreSQL on Railway:** https://docs.railway.app/databases/postgresql
+- **Vercel Documentation:** https://vercel.com/docs
 - **IBM Dexter Frontend:** https://ibm-dexter.vercel.app/
 - **GitHub Webhooks:** https://docs.github.com/en/webhooks
 - **OpenAI API:** https://platform.openai.com/docs
@@ -697,22 +779,26 @@ Look for:
 
 ## 🎉 Success!
 
-Once deployed, your IBM Dexter backend will be available at:
-```
-https://your-backend.railway.app
-```
+Once deployed and connected, your complete IBM Dexter system will be:
 
-And your complete system will be:
-- **Frontend:** https://ibm-dexter.vercel.app
-- **Backend:** https://your-backend.railway.app
-- **Settings UI:** https://your-backend.railway.app/settings
-- **Health Check:** https://your-backend.railway.app/health
+### Backend (Railway)
+- **API:** `https://ibmdexter-production.up.railway.app`
+- **Health Check:** `https://ibmdexter-production.up.railway.app/health`
+- **API Docs:** `https://ibmdexter-production.up.railway.app/docs`
+- **Settings UI:** `https://ibmdexter-production.up.railway.app/settings`
+
+### Frontend (Vercel)
+- **Application:** `https://ibm-dexter.vercel.app`
+- **Dashboard:** `https://ibm-dexter.vercel.app/app/dashboard`
+- **Settings:** `https://ibm-dexter.vercel.app/app/settings`
 
 ### Remember:
 1. ✅ **Minimal environment variables** in Railway (only 8 variables!)
 2. ✅ **All credentials** configured via Settings UI
 3. ✅ **No redeployment** needed for credential changes
 4. ✅ **Secure and flexible** credential management
+5. ✅ **Frontend connected** to Railway backend via Vercel env vars
+6. ✅ **CORS configured** to allow frontend access
 
 ---
 

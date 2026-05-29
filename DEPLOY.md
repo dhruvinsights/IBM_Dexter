@@ -29,10 +29,31 @@ The app is a **monorepo**: Python **FastAPI** backend under `backend/`, **Vite +
 
 1. New project → Deploy from GitHub → select this repo.
 2. **Root Directory**: `backend`.
-3. **Start Command** (if not using `railway.toml`):  
+3. **Start Command** (if not using `railway.toml`):
    `uvicorn main:app --host 0.0.0.0 --port $PORT`
 4. **Variables**: copy from `backend/.env.example` (use **Variables** tab, not committed `.env`).
 5. For `DEXTER_APP_ENV=production`, you must set **non-default** `DEXTER_JWT_SECRET_KEY`, `DEXTER_API_KEY`, and webhook secrets or the app will refuse to start (`assert_deployment_safe`). For demos use `DEXTER_APP_ENV=development` unless you have real secrets.
+
+### 🤖 Configure LLM Provider (REQUIRED for Production)
+
+**⚠️ CRITICAL:** Ollama only works locally. For Railway production, you **MUST** configure a cloud LLM provider or you'll see "No available LLM providers found" errors.
+
+**Quick Setup (OpenAI - Recommended):**
+1. Get API key: https://platform.openai.com/api-keys
+2. Add to Railway Variables:
+   ```bash
+   DEXTER_OPENAI_API_KEY=sk-...your-key...
+   DEXTER_LLM_PROVIDER=openai
+   DEXTER_DEFAULT_LLM_PROVIDER=openai
+   DEXTER_OPENAI_MODEL=gpt-4o-mini
+   ```
+3. Railway will auto-redeploy
+
+**See `PRODUCTION_LLM_SETUP.md` for:**
+- Detailed setup instructions for OpenAI, Watsonx, and Anthropic
+- Cost estimates and provider comparison
+- Troubleshooting guide
+- Understanding Railway logs
 
 **Frontend**
 
